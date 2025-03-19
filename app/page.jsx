@@ -36,6 +36,9 @@ export default function Home() {
             <Link href="/contributors" className="text-sm hover:text-primary transition-colors">
               Contributors
             </Link>
+            <Link href="/test_backend" className="text-sm hover:text-primary transition-colors">
+              Test Backend
+            </Link>
           </nav>
 
           {/* Mobile Navigation Trigger */}
@@ -119,4 +122,3 @@ function FeatureCard({ title, description, link }) {
     </Card>
   )
 }
-
