@@ -1,0 +1,21 @@
+name: Retrigger Maintainer Approval Check
+
+on:
+  pull_request_review:
+    types:
+      - submitted
+
+jobs:
+  retrigger-approvals:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Re-run Enforce Maintainer Approvals
+        uses: actions/github-script@v7
+        with:
+          github-token: '${{ secrets.PAT_GITHUB }}'
+          script: |
+            await github.rest.actions.reRunWorkflow({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId
+            });
