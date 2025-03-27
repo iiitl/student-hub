@@ -1,0 +1,38 @@
+name: Enforce Maintainer Approvals
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - review_requested
+      - review_submitted
+
+jobs:
+  require-approvals:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check required approvals
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data: reviews } = await github.rest.pulls.listReviews({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
+
+            const maintainers = ["maintainer1", "maintainer2"];
+            let approvals = new Set();
+
+            reviews.forEach(review => {
+              if (review.state === "APPROVED" && maintainers.includes(review.user.login)) {
+                approvals.add(review.user.login);
+              }
+            });
+
+            if (approvals.size < 2) {
+              core.setFailed(`At least 2 maintainer approvals are required. Currently approved by: ${Array.from(approvals).join(', ')}`);
+            }
