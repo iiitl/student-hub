@@ -24,7 +24,7 @@ jobs:
               pull_number: context.payload.pull_request.number,
             });
 
-            const maintainers = ["maintainer1", "maintainer2"];
+            const maintainers = ["MrImmortal09", "whilstsomebody", "TanishMoral11", "ArshiaAdhya", "0PrashantYadav0", "shuklamaneesh23", " gauravghodinde", "Robinaditya1045"];
             let approvals = new Set();
 
             reviews.forEach(review => {
