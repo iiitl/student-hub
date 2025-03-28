@@ -1,0 +1,20 @@
+[
+    {
+      "id": 1,
+      "title": "Understanding React Server Components",
+      "source": "Medium",
+      "url": "https://medium.com/example/react-server-components",
+      "description": "A deep dive into how RSCs work in Next.js",
+      "category": "technology",
+      "date": "2023-10-15"
+    },
+    {
+      "id": 2,
+      "title": "GitHub Actions CI/CD Pipeline",
+      "source": "GitHub",
+      "url": "https://github.blog/example-ci-cd",
+      "description": "Setting up automated workflows with GitHub Actions",
+      "category": "development",
+      "date": "2023-09-28"
+    }
+  ]
