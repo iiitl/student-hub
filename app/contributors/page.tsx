@@ -22,7 +22,6 @@ const RepoDetails: TypeRepoDetails = {
   
 };
 
-
 const Contributors = () => {
   const [contributors, setContributors] = useState<TypeContributors[]>([]);
   const [sortBy, setSortBy] = useState<string>("contributions");
