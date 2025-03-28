@@ -86,7 +86,7 @@ const Contributors = () => {
           <option value="name">Name</option>
         </select>
       </div>
-      <div className="flex flex-wrap gap-6">
+      <div className="flex flex-wrap gap-6 justify-center">
         {contributors.length === 0 && !isLoading && (
           <div className="flex flex-col items-center justify-center w-full py-12">
             <p className="text-xl text-white text-center">No contributors found</p>
