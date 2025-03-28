@@ -1,0 +1,16 @@
+[
+    {
+        "name": "Mountain Bike",
+        "price": 150,
+        "category": "Bicycle",
+        "description": "Slightly used mountain bike in good condition",
+        "contact": "john.doe@university.edu"
+    },
+    {
+        "name": "Desk Fan",
+        "price": 25,
+        "category": "Electronics", 
+        "description": "Small oscillating desk fan, works perfectly",
+        "contact": "jane.smith@university.edu"
+    }
+]
