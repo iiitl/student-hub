@@ -1,57 +1,20 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import MobileNav from "@/components/mobile-nav"
+import Header from "@/components/header"
 import Footer from "@/components/footer"
 
 export default function Home() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="border-b sticky top-0 bg-background z-10">
-        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <Link href="/" className="font-bold text-xl ">
-            StudentHub
-          </Link>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6 bg-blue" >
-            <Link href="/quick-reads" className="text-sm hover:text-primary transition-colors">
-              Quick Reads
-            </Link>
-            <Link href="/notes" className="text-sm hover:text-primary transition-colors">
-              Notes
-            </Link>
-            <Link href="/papers" className="text-sm hover:text-primary transition-colors">
-              Question Papers
-            </Link>
-            <Link href="/marketplace" className="text-sm hover:text-primary transition-colors">
-              Marketplace
-            </Link>
-            <Link href="/chat" className="text-sm hover:text-primary transition-colors">
-              Chat
-            </Link>
-            <Link href="/newcomers" className="text-sm hover:text-primary transition-colors">
-              Newcomers
-            </Link>
-            <Link href="/contributors" className="text-sm hover:text-primary transition-colors">
-              Contributors
-            </Link>
-            <Link href="/test_backend" className="text-sm hover:text-primary transition-colors">
-              Test Backend
-            </Link>
-          </nav>
-
-          {/* Mobile Navigation Trigger */}
-          <MobileNav />
-        </div>
-      </header>
+      <Header />
 
       <main className="flex-1">
         {/* Hero Section */}
         <section className="py-12 md:py-20 bg-gradient-to-b from-background to-muted relative">
           <div className="absolute inset-0 bg-cover bg-center opacity-20" style={{ backgroundImage: "url('/path/to/your/background-image.jpg')" }}></div>
-          <div className="container mx-auto px-4 text-center relative z-10">
+          <div className="container mx-auto px-4 text-center relative">
             <h1 className="text-3xl md:text-5xl font-bold mb-4">Everything You Need, All in One Place</h1>
             <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
               Resources, community, and support for your college journey
