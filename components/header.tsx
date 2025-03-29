@@ -6,7 +6,7 @@ import { headerLinks } from '@/data/header-links'
 
 const Header = () => {
   return (
-    <header className="border-b sticky top-0 bg-background z-10">
+    <header className="border-b sticky top-0 text-foreground bg-background z-40">
         <div className="container mx-auto px-4 py-5 flex justify-between items-center">
             <Link href="/" className="font-extrabold text-2xl ">
                 Student<span className='text-primary'>Hub</span>
