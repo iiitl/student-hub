@@ -1,4 +1,4 @@
-import React from 'react'
+import React , { useCallback } from 'react'
 import { TypeContributors } from "@/types/contributors";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,11 +8,11 @@ type ContributorCardProps = {
 };
 
 const ContributorCard: React.FC<ContributorCardProps> = ({contributor}) => {
-    const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const handleImageError = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
         const target = e.target as HTMLImageElement;
         target.onerror = null;
         target.src = 'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png';
-    };
+    }, []);
           
     return (
         <Card className="flex items-center container w-full sm:w-48 p-6 gap-4 scale-100 hover:scale-105 transition-transform duration-200 bg-primary/50 ease-in-out shadow-md">
@@ -36,15 +36,14 @@ const ContributorCard: React.FC<ContributorCardProps> = ({contributor}) => {
             </div>
             <CardContent className="flex flex-col w-full px-0 text-center">
                 <p className="text-lg font-semibold font-mono truncate" title={`GitHub user: ${contributor.login}`}>{contributor.login}</p>
-                <a href={contributor.html_url} target="_blank" rel="noopener noreferrer">
-                    <Button 
-                        variant="default" 
-                        className="mt-2 cursor-pointer bg-background text-foreground hover:bg-background/80 w-full"
-                        aria-label={`View ${contributor.login}'s GitHub profile`}
-                    >
-                        View Profile
-                    </Button>
-                </a>
+                <Button
+                    variant="default"
+                    className="mt-2 cursor-pointer bg-background text-foreground hover:bg-background/80 w-full"
+                    aria-label={`View ${contributor.login}'s GitHub profile`}
+                    onClick={() => window.open(contributor.html_url, '_blank', 'noopener,noreferrer')}
+                >
+                    View Profile
+                </Button>
             </CardContent>
         </Card>
     )

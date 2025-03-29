@@ -8,12 +8,12 @@ const Contributors = () => {
   if (error)
     return (
       <div className="flex min-h-screen w-full justify-center items-center">
-        <div className="p-6 bg-red-50 border border-red-200 rounded-lg text-center max-w-md">
-          <h2 className="text-xl font-bold text-red-600 mb-2">Unable to load contributors</h2>
-          <p className="text-red-500">{error}</p>
+        <div className="p-6 bg-destructive/10 border border-destructive/20 rounded-lg text-center max-w-md">
+          <h2 className="text-xl font-bold text-destructive mb-2">Unable to load contributors</h2>
+          <p className="text-destructive/90">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="mt-4 px-4 py-2 bg-red-600 text-foreground rounded hover:bg-red-700"
+            className="mt-4 px-4 py-2 bg-destructive text-destructive-foreground rounded hover:bg-destructive/90"
           >
             Try Again
           </button>
@@ -46,12 +46,15 @@ const Contributors = () => {
           </div>
         )}
         {isLoading && (
-          <div className="flex flex-col items-center justify-center w-full py-12">
+          <div 
+            className="flex flex-col items-center justify-center w-full py-12" 
+            role="status"
+          >
             <div
               className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-foreground"
               aria-hidden="true"
             ></div>
-            <p className="mt-4 text-foreground" aria-live="polite">
+            <p className="mt-4 text-foreground" aria-live="assertive">
               Loading contributors...
             </p>
           </div>
