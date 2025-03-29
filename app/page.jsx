@@ -3,49 +3,18 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
+import HeroSection from "@/components/homepage/hero-section"
+import CtaSection from "@/components/homepage/cta-section"
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <Header />
-
+    <div className="flex flex-col">
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="py-12 md:py-20 bg-gradient-to-b from-background to-muted relative">
-          <div className="absolute inset-0 bg-cover bg-center opacity-20" style={{ backgroundImage: "url('/path/to/your/background-image.jpg')" }}></div>
-          <div className="container mx-auto px-4 text-center relative">
-            <h1 className="text-3xl md:text-5xl font-bold mb-4">Everything You Need, All in One Place</h1>
-            <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
-              Resources, community, and support for your college journey
-            </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Button size="lg" asChild className="hover:scale-105 transition-transform">
-                <Link href="/newcomers">New Student Guide</Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild className="hover:scale-105 transition-transform">
-                <Link href="/notes">Browse Notes</Link>
-              </Button>
-            </div>
-          </div>
-        </section>
-
+        <HeroSection />
         {/* CTA Section */}
-        <section className="py-12 md:py-16 bg-muted">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="text-2xl md:text-3xl font-bold mb-4">Join Our Community</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
-              Connect with fellow students, share resources, and make your college experience better
-            </p>
-            <Button size="lg" asChild className="hover:scale-105 transition-transform">
-              <Link href="/chat">Start Chatting</Link>
-            </Button>
-          </div>
-        </section>
+        <CtaSection />
       </main>
-
-      {/* Footer */}
-      <Footer />
     </div>
   )
 }
