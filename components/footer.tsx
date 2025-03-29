@@ -4,7 +4,7 @@ import { footerLinks } from "@/data/footer-links"
 
 const Footer = () => {
   return (
-    <footer className="border-t py-8">
+    <footer className="border-t py-8 text-foreground bg-background">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-around items-center">
           <div className="flex flex-wrap flex-col md:flex-row justify-around items-center md:items-start gap-8 md:gap-6 text-sm w-full px-2">
