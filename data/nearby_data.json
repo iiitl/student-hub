@@ -16,9 +16,7 @@
       },
       {
         "name": "DR BR Ambedkar Park ",
-
         "category": "Landmarks",
-
         "address": "789 Heritage Lane, Old Town",
         "map_link": "https://maps.app.goo.gl/FXhyBdNQ9C5PQb737",
         "image": "https://images.app.goo.gl/bhxCzt86F8roeKfbA"
@@ -29,27 +27,22 @@
         "address": "101 Market St, Shopping District",
         "map_link": "https://maps.app.goo.gl/rc1bpU9zSCPUpboM6",
         "image": "https://images.app.goo.gl/7e2soByQzbmuDz9K7"
-      
+
       },
       {
         "name": "Plassio Mall ",
-
         "category": "Shop",
-
         "address": "Ahmamau , Sultanpr road ",
         "map_link": "https://maps.app.goo.gl/yXX3fZZgcqcDWY5N6",
         "image": "https://images.app.goo.gl/6jyhMSM7YLFPX4V66"
       },
       {
         "name": "Chhota Imambada ",
-
         "category": "landmarks",
-
         "address": "303 Innovation Blvd, Tech District",
         "map_link": "https://maps.app.goo.gl/ojNq7t6LZF3EKg7NA",
         "image": "https://images.app.goo.gl/ejpAvYhUJ82cZ4aH7"
       }
     ]
-
   }
 
