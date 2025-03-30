@@ -4,12 +4,12 @@ import React, { useState, useEffect } from "react";
 import { Hotel, Utensils, ShoppingBag, Landmark, MapPin } from "lucide-react";
 import locationData from "../../data/nearby_data.json";
 
-const categories = ["All", "Restaurant", "Hotel", "Tourist Spot", "Shop"];
+const categories = ["All", "Restaurant", "Hotel", "Landmarks", "Shop"];
 
 const categoryIcons = {
   Restaurant: <Utensils size={40} className="text-red-500" />,
   Hotel: <Hotel size={40} className="text-blue-500" />,
-  "Tourist Spot": <Landmark size={40} className="text-green-500" />,
+  Landmarks: <Landmark size={40} className="text-green-500" />,
   Shop: <ShoppingBag size={40} className="text-yellow-500" />,
   Default: <MapPin size={40} className="text-gray-500" />, // Fallback icon
 };
@@ -22,8 +22,11 @@ const NewcomersPage = () => {
   useEffect(() => {
     const filtered = locationData.locations.filter((location) => {
       return (
-        (selectedCategory === "All" || location.category === selectedCategory) &&
-        location.name.toLowerCase().includes(searchQuery.toLowerCase())
+        (selectedCategory === "All" || location.category.trim() === selectedCategory) &&
+        (
+            location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            location.address.toLowerCase().includes(searchQuery.toLowerCase())
+          )
       );
     });
     setFilteredLocations(filtered);
@@ -84,7 +87,13 @@ const NewcomersPage = () => {
 
               {/* View on Map Button */}
               <button
-                onClick={() => window.open(location.map_link, "_blank")}
+                onClick={() => {
+   if (location.map_link) {
+      window.open(location.map_link, "_blank", "noopener,noreferrer");
+    }
+  }}
+  aria-label={`View ${location.name.trim()} on map`}
+  disabled={!location.map_link}
                 className="mt-3 w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all"
               >
                 View on Map
