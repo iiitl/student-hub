@@ -4,12 +4,12 @@ import React, { useState, useEffect } from "react";
 import { Hotel, Utensils, ShoppingBag, Landmark, MapPin } from "lucide-react";
 import locationData from "../../data/nearby_data.json";
 
-const categories = ["All", "Restaurant", "Hotel", "Tourist Spot", "Shop"];
+const categories = ["All", "Restaurant", "Hotel", "Landmarks", "Shop"];
 
 const categoryIcons = {
   Restaurant: <Utensils size={40} className="text-red-500" />,
   Hotel: <Hotel size={40} className="text-blue-500" />,
-  "Tourist Spot": <Landmark size={40} className="text-green-500" />,
+  Landmark: <Landmark size={40} className="text-green-500" />,
   Shop: <ShoppingBag size={40} className="text-yellow-500" />,
   Default: <MapPin size={40} className="text-gray-500" />, // Fallback icon
 };
