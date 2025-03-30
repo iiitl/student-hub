@@ -1,10 +1,10 @@
-"use client";
+'use client'
 
-import React, { useState, useEffect } from "react";
-import { Hotel, Utensils, ShoppingBag, Landmark, MapPin } from "lucide-react";
-import locationData from "../../data/nearby_data.json";
+import React, { useState, useEffect } from 'react'
+import { Hotel, Utensils, ShoppingBag, Landmark, MapPin } from 'lucide-react'
+import locationData from '../../data/nearby_data.json'
 
-const categories = ["All", "Restaurant", "Hotel", "Landmarks", "Shop"];
+const categories = ['All', 'Restaurant', 'Hotel', 'Landmarks', 'Shop']
 
 const categoryIcons = {
   Restaurant: <Utensils size={40} className="text-red-500" />,
@@ -12,25 +12,24 @@ const categoryIcons = {
   Landmarks: <Landmark size={40} className="text-green-500" />,
   Shop: <ShoppingBag size={40} className="text-yellow-500" />,
   Default: <MapPin size={40} className="text-gray-500" />, // Fallback icon
-};
+}
 
 const NewcomersPage = () => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [filteredLocations, setFilteredLocations] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('All')
+  const [filteredLocations, setFilteredLocations] = useState([])
 
   useEffect(() => {
     const filtered = locationData.locations.filter((location) => {
       return (
-        (selectedCategory === "All" || location.category.trim() === selectedCategory) &&
-           (
-            location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            location.address.toLowerCase().includes(searchQuery.toLowerCase())
-          )
-      );
-    });
-    setFilteredLocations(filtered);
-  }, [searchQuery, selectedCategory]);
+        (selectedCategory === 'All' ||
+          location.category.trim() === selectedCategory) &&
+        (location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          location.address.toLowerCase().includes(searchQuery.toLowerCase()))
+      )
+    })
+    setFilteredLocations(filtered)
+  }, [searchQuery, selectedCategory])
 
   return (
     <div className="container mx-auto p-6 max-w-6xl">
@@ -54,8 +53,8 @@ const NewcomersPage = () => {
             key={category}
             className={`px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 transition-all ${
               selectedCategory === category
-                ? "bg-blue-600 text-white"
-                : "bg-gray-200 dark:bg-gray-700 dark:text-white"
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-200 dark:bg-gray-700 dark:text-white'
             }`}
             onClick={() => setSelectedCategory(category)}
           >
@@ -74,7 +73,7 @@ const NewcomersPage = () => {
             >
               {/* Icon Based on Category */}
               <div className="flex justify-center mb-3">
-                {categoryIcons[location.category] || categoryIcons["Default"]}
+                {categoryIcons[location.category] || categoryIcons['Default']}
               </div>
 
               {/* Details */}
@@ -88,12 +87,16 @@ const NewcomersPage = () => {
               {/* View on Map Button */}
               <button
                 onClick={() => {
-   if (location.map_link) {
-      window.open(location.map_link, "_blank", "noopener,noreferrer");
-    }
-  }}
-  aria-label={`View ${location.name.trim()} on map`}
-  disabled={!location.map_link}
+                  if (location.map_link) {
+                    window.open(
+                      location.map_link,
+                      '_blank',
+                      'noopener,noreferrer'
+                    )
+                  }
+                }}
+                aria-label={`View ${location.name.trim()} on map`}
+                disabled={!location.map_link}
                 className="mt-3 w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all"
               >
                 View on Map
@@ -107,7 +110,7 @@ const NewcomersPage = () => {
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default NewcomersPage;
+export default NewcomersPage

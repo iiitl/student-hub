@@ -1,14 +1,20 @@
-"use client"
+'use client'
 
-import type React from "react"
+import type React from 'react'
 
-import { useState } from "react"
-import Link from "next/link"
-import { Menu } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { headerLinks } from "@/data/header-links"
-import ThemeToggle from "./theme-toggler"
+import { useState } from 'react'
+import Link from 'next/link'
+import { Menu } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
+import { headerLinks } from '@/data/header-links'
+import ThemeToggle from './theme-toggler'
 
 export default function MobileNav() {
   const [open, setOpen] = useState(false)
@@ -25,7 +31,9 @@ export default function MobileNav() {
         </SheetTrigger>
         <SheetContent side="right" className="w-[300px] sm:w-[400px]">
           <SheetHeader>
-            <SheetTitle className="text-left text-2xl text-primary">Menu</SheetTitle>
+            <SheetTitle className="text-left text-2xl text-primary">
+              Menu
+            </SheetTitle>
           </SheetHeader>
           <nav className="flex flex-col gap-2 ml-4">
             {headerLinks.map((link, index) => (
@@ -59,4 +67,3 @@ function MobileNavLink({
     </Link>
   )
 }
-
