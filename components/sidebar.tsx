@@ -1,3 +1,6 @@
+import React from "react";
+import { GiHamburgerMenu } from "react-icons/gi";
+import { RxCross1 } from "react-icons/rx";
 
 interface Participant {
   avatar?: string;
@@ -9,10 +12,17 @@ interface SidebarProps {
 }
 
 const Sidebar:React.FC<SidebarProps> = ({ participants }) => {
+    const [isOpen, setIsOpen] = React.useState(false);
+    const toggleSidebar = () => {
+      setIsOpen(!isOpen);
+    };
     return (
-      <div className="bg-muted p-4 w-64 border-r border-gray-300">
-        <h3 className="text-lg font-semibold mb-4">Participants</h3>
-        <ul>
+      <div className={`bg-muted p-4 ${isOpen ? 'w-16' : 'w-64'} transition-all duration-300 ease-in-out border-r border-gray-300`}>
+        <button onClick={toggleSidebar} className="text-xl">
+          {isOpen ? <GiHamburgerMenu />: <RxCross1 /> } 
+        </button><br/>
+        {!isOpen && <h3 className="text-lg font-semibold">Participants</h3>}
+        {!isOpen &&(<ul>
           {participants.map((participant, index) => (
             <li key={index} className="flex items-center mb-4">
               <img
@@ -23,7 +33,7 @@ const Sidebar:React.FC<SidebarProps> = ({ participants }) => {
               <span className="text-muted-foreground">{participant.name}</span>
             </li>
           ))}
-        </ul>
+        </ul>)}
       </div>
     );
   };

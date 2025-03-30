@@ -12,7 +12,8 @@ export default function Message({message,user}:MessageProps) {
     return(
         <div className={`flex ${message.sender === user ? 'flex-row-reverse' : ''} mb-4`}>
             <img src={message.senderAvatar} alt={message.sender} className="w-10 h-10 rounded-full mr-3" />
-            <div className="max-w-[60%] bg-muted-200 p-3 rounded-xl shadow-md dark:shadow-lg dark:shadow-gray-500">
+            <div className="max-w-[60%] bg-muted-200 p-3 rounded-xl shadow-md dark:shadow-lg dark:shadow-white/50">
+                <p>{message.sender}</p>
                 <p className="text-muted-foreground">{message.text}</p>
                 <span className="text-sm text-muted-foreground">{message.timestamp}</span>
             </div>
