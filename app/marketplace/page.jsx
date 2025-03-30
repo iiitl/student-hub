@@ -36,8 +36,10 @@ const Marketplace = () => {
     if (!formData.name) newErrors.name = "Name is required";
     if (!formData.description) newErrors.description = "Description is required";
     if (!formData.price) newErrors.price = "Price is required";
+    if (formData.price && parseFloat(formData.price) <= 0) newErrors.price = "Price must be greater than zero";
     // if (!formData.seller) newErrors.seller = "Seller name is required";
     if (!formData.contact) newErrors.contact = "Contact number is required";
+    if (formData.contact && !/^\d{10}$/.test(formData.contact)) newErrors.contact = "Please enter a valid 10-digit phone number";
     // if (!formData.location) newErrors.location = "Location is required";
     
     if (Object.keys(newErrors).length > 0) {
