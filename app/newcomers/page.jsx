@@ -23,8 +23,10 @@ const NewcomersPage = () => {
     const filtered = locationData.locations.filter((location) => {
       return (
         (selectedCategory === "All" || location.category.trim() === selectedCategory) &&
-        location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        location.address.toLowerCase().includes(searchQuery.toLowerCase()))
+       (
+            location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            location.address.toLowerCase().includes(searchQuery.toLowerCase())
+          )
       );
     });
     setFilteredLocations(filtered);
