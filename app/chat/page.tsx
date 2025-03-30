@@ -44,7 +44,7 @@ export default function page() {
       <Header/>
       <div className="flex flex-1">
         <Sidebar participants={participants} />
-        <div className="flex-1 flex flex-col p-6 bg-">
+        <div className="flex-1 flex flex-col p-6">
           <div className="flex-1 overflow-y-auto">
             {messages.map((msg, index) => (
               <Message key={index} message={msg} user="User1" />
