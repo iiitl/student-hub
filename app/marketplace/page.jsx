@@ -142,6 +142,9 @@ const Marketplace = () => {
                 {item.description}
               </p>
               <p className="text-center text-lg font-semibold">₹{item.price}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-2">
+                Contact: {item.contact}
+              </p>
             </div>
           ))
         ) : (
