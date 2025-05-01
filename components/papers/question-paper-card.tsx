@@ -9,7 +9,7 @@ type QuestionPaperCardProps = {
 }
 
 // Path to question paper files, configurable via environment variable
-const FILE_PATH = process.env.NEXT_PUBLIC_FILES_PATH || '/files/'
+const FILE_PATH = process.env.NEXT_PUBLIC_FILES_PATH || '/'
 
 const QuestionPaperCard: React.FC<QuestionPaperCardProps> = ({
   questionPaper,
@@ -34,7 +34,7 @@ const QuestionPaperCard: React.FC<QuestionPaperCardProps> = ({
         </a>
         <a
           className="cursor-pointer bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors duration-200"
-          href={`${FILE_PATH}${questionPaper.url}`}
+          href={`${questionPaper.viewUrl || questionPaper.url}`}
           rel="noopener noreferrer"
           target="_blank"
           aria-label={`View ${questionPaper.subject} question paper`}

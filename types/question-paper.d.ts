@@ -11,4 +11,6 @@ export type TypeQuestionPaper = {
   exam: 'Mid' | 'End' | 'Both'
   /** The URL or path to the question paper file */
   url: string
+  /** The URL or path to view the question paper */
+  viewUrl?: string
 }
