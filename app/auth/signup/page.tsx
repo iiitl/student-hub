@@ -68,8 +68,12 @@ export default function SignUp() {
       // Redirect to home page
       router.push('/')
       router.refresh()
-    } catch (error: any) {
-      setError(error.message || 'Something went wrong. Please try again.')
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Something went wrong. Please try again.'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -95,12 +99,16 @@ export default function SignUp() {
             <div className="bg-white p-1 rounded-full">
               <FcGoogle className="h-5 w-5" />
             </div>
-            <span className="text-gray-800 dark:text-gray-200">Continue with Google</span>
+            <span className="text-gray-800 dark:text-gray-200">
+              Continue with Google
+            </span>
           </button>
 
           <div className="mt-6 mb-6 flex items-center">
             <div className="flex-grow border-t border-gray-200 dark:border-gray-700"></div>
-            <span className="mx-4 text-gray-500 dark:text-gray-400 text-sm">or sign up with email</span>
+            <span className="mx-4 text-gray-500 dark:text-gray-400 text-sm">
+              or sign up with email
+            </span>
             <div className="flex-grow border-t border-gray-200 dark:border-gray-700"></div>
           </div>
 
@@ -204,7 +212,7 @@ export default function SignUp() {
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="••••••••" 
+                  placeholder="••••••••"
                   className="block w-full rounded-md border border-gray-300 dark:border-gray-700 px-4 py-3 pl-10 shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/30 focus:outline-none sm:text-sm bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100"
                 />
               </div>
@@ -234,4 +242,4 @@ export default function SignUp() {
       </div>
     </div>
   )
-} 
+}

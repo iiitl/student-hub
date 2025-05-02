@@ -31,7 +31,10 @@ export default function MobileNav() {
             <span className="sr-only">Toggle menu</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="right" className="w-[300px] sm:w-[400px] flex flex-col">
+        <SheetContent
+          side="right"
+          className="w-[300px] sm:w-[400px] flex flex-col"
+        >
           <SheetHeader>
             <SheetTitle className="text-left text-2xl text-primary">
               Menu

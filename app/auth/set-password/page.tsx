@@ -13,18 +13,18 @@ export default function SetPassword() {
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
   const [isFirstTimeUser, setIsFirstTimeUser] = useState(false)
-  
+
   const router = useRouter()
   const searchParams = useSearchParams()
-  
+
   useEffect(() => {
     const emailParam = searchParams.get('email')
     const isNew = searchParams.get('new')
-    
+
     if (emailParam) {
       setEmail(emailParam)
     }
-    
+
     if (isNew === 'true') {
       setIsFirstTimeUser(true)
     }
@@ -69,8 +69,12 @@ export default function SetPassword() {
       setTimeout(() => {
         router.push('/auth/signin')
       }, 2000)
-    } catch (error: any) {
-      setError(error.message || 'Something went wrong. Please try again.')
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Something went wrong. Please try again.'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -85,9 +89,17 @@ export default function SetPassword() {
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400 mb-6">
             {isFirstTimeUser ? (
-              <>You've successfully signed in with Google! Set a password to also access your account with email.</>
+              <>
+                You&apos;ve successfully signed in with Google! Set a password
+                to also access your account with email.
+              </>
             ) : (
-              <>You previously signed in with Google.<br />Setting a password will allow you to sign in with your email and password.</>
+              <>
+                You previously signed in with Google.
+                <br />
+                Setting a password will allow you to sign in with your email and
+                password.
+              </>
             )}
           </p>
 
@@ -97,13 +109,13 @@ export default function SetPassword() {
                 {error}
               </div>
             )}
-            
+
             {success && (
               <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/30 text-green-700 dark:text-green-400 px-4 py-3 rounded-md text-sm">
                 Password set successfully! Redirecting to sign in...
               </div>
             )}
-            
+
             <div>
               <label
                 htmlFor="email"
@@ -192,11 +204,23 @@ export default function SetPassword() {
           <p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
             {isFirstTimeUser ? (
               <>
-                Or continue to <Link href="/" className="font-semibold leading-6 text-primary hover:text-primary/90">Dashboard</Link>
+                Or continue to{' '}
+                <Link
+                  href="/"
+                  className="font-semibold leading-6 text-primary hover:text-primary/90"
+                >
+                  Dashboard
+                </Link>
               </>
             ) : (
               <>
-                Return to <Link href="/auth/signin" className="font-semibold leading-6 text-primary hover:text-primary/90">Sign in</Link>
+                Return to{' '}
+                <Link
+                  href="/auth/signin"
+                  className="font-semibold leading-6 text-primary hover:text-primary/90"
+                >
+                  Sign in
+                </Link>
               </>
             )}
           </p>
@@ -204,4 +228,4 @@ export default function SetPassword() {
       </div>
     </div>
   )
-} 
+}

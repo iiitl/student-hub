@@ -9,4 +9,4 @@ interface AuthProviderProps {
 
 export default function AuthProvider({ children }: AuthProviderProps) {
   return <SessionProvider>{children}</SessionProvider>
-} 
+}

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Mail } from 'lucide-react'
 
@@ -10,7 +9,6 @@ export default function ForgotPassword() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
-  const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,8 +33,12 @@ export default function ForgotPassword() {
 
       setSuccess(true)
       setEmail('')
-    } catch (error: any) {
-      setError(error.message || 'Something went wrong. Please try again.')
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Something went wrong. Please try again.'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -81,7 +83,8 @@ export default function ForgotPassword() {
                   />
                 </div>
                 <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                  We'll send you an email with a link to reset your password.
+                  We&apos;ll send you an email with a link to reset your
+                  password.
                 </p>
               </div>
 
@@ -101,7 +104,8 @@ export default function ForgotPassword() {
                 Password reset link sent! Check your email for instructions.
               </div>
               <p className="text-center text-sm text-gray-500 dark:text-gray-400 mb-4">
-                If you don't see the email, check your spam folder or try again.
+                If you don&apos;t see the email, check your spam folder or try
+                again.
               </p>
               <button
                 onClick={() => setSuccess(false)}
@@ -125,4 +129,4 @@ export default function ForgotPassword() {
       </div>
     </div>
   )
-} 
+}

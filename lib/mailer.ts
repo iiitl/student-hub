@@ -21,7 +21,7 @@ export const sendPasswordResetEmail = async (
   const transporter = createTransporter()
 
   const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/reset-password?token=${resetToken}`
-  
+
   const mailOptions = {
     from: `${process.env.EMAIL_SERVER_USER}`,
     to: email,
@@ -69,4 +69,4 @@ export const sendPasswordResetEmail = async (
     console.error('Error sending email:', error)
     return { success: false, error }
   }
-} 
+}

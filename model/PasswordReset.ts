@@ -22,7 +22,7 @@ const PasswordResetSchema: Schema = new Schema(
     expires: {
       type: Date,
       required: [true, 'Expiry date is required'],
-    }
+    },
   },
   {
     timestamps: true,
@@ -35,7 +35,8 @@ PasswordResetSchema.index({ expires: 1 }, { expireAfterSeconds: 0 })
 // Add compound index for email and token
 PasswordResetSchema.index({ email: 1, token: 1 })
 
-const PasswordReset: Model<IPasswordReset> = mongoose.models.PasswordReset || 
+const PasswordReset: Model<IPasswordReset> =
+  mongoose.models.PasswordReset ||
   mongoose.model<IPasswordReset>('PasswordReset', PasswordResetSchema)
 
-export default PasswordReset 
+export default PasswordReset

@@ -14,10 +14,10 @@ export default function ResetPassword() {
   const [loading, setLoading] = useState(false)
   const [tokenValid, setTokenValid] = useState<boolean | null>(null)
   const [validating, setValidating] = useState(true)
-  
+
   const router = useRouter()
   const searchParams = useSearchParams()
-  
+
   useEffect(() => {
     const tokenParam = searchParams.get('token')
     if (tokenParam) {
@@ -29,19 +29,22 @@ export default function ResetPassword() {
       setValidating(false)
     }
   }, [searchParams])
-  
+
   const validateToken = async (token: string) => {
     try {
-      const response = await fetch(`/api/auth/validate-reset-token?token=${token}`)
+      const response = await fetch(
+        `/api/auth/validate-reset-token?token=${token}`
+      )
       const data = await response.json()
-      
+
       if (response.ok) {
         setTokenValid(true)
       } else {
         setTokenValid(false)
         setError(data.message || 'Invalid or expired token')
       }
-    } catch (error) {
+    } catch {
+      // Error doesn't need to be used since we have a generic fallback message
       setTokenValid(false)
       setError('Failed to validate token')
     } finally {
@@ -84,13 +87,17 @@ export default function ResetPassword() {
       }
 
       setSuccess(true)
-      
+
       // Redirect to sign in page after 2 seconds
       setTimeout(() => {
         router.push('/auth/signin')
       }, 2000)
-    } catch (error: any) {
-      setError(error.message || 'Something went wrong. Please try again.')
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Something went wrong. Please try again.'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -123,7 +130,7 @@ export default function ResetPassword() {
               <p className="text-center text-sm text-gray-500 dark:text-gray-400 mb-4">
                 Please request a new password reset link.
               </p>
-              <Link 
+              <Link
                 href="/auth/forgot-password"
                 className="flex w-full justify-center rounded-md bg-primary/10 dark:bg-primary/20 px-4 py-3 text-sm font-semibold leading-6 text-primary hover:bg-primary/20 dark:hover:bg-primary/30 transition-all"
               >
@@ -135,7 +142,8 @@ export default function ResetPassword() {
               {success ? (
                 <div>
                   <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/30 text-green-700 dark:text-green-400 px-4 py-3 rounded-md mb-6">
-                    Password reset successfully! You can now sign in with your new password.
+                    Password reset successfully! You can now sign in with your
+                    new password.
                   </div>
                   <p className="text-center text-sm text-gray-500 dark:text-gray-400 mb-4">
                     Redirecting to sign in page...
@@ -226,4 +234,4 @@ export default function ResetPassword() {
       </div>
     </div>
   )
-} 
+}
