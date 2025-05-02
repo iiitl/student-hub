@@ -12,9 +12,11 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
+  SheetFooter,
 } from '@/components/ui/sheet'
 import { headerLinks } from '@/data/header-links'
 import ThemeToggle from './theme-toggler'
+import AuthNav from './auth/auth-nav'
 
 export default function MobileNav() {
   const [open, setOpen] = useState(false)
@@ -29,19 +31,24 @@ export default function MobileNav() {
             <span className="sr-only">Toggle menu</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+        <SheetContent side="right" className="w-[300px] sm:w-[400px] flex flex-col">
           <SheetHeader>
             <SheetTitle className="text-left text-2xl text-primary">
               Menu
             </SheetTitle>
           </SheetHeader>
-          <nav className="flex flex-col gap-2 ml-4">
+          <nav className="flex flex-col gap-2 ml-4 flex-1">
             {headerLinks.map((link, index) => (
               <MobileNavLink key={index} href={link.url} setOpen={setOpen}>
                 {link.name}
               </MobileNavLink>
             ))}
           </nav>
+          <SheetFooter className="mt-auto pt-4 border-t">
+            <div className="w-full flex justify-center">
+              <AuthNav />
+            </div>
+          </SheetFooter>
         </SheetContent>
       </Sheet>
     </div>

@@ -3,6 +3,7 @@ import React from 'react'
 import MobileNav from '@/components/mobile-nav'
 import ThemeToggle from './theme-toggler'
 import { headerLinks } from '@/data/header-links'
+import AuthNav from '@/components/auth/auth-nav'
 
 const Header = () => {
   return (
@@ -24,6 +25,7 @@ const Header = () => {
             </Link>
           ))}
           <ThemeToggle />
+          <AuthNav />
         </nav>
 
         {/* Mobile Navigation Trigger */}
