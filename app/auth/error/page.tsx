@@ -6,23 +6,35 @@ import Link from 'next/link'
 
 export default function AuthError() {
   const searchParams = useSearchParams()
-  const [errorMessage, setErrorMessage] = useState<string>('An error occurred during authentication.')
-  
+  const [errorMessage, setErrorMessage] = useState<string>(
+    'An error occurred during authentication.'
+  )
+
   useEffect(() => {
     const error = searchParams.get('error')
-    
+
     if (error === 'OAuthSignin' || error === 'OAuthCallback') {
-      setErrorMessage('There was a problem with the Google sign-in process. Please try again.')
+      setErrorMessage(
+        'There was a problem with the Google sign-in process. Please try again.'
+      )
     } else if (error === 'OAuthAccountNotLinked') {
-      setErrorMessage('This email is already associated with another account using a different sign-in method.')
+      setErrorMessage(
+        'This email is already associated with another account using a different sign-in method.'
+      )
     } else if (error === 'EmailSignin') {
-      setErrorMessage('There was a problem sending the email for sign-in. Please try again.')
+      setErrorMessage(
+        'There was a problem sending the email for sign-in. Please try again.'
+      )
     } else if (error === 'CredentialsSignin') {
-      setErrorMessage('The email or password you entered is incorrect. Please try again.')
+      setErrorMessage(
+        'The email or password you entered is incorrect. Please try again.'
+      )
     } else if (error === 'SessionRequired') {
       setErrorMessage('You need to be signed in to access this page.')
     } else if (error === 'PASSWORD_NOT_SET') {
-      setErrorMessage('You need to set a password for your account. You previously signed in with Google.')
+      setErrorMessage(
+        'You need to set a password for your account. You previously signed in with Google.'
+      )
     }
   }, [searchParams])
 
@@ -33,7 +45,7 @@ export default function AuthError() {
           <h2 className="text-xl font-semibold mb-2">Authentication Error</h2>
           <p>{errorMessage}</p>
         </div>
-        
+
         <div className="flex flex-col gap-4 mt-6">
           <Link
             href="/auth/signin"
@@ -41,7 +53,7 @@ export default function AuthError() {
           >
             Back to Sign In
           </Link>
-          
+
           <Link
             href="/"
             className="flex w-full justify-center rounded-md bg-gray-100 px-3 py-2 text-sm font-semibold leading-6 text-gray-900 shadow-sm hover:bg-gray-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
@@ -52,4 +64,4 @@ export default function AuthError() {
       </div>
     </div>
   )
-} 
+}

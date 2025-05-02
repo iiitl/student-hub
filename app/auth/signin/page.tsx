@@ -38,8 +38,12 @@ export default function SignIn() {
         router.push('/')
         router.refresh()
       }
-    } catch (error) {
-      setError('Something went wrong. Please try again.')
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Something went wrong. Please try again.'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -65,12 +69,16 @@ export default function SignIn() {
             <div className="bg-white p-1 rounded-full">
               <FcGoogle className="h-5 w-5" />
             </div>
-            <span className="text-gray-800 dark:text-gray-200">Continue with Google</span>
+            <span className="text-gray-800 dark:text-gray-200">
+              Continue with Google
+            </span>
           </button>
 
           <div className="mt-6 mb-6 flex items-center">
             <div className="flex-grow border-t border-gray-200 dark:border-gray-700"></div>
-            <span className="mx-4 text-gray-500 dark:text-gray-400 text-sm">or continue with email</span>
+            <span className="mx-4 text-gray-500 dark:text-gray-400 text-sm">
+              or continue with email
+            </span>
             <div className="flex-grow border-t border-gray-200 dark:border-gray-700"></div>
           </div>
 
@@ -152,7 +160,7 @@ export default function SignIn() {
           </form>
 
           <p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link
               href="/auth/signup"
               className="font-semibold leading-6 text-primary hover:text-primary/90"
@@ -164,4 +172,4 @@ export default function SignIn() {
       </div>
     </div>
   )
-} 
+}

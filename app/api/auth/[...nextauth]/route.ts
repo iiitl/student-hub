@@ -4,7 +4,30 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcrypt'
 import dbConnect from '@/lib/dbConnect'
 import User, { IUser } from '@/model/User'
-import { Types } from 'mongoose'
+import mongoose from 'mongoose'
+
+// Define a type for objects that might be Mongoose documents
+type PossibleMongooseDocument = unknown
+
+// Type guard to check if a value is a Mongoose document with _id
+function isMongooseDocument(
+  obj: PossibleMongooseDocument
+): obj is { _id: mongoose.Types.ObjectId } {
+  if (!obj || typeof obj !== 'object') return false
+
+  // Use type predicates to narrow down the type
+  const maybeDoc = obj as Record<string, unknown>
+
+  return (
+    '_id' in maybeDoc &&
+    maybeDoc._id !== null &&
+    maybeDoc._id !== undefined &&
+    typeof maybeDoc._id === 'object' &&
+    // Check for toString method on _id
+    'toString' in maybeDoc._id &&
+    typeof maybeDoc._id.toString === 'function'
+  )
+}
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -26,7 +49,9 @@ export const authOptions: AuthOptions = {
         await dbConnect()
 
         // Find user by email
-        const user = await User.findOne({ email: credentials.email.toLowerCase() }) as IUser | null
+        const user = await User.findOne({
+          email: credentials.email.toLowerCase(),
+        })
 
         if (!user) {
           throw new Error('User not found')
@@ -38,14 +63,26 @@ export const authOptions: AuthOptions = {
         }
 
         // Compare password
-        const isCorrectPassword = await bcrypt.compare(credentials.password, user.password)
+        const isCorrectPassword = await bcrypt.compare(
+          credentials.password,
+          user.password
+        )
 
         if (!isCorrectPassword) {
           throw new Error('Invalid password')
         }
 
+        // Safe way to handle Mongoose _id
+        let userId = ''
+        if (isMongooseDocument(user)) {
+          userId = user._id.toString()
+        } else {
+          // Fallback for TypeScript
+          userId = String(user._id)
+        }
+
         return {
-          id: user._id.toString(),
+          id: userId,
           name: user.name,
           email: user.email,
           image: user.image,
@@ -59,39 +96,46 @@ export const authOptions: AuthOptions = {
   },
   callbacks: {
     async signIn({ user, account }) {
-      if (account?.provider === 'google' && user.email) {
-        await dbConnect()
-        
-        // Check if user already exists
-        const existingUser = await User.findOne({ email: user.email as string }) as IUser | null
-        let isNewUser = false;
-        
-        if (existingUser) {
-          // Update Google ID if needed
-          if (!existingUser.googleId && user.id) {
-            existingUser.googleId = user.id as string
-            existingUser.image = user.image
-            await existingUser.save()
-          }
-        } else {
-          // Create new user from Google auth
-          await User.create({
-            name: user.name,
-            email: user.email,
-            image: user.image,
-            googleId: user.id,
-            passwordSet: false,
-          })
-          isNewUser = true;
-        }
-        
-        // For new Google users or existing Google users without a password set,
-        // we'll redirect them to the set-password page after successful login
-        if (isNewUser || (existingUser && !existingUser.passwordSet)) {
-          return `/auth/set-password?email=${encodeURIComponent(user.email as string)}${isNewUser ? '&new=true' : ''}`
-        }
+      // Skip if not Google sign in or if email is missing
+      if (account?.provider !== 'google' || !user.email) {
+        return true
       }
-      
+
+      await dbConnect()
+
+      // Check if user already exists
+      const existingUser = (await User.findOne({
+        email:
+          typeof user.email === 'string' ? user.email.toLowerCase() : undefined,
+      })) as IUser | null
+
+      let isNewUser = false
+
+      if (existingUser) {
+        // Update Google ID if needed
+        if (!existingUser.googleId && user.id) {
+          existingUser.googleId = user.id
+          existingUser.image = user.image || undefined // Convert null to undefined
+          await existingUser.save()
+        }
+      } else if (user.email) {
+        // Create new user from Google auth
+        await User.create({
+          name: user.name,
+          email: user.email,
+          image: user.image || undefined, // Convert null to undefined
+          googleId: user.id,
+          passwordSet: false,
+        })
+        isNewUser = true
+      }
+
+      // For new Google users or existing Google users without a password set
+      if (isNewUser || (existingUser && !existingUser.passwordSet)) {
+        const email = user.email || ''
+        return `/auth/set-password?email=${encodeURIComponent(email)}${isNewUser ? '&new=true' : ''}`
+      }
+
       return true
     },
     async session({ session, token }) {
@@ -101,8 +145,8 @@ export const authOptions: AuthOptions = {
       return session
     },
     async jwt({ token, user }) {
-      if (user && 'id' in user) {
-        token.id = user.id as string
+      if (user) {
+        token.id = user.id
       }
       return token
     },
@@ -115,4 +159,4 @@ export const authOptions: AuthOptions = {
 
 const handler = NextAuth(authOptions)
 
-export { handler as GET, handler as POST } 
+export { handler as GET, handler as POST }

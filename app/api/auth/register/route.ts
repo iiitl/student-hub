@@ -6,9 +6,9 @@ import User from '@/model/User'
 export async function POST(request: NextRequest) {
   try {
     await dbConnect()
-    
+
     const { name, email, password } = await request.json()
-    
+
     // Basic validation
     if (!name || !email || !password) {
       return NextResponse.json(
@@ -16,32 +16,33 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-    
+
     // Check if user already exists
     const existingUser = await User.findOne({ email: email.toLowerCase() })
-    
+
     if (existingUser) {
       // If user exists and was created with Google, we should not allow them to register
       // They should set a password instead
       if (existingUser.googleId) {
         return NextResponse.json(
-          { 
-            message: 'An account with this email already exists. It was created with Google. Please sign in with Google or use the forgot password option.',
-            type: 'GOOGLE_ACCOUNT'
+          {
+            message:
+              'An account with this email already exists. It was created with Google. Please sign in with Google or use the forgot password option.',
+            type: 'GOOGLE_ACCOUNT',
           },
           { status: 409 }
         )
       }
-      
+
       return NextResponse.json(
         { message: 'An account with this email already exists' },
         { status: 409 }
       )
     }
-    
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10)
-    
+
     // Create new user
     await User.create({
       name,
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
       password: hashedPassword,
       passwordSet: true,
     })
-    
+
     return NextResponse.json(
       { message: 'User registered successfully' },
       { status: 201 }
@@ -61,4 +62,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-} 
+}

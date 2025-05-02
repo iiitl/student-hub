@@ -92,4 +92,4 @@ The User model includes fields for both Google authentication and email/password
 - **password**: Hashed password (optional for Google users)
 - **image**: User's profile image (from Google or uploaded)
 - **googleId**: ID from Google authentication (for Google users)
-- **passwordSet**: Boolean indicating if the user has set a password 
+- **passwordSet**: Boolean indicating if the user has set a password

@@ -9,14 +9,14 @@ import { Lock } from 'lucide-react'
 export default function ChangePassword() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  
+
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
-  
+
   // Redirect to sign in if not authenticated
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -73,8 +73,12 @@ export default function ChangePassword() {
       setNewPassword('')
       setConfirmPassword('')
       setSuccess(true)
-    } catch (error: any) {
-      setError(error.message || 'Something went wrong. Please try again.')
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Something went wrong. Please try again.'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -112,13 +116,13 @@ export default function ChangePassword() {
                 {error}
               </div>
             )}
-            
+
             {success && (
               <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/30 text-green-700 dark:text-green-400 px-4 py-3 rounded-md text-sm">
                 Password changed successfully!
               </div>
             )}
-            
+
             <div>
               <label
                 htmlFor="currentPassword"
@@ -223,4 +227,4 @@ export default function ChangePassword() {
       </div>
     </div>
   )
-} 
+}

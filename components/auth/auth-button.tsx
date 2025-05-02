@@ -3,12 +3,12 @@
 import { useSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
 import { LogOut, User } from 'lucide-react'
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
 export default function AuthButton() {
@@ -55,7 +55,8 @@ export default function AuthButton() {
   return (
     <div className="flex items-center gap-3">
       <span className="text-sm hidden md:inline">
-        Welcome, {session?.user?.name ? getFirstName(session.user.name) : 'User'}
+        Welcome,{' '}
+        {session?.user?.name ? getFirstName(session.user.name) : 'User'}
       </span>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -91,4 +92,4 @@ export default function AuthButton() {
       </DropdownMenu>
     </div>
   )
-} 
+}

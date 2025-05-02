@@ -9,4 +9,4 @@ const AuthButton = dynamic(() => import('@/components/auth/auth-button'), {
 
 export default function AuthNav() {
   return <AuthButton />
-} 
+}
