@@ -47,17 +47,8 @@ export default function AuthButton() {
       .substring(0, 2)
   }
 
-  // Get first name for welcome message
-  const getFirstName = (name: string) => {
-    return name.split(' ')[0]
-  }
-
   return (
     <div className="flex items-center gap-3">
-      <span className="text-sm hidden md:inline">
-        Welcome,{' '}
-        {session?.user?.name ? getFirstName(session.user.name) : 'User'}
-      </span>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button className="flex items-center gap-2 focus:outline-none">

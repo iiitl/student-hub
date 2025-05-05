@@ -105,6 +105,7 @@ export default function Profile() {
                 width={96}
                 height={96}
                 className="rounded-full mb-4 border-4 border-primary/20 object-cover"
+                unoptimized
               />
             ) : (
               <div className="h-24 w-24 bg-gradient-to-br from-primary to-primary/80 text-white rounded-full flex items-center justify-center text-xl font-bold mb-4 shadow-md">
@@ -180,7 +181,7 @@ export default function Profile() {
 
             <button
               onClick={handleSignOut}
-              className="w-full flex justify-between items-center p-4 bg-red-50/30 dark:bg-red-900/20 rounded-md hover:bg-red-100/50 dark:hover:bg-red-900/30 transition-colors"
+              className="w-full flex justify-between items-center p-4 bg-red-50/30 dark:bg-red-900/20 rounded-md hover:bg-red-100/50 dark:hover:bg-red-900/30 transition-colors cursor-pointer"
             >
               <div className="flex items-center">
                 <div className="mr-3 h-10 w-10 rounded-full bg-red-100 dark:bg-red-800/60 flex items-center justify-center">
