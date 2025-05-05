@@ -1,28 +1,34 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Lock } from 'lucide-react'
+import { Mail, Lock } from 'lucide-react'
 
-export default function ChangePassword() {
-  const { data: session, status } = useSession()
-  const router = useRouter()
-
-  const [currentPassword, setCurrentPassword] = useState('')
-  const [newPassword, setNewPassword] = useState('')
+export default function SetPasswordForm() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [isFirstTimeUser, setIsFirstTimeUser] = useState(false)
 
-  // Redirect to sign in if not authenticated
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/signin?callbackUrl=/auth/change-password')
+    const emailParam = searchParams.get('email')
+    const isNew = searchParams.get('new')
+
+    if (emailParam) {
+      setEmail(emailParam)
     }
-  }, [status, router])
+
+    if (isNew === 'true') {
+      setIsFirstTimeUser(true)
+    }
+  }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,7 +38,7 @@ export default function ChangePassword() {
 
     // Validate password
     const passwordRegex = /^(.{0,7}|[^0-9]*|[^A-Z]*|[^a-z]*|[a-zA-Z0-9]*)$/
-    if (passwordRegex.test(newPassword)) {
+    if (passwordRegex.test(password)) {
       setError(
       'Password must be at least 8 characters long, include at least one uppercase letter, one lowercase letter, one number, and one special character'
       )
@@ -40,42 +46,32 @@ export default function ChangePassword() {
       return
     }
 
-    if (newPassword !== confirmPassword) {
-      setError('New passwords do not match')
-      setLoading(false)
-      return
-    }
-
-    if (newPassword === currentPassword) {
-      setError('New password must be different from current password')
+    if (password !== confirmPassword) {
+      setError('Passwords do not match')
       setLoading(false)
       return
     }
 
     try {
-      // Call API to change password
-      const response = await fetch('/api/auth/change-password', {
+      const response = await fetch('/api/auth/set-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          currentPassword,
-          newPassword,
-        }),
+        body: JSON.stringify({ email, password }),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to change password')
+        throw new Error(data.message || 'Failed to set password')
       }
 
-      // Reset form and show success message
-      setCurrentPassword('')
-      setNewPassword('')
-      setConfirmPassword('')
       setSuccess(true)
+      // Redirect to sign in page after 2 seconds
+      setTimeout(() => {
+        router.push('/auth/signin')
+      }, 2000)
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error
@@ -87,30 +83,27 @@ export default function ChangePassword() {
     }
   }
 
-  if (status === 'loading') {
-    return (
-      <div className="min-h-[80vh] flex items-center justify-center">
-        <div className="animate-pulse w-full max-w-md">
-          <div className="h-8 w-64 bg-gray-200 dark:bg-gray-700 mx-auto mb-6 rounded"></div>
-          <div className="h-48 w-full bg-gray-200 dark:bg-gray-700 rounded"></div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!session) {
-    return null // Handled by the redirect in useEffect
-  }
-
   return (
     <div className="flex min-h-[80vh] flex-col justify-center px-6 py-12 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/5 rounded-xl p-8">
+        <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl p-8">
           <h2 className="text-center text-2xl font-bold leading-9 tracking-tight mb-2">
-            Change Your Password
+            {isFirstTimeUser ? 'Welcome to Student Hub!' : 'Set Your Password'}
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400 mb-6">
-            Update the password for your account
+            {isFirstTimeUser ? (
+              <>
+                You&apos;ve successfully signed in with Google! Set a password
+                to also access your account with email.
+              </>
+            ) : (
+              <>
+                You previously signed in with Google.
+                <br />
+                Setting a password will allow you to sign in with your email and
+                password.
+              </>
+            )}
           </p>
 
           <form className="space-y-6" onSubmit={handleSubmit}>
@@ -122,38 +115,37 @@ export default function ChangePassword() {
 
             {success && (
               <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/30 text-green-700 dark:text-green-400 px-4 py-3 rounded-md text-sm">
-                Password changed successfully!
+                Password set successfully! Redirecting to sign in...
               </div>
             )}
 
             <div>
               <label
-                htmlFor="currentPassword"
+                htmlFor="email"
                 className="block text-sm font-medium leading-6 mb-1.5"
               >
-                Current Password
+                Email address
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
+                  <Mail className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
-                  id="currentPassword"
-                  name="currentPassword"
-                  type="password"
-                  autoComplete="current-password"
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
                   required
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="block w-full rounded-md border border-gray-300 dark:border-gray-700 px-4 py-3 pl-10 shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/30 focus:outline-none sm:text-sm bg-white dark:bg-gray-950"
+                  value={email}
+                  readOnly
+                  className="block w-full rounded-md border border-gray-300 dark:border-gray-700 px-4 py-3 pl-10 shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/30 focus:outline-none sm:text-sm bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
                 />
               </div>
             </div>
 
             <div>
               <label
-                htmlFor="newPassword"
+                htmlFor="password"
                 className="block text-sm font-medium leading-6 mb-1.5"
               >
                 New Password
@@ -163,15 +155,15 @@ export default function ChangePassword() {
                   <Lock className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
-                  id="newPassword"
-                  name="newPassword"
+                  id="password"
+                  name="password"
                   type="password"
                   autoComplete="new-password"
                   required
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="block w-full rounded-md border border-gray-300 dark:border-gray-700 px-4 py-3 pl-10 shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/30 focus:outline-none sm:text-sm bg-white dark:bg-gray-950"
+                  className="block w-full rounded-md border border-gray-300 dark:border-gray-700 px-4 py-3 pl-10 shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/30 focus:outline-none sm:text-sm bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100"
                 />
               </div>
             </div>
@@ -181,7 +173,7 @@ export default function ChangePassword() {
                 htmlFor="confirmPassword"
                 className="block text-sm font-medium leading-6 mb-1.5"
               >
-                Confirm New Password
+                Confirm Password
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -196,7 +188,7 @@ export default function ChangePassword() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="block w-full rounded-md border border-gray-300 dark:border-gray-700 px-4 py-3 pl-10 shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/30 focus:outline-none sm:text-sm bg-white dark:bg-gray-950"
+                  className="block w-full rounded-md border border-gray-300 dark:border-gray-700 px-4 py-3 pl-10 shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/30 focus:outline-none sm:text-sm bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100"
                 />
               </div>
             </div>
@@ -207,25 +199,34 @@ export default function ChangePassword() {
                 disabled={loading}
                 className="flex w-full justify-center rounded-md bg-gradient-to-r from-primary to-primary/90 px-4 py-3 text-sm font-semibold leading-6 text-white shadow-sm hover:from-primary/90 hover:to-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-70 transition-all"
               >
-                {loading ? 'Changing password...' : 'Change Password'}
+                {loading ? 'Setting password...' : 'Set Password'}
               </button>
             </div>
           </form>
 
-          <div className="mt-8 flex justify-between">
-            <Link
-              href="/profile"
-              className="text-sm text-gray-500 dark:text-gray-400 hover:text-primary hover:dark:text-primary/90"
-            >
-              Back to Profile
-            </Link>
-            <Link
-              href="/auth/forgot-password"
-              className="text-sm text-primary hover:text-primary/90"
-            >
-              Forgot password?
-            </Link>
-          </div>
+          <p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
+            {isFirstTimeUser ? (
+              <>
+                Or continue to{' '}
+                <Link
+                  href="/"
+                  className="font-semibold leading-6 text-primary hover:text-primary/90"
+                >
+                  Dashboard
+                </Link>
+              </>
+            ) : (
+              <>
+                Return to{' '}
+                <Link
+                  href="/auth/signin"
+                  className="font-semibold leading-6 text-primary hover:text-primary/90"
+                >
+                  Sign in
+                </Link>
+              </>
+            )}
+          </p>
         </div>
       </div>
     </div>

@@ -4,22 +4,42 @@ import User from '@/model/User'
 import PasswordReset from '@/model/PasswordReset'
 import crypto from 'crypto'
 import { sendPasswordResetEmail } from '@/lib/mailer'
+import validator from 'validator'
 
 export async function POST(request: NextRequest) {
+  // Parse JSON with error handling
+  let email: string
+  try {
+    const body = await request.json()
+    email = body.email
+  } catch {
+    return NextResponse.json(
+      { message: 'Invalid JSON payload' },
+      { status: 400 }
+    )
+  }
+
+  // Validate email
+  if (!email || typeof email !== 'string') {
+    return NextResponse.json({ message: 'Email is required' }, { status: 400 })
+  }
+
+  // Sanitize email
+  email = email.trim().toLowerCase()
+
+  // Validate email format using validator
+  if (!validator.isEmail(email)) {
+    return NextResponse.json(
+      { message: 'Invalid email format' },
+      { status: 400 }
+    )
+  }
+
   try {
     await dbConnect()
 
-    const { email } = await request.json()
-
-    if (!email) {
-      return NextResponse.json(
-        { message: 'Email is required' },
-        { status: 400 }
-      )
-    }
-
     // Find user by email
-    const user = await User.findOne({ email: email.toLowerCase() })
+    const user = await User.findOne({ email })
 
     // For security reasons, don't reveal if a user exists or not
     // Instead, always return a success message
@@ -36,11 +56,11 @@ export async function POST(request: NextRequest) {
         .digest('hex')
 
       // Delete any existing reset tokens for this email
-      await PasswordReset.deleteMany({ email: email.toLowerCase() })
+      await PasswordReset.deleteMany({ email })
 
       // Create a new password reset document
       await PasswordReset.create({
-        email: email.toLowerCase(),
+        email,
         token: hashedToken,
         expires: expiryDate,
       })

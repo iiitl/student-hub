@@ -8,5 +8,13 @@ interface AuthProviderProps {
 }
 
 export default function AuthProvider({ children }: AuthProviderProps) {
-  return <SessionProvider>{children}</SessionProvider>
+  return (
+    <SessionProvider
+      refetchInterval={0} // Disable periodic refetching
+      refetchOnWindowFocus={false} // Disable refetch on window focus
+      refetchWhenOffline={false} // Disable refetch when coming back online
+    >
+      {children}
+    </SessionProvider>
+  )
 }

@@ -4,7 +4,7 @@ import type React from 'react'
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Menu } from 'lucide-react'
+import { ChevronDown, ChevronRight, Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -14,7 +14,12 @@ import {
   SheetTrigger,
   SheetFooter,
 } from '@/components/ui/sheet'
-import { headerLinks } from '@/data/header-links'
+import {
+  headerLinks,
+  isLinkGroup,
+  HeaderLinkItem,
+  HeaderLink,
+} from '@/data/header-links'
 import ThemeToggle from './theme-toggler'
 import AuthNav from './auth/auth-nav'
 
@@ -41,11 +46,13 @@ export default function MobileNav() {
             </SheetTitle>
           </SheetHeader>
           <nav className="flex flex-col gap-2 ml-4 flex-1">
-            {headerLinks.map((link, index) => (
-              <MobileNavLink key={index} href={link.url} setOpen={setOpen}>
-                {link.name}
-              </MobileNavLink>
-            ))}
+            {headerLinks.map((link, index) =>
+              isLinkGroup(link) ? (
+                <MobileNavGroup key={index} group={link} setOpen={setOpen} />
+              ) : (
+                <MobileNavLink key={index} link={link} setOpen={setOpen} />
+              )
+            )}
           </nav>
           <SheetFooter className="mt-auto pt-4 border-t">
             <div className="w-full flex justify-center">
@@ -59,21 +66,66 @@ export default function MobileNav() {
 }
 
 function MobileNavLink({
-  href,
-  children,
+  link,
   setOpen,
 }: {
-  href: string
-  children: React.ReactNode
+  link: HeaderLink
   setOpen: (open: boolean) => void
 }) {
   return (
     <Link
-      href={href}
+      href={link.url}
       className="flex items-center opacity-70 py-2 text-lg hover:text-primary transition-colors"
       onClick={() => setOpen(false)}
     >
-      {children}
+      {link.name}
     </Link>
+  )
+}
+
+function MobileNavGroup({
+  group,
+  setOpen,
+}: {
+  group: HeaderLinkItem & { items: HeaderLink[] }
+  setOpen: (open: boolean) => void
+}) {
+  const [expanded, setExpanded] = useState(false)
+
+  return (
+    <div>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex items-center justify-between w-full opacity-70 py-2 text-lg hover:text-primary transition-colors"
+        aria-expanded={expanded}
+        aria-controls={`nav-group-${group.name.toLowerCase().replace(/\s+/g, '-')}`}
+      >
+        <span>{group.name}</span>
+        {expanded ? (
+          <ChevronDown className="h-5 w-5" />
+        ) : (
+          <ChevronRight className="h-5 w-5" />
+        )}
+      </button>
+
+      {expanded && (
+        <div
+          className="ml-4 pl-2 border-l mt-1 mb-2 space-y-1"
+          id={`nav-group-${group.name.toLowerCase().replace(/\s+/g, '-')}`}
+          role="region"
+        >
+          {group.items.map((item, index) => (
+            <Link
+              key={index}
+              href={item.url}
+              className="flex items-center opacity-70 py-1.5 text-base hover:text-primary transition-colors"
+              onClick={() => setOpen(false)}
+            >
+              {item.name}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }

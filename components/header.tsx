@@ -2,8 +2,9 @@ import Link from 'next/link'
 import React from 'react'
 import MobileNav from '@/components/mobile-nav'
 import ThemeToggle from './theme-toggler'
-import { headerLinks } from '@/data/header-links'
+import { headerLinks, isLinkGroup } from '@/data/header-links'
 import AuthNav from '@/components/auth/auth-nav'
+import NavDropdown from '@/components/nav-dropdown'
 
 const Header = () => {
   return (
@@ -14,16 +15,20 @@ const Header = () => {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden lg:flex items-center gap-6 bg-blue">
-          {headerLinks.map((link, index) => (
-            <Link
-              key={index}
-              href={link.url}
-              className="text-sm hover:text-primary transition-colors"
-            >
-              {link.name}
-            </Link>
-          ))}
+        <nav className="hidden lg:flex items-center gap-6">
+          {headerLinks.map((link, index) =>
+            isLinkGroup(link) ? (
+              <NavDropdown key={index} group={link} />
+            ) : (
+              <Link
+                key={index}
+                href={link.url}
+                className="text-sm hover:text-primary transition-colors"
+              >
+                {link.name}
+              </Link>
+            )
+          )}
           <ThemeToggle />
           <AuthNav />
         </nav>
