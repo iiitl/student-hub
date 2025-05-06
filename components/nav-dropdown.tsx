@@ -35,21 +35,54 @@ export default function NavDropdown({ group }: NavDropdownProps) {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-1 text-sm hover:text-primary transition-colors focus:outline-none"
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowDown' && !isOpen) {
+            setIsOpen(true)
+            setTimeout(() => {
+              const firstMenuItem = document.querySelector(
+                `#${group.name}-dropdown [role="menuitem"]`
+              ) as HTMLElement
+              firstMenuItem?.focus()
+            }, 100)
+          }
+        }}
+        aria-expanded={isOpen}
+        aria-haspopup="true"
+        aria-controls={`${group.name}-dropdown`}
       >
         {group.name}
         <ChevronDown
           className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          aria-hidden="true"
         />
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 bg-background border rounded-md shadow-lg py-2 w-48 z-50 animate-in fade-in-0 slide-in-from-top-3 duration-200">
-          {group.items.map((item, index) => (
+        <div
+          className="absolute top-full left-0 mt-1 bg-background border rounded-md shadow-lg py-2 w-48 z-50 animate-in fade-in-0 slide-in-from-top-3 duration-200"
+          role="menu"
+          id={`${group.name}-dropdown`}
+          tabIndex={-1}
+        >
+          {group.items.map((item) => (
             <Link
-              key={index}
+              key={item.url}
               href={item.url}
               className="block px-4 py-2 text-sm hover:bg-muted hover:text-primary transition-colors"
               onClick={() => setIsOpen(false)}
+              role="menuitem"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') {
+                  setIsOpen(false)
+                  const button = document.querySelector(
+                    `button[aria-controls="${group.name}-dropdown"]`
+                  )
+                  if (button instanceof HTMLElement) {
+                    button.focus()
+                  }
+                }
+              }}
             >
               {item.name}
             </Link>

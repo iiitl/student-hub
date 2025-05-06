@@ -25,6 +25,8 @@
     "@radix-ui/react-tooltip": "^1.1.8",
     "@types/nodemailer": "^6.4.17",
     "@types/validator": "^13.15.0",
+    "@upstash/ratelimit": "^2.0.5",
+    "@vercel/kv": "^3.0.0",
     "bcrypt": "^5.1.1",
     "class-variance-authority": "^0.7.1",
     "lucide-react": "^0.511.0",

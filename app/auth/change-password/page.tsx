@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Lock } from 'lucide-react'
+import { validatePassword } from '@/lib/validation'
 
 export default function ChangePassword() {
   const { data: session, status } = useSession()
@@ -31,11 +32,9 @@ export default function ChangePassword() {
     setSuccess(false)
 
     // Validate password
-    const passwordRegex = /^(.{0,7}|[^0-9]*|[^A-Z]*|[^a-z]*|[a-zA-Z0-9]*)$/
-    if (passwordRegex.test(newPassword)) {
-      setError(
-      'Password must be at least 8 characters long, include at least one uppercase letter, one lowercase letter, one number, and one special character'
-      )
+    const passwordError = validatePassword(newPassword)
+    if (passwordError) {
+      setError(passwordError)
       setLoading(false)
       return
     }

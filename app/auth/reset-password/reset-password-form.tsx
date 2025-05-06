@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Lock } from 'lucide-react'
+import { validatePassword } from '@/lib/validation'
 
 export default function ResetPasswordForm() {
   const [password, setPassword] = useState('')
@@ -58,11 +59,9 @@ export default function ResetPasswordForm() {
     setError('')
     setSuccess(false)
     // Validate password
-    const passwordRegex = /^(.{0,7}|[^0-9]*|[^A-Z]*|[^a-z]*|[a-zA-Z0-9]*)$/
-    if (passwordRegex.test(password)) {
-      setError(
-      'Password must be at least 8 characters long, include at least one uppercase letter, one lowercase letter, one number, and one special character'
-      )
+    const passwordError = validatePassword(password)
+    if (passwordError) {
+      setError(passwordError)
       setLoading(false)
       return
     }

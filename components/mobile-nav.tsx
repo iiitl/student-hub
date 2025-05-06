@@ -46,11 +46,15 @@ export default function MobileNav() {
             </SheetTitle>
           </SheetHeader>
           <nav className="flex flex-col gap-2 ml-4 flex-1">
-            {headerLinks.map((link, index) =>
+            {headerLinks.map((link) =>
               isLinkGroup(link) ? (
-                <MobileNavGroup key={index} group={link} setOpen={setOpen} />
+                <MobileNavGroup
+                  key={link.name}
+                  group={link}
+                  setOpen={setOpen}
+                />
               ) : (
-                <MobileNavLink key={index} link={link} setOpen={setOpen} />
+                <MobileNavLink key={link.name} link={link} setOpen={setOpen} />
               )
             )}
           </nav>
@@ -114,9 +118,9 @@ function MobileNavGroup({
           id={`nav-group-${group.name.toLowerCase().replace(/\s+/g, '-')}`}
           role="region"
         >
-          {group.items.map((item, index) => (
+          {group.items.map((item) => (
             <Link
-              key={index}
+              key={item.url}
               href={item.url}
               className="flex items-center opacity-70 py-1.5 text-base hover:text-primary transition-colors"
               onClick={() => setOpen(false)}

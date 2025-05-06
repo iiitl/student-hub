@@ -16,12 +16,12 @@ const Header = () => {
 
         {/* Desktop Navigation */}
         <nav className="hidden lg:flex items-center gap-6">
-          {headerLinks.map((link, index) =>
+          {headerLinks.map((link) =>
             isLinkGroup(link) ? (
-              <NavDropdown key={index} group={link} />
+              <NavDropdown key={link.name} group={link} />
             ) : (
               <Link
-                key={index}
+                key={link.name}
                 href={link.url}
                 className="text-sm hover:text-primary transition-colors"
               >

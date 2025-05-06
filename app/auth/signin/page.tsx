@@ -49,8 +49,14 @@ export default function SignIn() {
     }
   }
 
-  const handleGoogleSignIn = () => {
-    signIn('google', { callbackUrl: '/' })
+  const handleGoogleSignIn = async () => {
+    try {
+      setLoading(true)
+      await signIn('google', { callbackUrl: '/' })
+    } catch {
+      setError('Failed to sign in with Google. Please try again.')
+      setLoading(false)
+    }
   }
 
   return (
@@ -65,6 +71,7 @@ export default function SignIn() {
             onClick={handleGoogleSignIn}
             className="flex w-full justify-center items-center gap-2 rounded-md bg-white dark:bg-gray-800 px-4 py-3 text-base font-semibold shadow-sm border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
             type="button"
+            disabled={loading}
           >
             <div className="bg-white p-1 rounded-full">
               <FcGoogle className="h-5 w-5" />

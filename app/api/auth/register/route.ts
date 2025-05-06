@@ -21,23 +21,13 @@ export async function POST(request: NextRequest) {
     const existingUser = await User.findOne({ email: email.toLowerCase() })
 
     if (existingUser) {
-      // If user exists and was created with Google, we should not allow them to register
-      // They should set a password instead
-      if (existingUser.googleId) {
-        return NextResponse.json(
-          {
-            message:
-              'An account with this email already exists. It was created with Google. Please sign in with Google or use the forgot password option.',
-            type: 'GOOGLE_ACCOUNT',
-          },
-          { status: 409 }
-        )
+      // If user exists and was created with Google, we should not allow them to register, They should set a password instead
+      const responseData = {
+        message: 'An account with this email already exists',
+        type: existingUser.googleId ? 'GOOGLE_ACCOUNT' : 'EMAIL_ACCOUNT',
       }
 
-      return NextResponse.json(
-        { message: 'An account with this email already exists' },
-        { status: 409 }
-      )
+      return NextResponse.json(responseData, { status: 409 })
     }
 
     // Hash password
