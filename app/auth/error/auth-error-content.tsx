@@ -24,19 +24,23 @@ export default function AuthErrorContent() {
         'There was a problem sending the email for sign-in. Please try again.',
       CredentialsSignin:
         'The email or password you entered is incorrect. Please try again.',
-      SessionRequired:
-        'You need to be signed in to access this page.',
+      SessionRequired: 'You need to be signed in to access this page.',
       PASSWORD_NOT_SET:
         'You need to set a password for your account. You previously signed in with Google.',
     }
-    
-    setErrorMessage(messages[error] ?? 'An error occurred during authentication.')
+
+    setErrorMessage(
+      messages[error] ?? 'An error occurred during authentication.'
+    )
   }, [searchParams])
 
   return (
     <div className="flex min-h-[80vh] flex-col justify-center px-6 py-12 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div role="alert" className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+        <div
+          role="alert"
+          className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6"
+        >
           <h2 className="text-xl font-semibold mb-2">Authentication Error</h2>
           <p>{errorMessage}</p>
         </div>

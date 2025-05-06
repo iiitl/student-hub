@@ -78,6 +78,16 @@ export async function POST(request: NextRequest) {
 
       if (!emailResult.success) {
         console.error('Failed to send password reset email:', emailResult.error)
+        // Log detailed error for monitoring
+        const errorDetails = {
+          email: email.replace(/(.{2})(.*)(@.*)/, '$1***$3'), // Partial redaction for privacy
+          error: emailResult.error,
+          timestamp: new Date().toISOString(),
+        }
+        console.error(
+          'Password reset email failure:',
+          JSON.stringify(errorDetails)
+        )
       }
     }
 

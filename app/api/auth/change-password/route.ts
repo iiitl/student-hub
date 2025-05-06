@@ -4,9 +4,39 @@ import dbConnect from '@/lib/dbConnect'
 import User from '@/model/User'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../[...nextauth]/options'
+import { Ratelimit } from '@upstash/ratelimit'
+import { kv } from '@vercel/kv'
+import { validatePassword } from '@/lib/validation'
+
+// Remove edge runtime since bcrypt and mongoose aren't edge-compatible
+
+// 5 requests per hour per IP
+const resetPasswordLimiter = new Ratelimit({
+  redis: kv,
+  limiter: Ratelimit.slidingWindow(5, '1h'),
+})
 
 export async function POST(request: NextRequest) {
   try {
+    // Identify client IP
+    const ip =
+      request.headers.get('x-forwarded-for')?.split(',')[0].trim() || // may be a list
+      request.headers.get('x-real-ip') ||
+      'unknown'
+
+    // Apply rate limit
+    if (process.env.NODE_ENV === 'production') {
+      const { success } = await resetPasswordLimiter.limit(
+        `reset-password_${ip}`
+      )
+      if (!success) {
+        return NextResponse.json(
+          { message: 'Too many requests, please try again later.' },
+          { status: 429 }
+        )
+      }
+    }
+
     // Get the current authenticated user from session
     const session = await getServerSession(authOptions)
 
@@ -36,24 +66,9 @@ export async function POST(request: NextRequest) {
     // Handle users who signed up with Google but haven't set a password yet
     if (!user.passwordSet || !user.password) {
       // Validate password complexity
-      const passwordRegex = /^(.{0,7}|[^0-9]*|[^A-Z]*|[^a-z]*|[a-zA-Z0-9]*)$/
-      if (passwordRegex.test(newPassword)) {
-        return NextResponse.json(
-          { message: 'Password must be at least 8 characters long, include at least one uppercase letter, one lowercase letter, one number, and one special character' },
-          { status: 400 }
-        )
-      }
-
-      const hasUpperCase = /[A-Z]/.test(newPassword)
-      const hasLowerCase = /[a-z]/.test(newPassword)
-      const hasNumbers = /\d/.test(newPassword)
-      const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(newPassword)
-
-      if (!(hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChar)) {
-        return NextResponse.json(
-          { message: 'Password must meet complexity requirements' },
-          { status: 400 }
-        )
+      const passwordError = validatePassword(newPassword)
+      if (passwordError) {
+        return NextResponse.json({ message: passwordError }, { status: 400 })
       }
 
       // For Google-only users, just set the new password without checking the current one

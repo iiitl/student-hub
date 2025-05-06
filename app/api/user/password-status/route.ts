@@ -13,11 +13,6 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    await dbConnect()
-
-    // Find user by email
-    const user = await User.findOne({ email: email.toLowerCase() })
-
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
       return NextResponse.json(
@@ -25,6 +20,11 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    await dbConnect()
+
+    // Find user by email
+    const user = await User.findOne({ email: email.toLowerCase() })
 
     if (!user) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 })

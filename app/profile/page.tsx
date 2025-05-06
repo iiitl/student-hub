@@ -24,9 +24,10 @@ export default function Profile() {
     if (session?.user?.email) {
       const checkPasswordStatus = async () => {
         try {
-          const response = await fetch(
-            `/api/user/password-status?email=${encodeURIComponent(session.user?.email as string)}`
-          )
+          const params = new URLSearchParams({
+            email: session.user?.email as string,
+          })
+          const response = await fetch(`/api/user/password-status?${params}`)
           if (response.ok) {
             const data = await response.json()
             setPasswordSet(data.passwordSet)
