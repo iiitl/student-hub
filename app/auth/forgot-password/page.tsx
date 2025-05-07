@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Mail } from 'lucide-react'
+import { Mail, AlertCircle } from 'lucide-react'
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('')
@@ -10,11 +10,23 @@ export default function ForgotPassword() {
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
 
+  // Validate email domain
+  const isValidIIITLEmail = (email: string) => {
+    return email.toLowerCase().endsWith('@iiitl.ac.in')
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
     setSuccess(false)
+
+    // Validate IIITL domain
+    if (!isValidIIITLEmail(email)) {
+      setError('Only IIITL email addresses are allowed')
+      setLoading(false)
+      return
+    }
 
     try {
       const response = await fetch('/api/auth/forgot-password', {
@@ -56,7 +68,10 @@ export default function ForgotPassword() {
             <form className="space-y-6" onSubmit={handleSubmit}>
               {error && (
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 text-red-700 dark:text-red-400 px-4 py-3 rounded-md text-sm">
-                  {error}
+                  <div className="flex gap-2 items-start">
+                    <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                    <span>{error}</span>
+                  </div>
                 </div>
               )}
               <div>
@@ -78,14 +93,10 @@ export default function ForgotPassword() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
+                    placeholder="you@iiitl.ac.in"
                     className="block w-full rounded-md border border-gray-300 dark:border-gray-700 px-4 py-3 pl-10 shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/30 focus:outline-none sm:text-sm bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100"
                   />
                 </div>
-                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                  We&apos;ll send you an email with a link to reset your
-                  password.
-                </p>
               </div>
 
               <div>
@@ -94,25 +105,17 @@ export default function ForgotPassword() {
                   disabled={loading}
                   className="flex w-full justify-center rounded-md bg-gradient-to-r from-primary to-primary/90 px-4 py-3 text-sm font-semibold leading-6 text-white shadow-sm hover:from-primary/90 hover:to-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-70 transition-all"
                 >
-                  {loading ? 'Processing...' : 'Reset Password'}
+                  {loading ? 'Sending...' : 'Send reset link'}
                 </button>
               </div>
             </form>
           ) : (
-            <div>
-              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/30 text-green-700 dark:text-green-400 px-4 py-3 rounded-md mb-6">
-                Password reset link sent! Check your email for instructions.
-              </div>
-              <p className="text-center text-sm text-gray-500 dark:text-gray-400 mb-4">
-                If you don&apos;t see the email, check your spam folder or try
-                again.
+            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/30 text-green-700 dark:text-green-400 px-4 py-5 rounded-md">
+              <h3 className="text-lg font-medium mb-2">Check your email</h3>
+              <p className="text-sm">
+                If an account with that email exists, we've sent a password reset
+                link. Please check your inbox.
               </p>
-              <button
-                onClick={() => setSuccess(false)}
-                className="flex w-full justify-center rounded-md bg-primary/10 dark:bg-primary/20 px-4 py-3 text-sm font-semibold leading-6 text-primary hover:bg-primary/20 dark:hover:bg-primary/30 transition-all"
-              >
-                Try Again
-              </button>
             </div>
           )}
 

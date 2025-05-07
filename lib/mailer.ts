@@ -70,3 +70,52 @@ export const sendPasswordResetEmail = async (
     return { success: false, error }
   }
 }
+
+// Send OTP verification email
+export const sendOTPVerificationEmail = async (
+  email: string,
+  otp: string
+) => {
+  const transporter = createTransporter()
+
+  const mailOptions = {
+    from: `${process.env.EMAIL_SERVER_USER}`,
+    to: email,
+    subject: 'Email Verification OTP',
+    text: `
+      Hello,
+      
+      Your OTP for email verification is: ${otp}
+      
+      This OTP will expire in 10 minutes.
+      
+      If you did not request this OTP, please ignore this email.
+      
+      Regards,
+      Student Hub Team
+    `,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #4f46e5;">Email Verification OTP</h2>
+        <p>Hello,</p>
+        <p>Your OTP for email verification is:</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <div style="background-color: #f3f4f6; padding: 20px; font-size: 24px; letter-spacing: 5px; font-weight: bold; border-radius: 4px;">
+            ${otp}
+          </div>
+        </div>
+        <p>This OTP will expire in 10 minutes.</p>
+        <p>If you did not request this OTP, please ignore this email.</p>
+        <p>Regards,<br>Student Hub Team</p>
+      </div>
+    `,
+  }
+
+  try {
+    await transporter.sendMail(mailOptions)
+    return { success: true }
+  } catch (error) {
+    console.error('Error sending email:', error)
+    return { success: false, error }
+  }
+}

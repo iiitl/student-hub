@@ -96,12 +96,7 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     )
   } catch (error) {
-    // Log detailed error in development, sanitized version in production
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error resetting password:', error)
-    } else {
-      console.error('Error resetting password. Check server logs for details.')
-    }
+    console.error('Error resetting password')
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }

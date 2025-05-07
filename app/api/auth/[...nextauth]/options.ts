@@ -9,23 +9,17 @@ import mongoose from 'mongoose'
 // Define a type for objects that might be Mongoose documents
 type PossibleMongooseDocument = unknown
 
-// Type guard to check if a value is a Mongoose document with _id
-function isMongooseDocument(
-  obj: PossibleMongooseDocument
-): obj is { _id: mongoose.Types.ObjectId } {
-  if (!obj || typeof obj !== 'object') return false
-
-  // Use type predicates to narrow down the type
-  const maybeDoc = obj as Record<string, unknown>
-
+// Type guard to check if an object is a Mongoose document
+const isMongooseDocument = (obj: PossibleMongooseDocument): boolean => {
+  if (!obj) return false
+  
+  // Type assertion to check for _id property
+  const docCandidate = obj as { _id?: mongoose.Types.ObjectId }
   return (
-    '_id' in maybeDoc &&
-    maybeDoc._id !== null &&
-    maybeDoc._id !== undefined &&
-    typeof maybeDoc._id === 'object' &&
-    // Check for toString method on _id
-    'toString' in maybeDoc._id &&
-    typeof maybeDoc._id.toString === 'function'
+    typeof obj === 'object' &&
+    obj !== null &&
+    '_id' in obj &&
+    docCandidate._id instanceof mongoose.Types.ObjectId
   )
 }
 
@@ -75,10 +69,12 @@ export const authOptions: AuthOptions = {
         // Safe way to handle Mongoose _id
         let userId = ''
         if (isMongooseDocument(user)) {
-          userId = user._id.toString()
+          // Type assertion since we've verified it has _id
+          const userWithId = user as { _id: mongoose.Types.ObjectId }
+          userId = userWithId._id.toString()
         } else {
           // Fallback for TypeScript
-          userId = String(user._id)
+          userId = String((user as any)._id)
         }
 
         return {
@@ -86,6 +82,7 @@ export const authOptions: AuthOptions = {
           name: user.name,
           email: user.email,
           image: user.image,
+          roles: user.roles,
         }
       },
     }),
@@ -101,7 +98,16 @@ export const authOptions: AuthOptions = {
         return true
       }
 
+      // Validate IIITL domain for Google sign-in
+      if (!user.email.toLowerCase().endsWith('@iiitl.ac.in')) {
+        return '/auth/error?error=OnlyIIITLEmailsAllowed'
+      }
+
       await dbConnect()
+
+      // Debug: Check User model and schema
+      console.log('User model schema:', User.schema.obj);
+      console.log('User model paths:', Object.keys(User.schema.paths));
 
       // Check if user already exists
       const existingUser = (await User.findOne({
@@ -112,21 +118,54 @@ export const authOptions: AuthOptions = {
       let isNewUser = false
 
       if (existingUser) {
+        console.log('Existing user found:', { 
+          email: existingUser.email, 
+          roles: existingUser.roles,
+          _id: existingUser._id,
+          toObject: existingUser.toObject()
+        });
         // Update Google ID if needed
         if (!existingUser.googleId && user.id) {
-          existingUser.googleId = user.id
-          existingUser.image = user.image || undefined // Convert null to undefined
-          await existingUser.save()
+          console.log('Updating existing user with Google ID');
+          // Use findOneAndUpdate to ensure atomic update
+          const updatedUser = await User.findOneAndUpdate(
+            { email: existingUser.email },
+            {
+              $set: {
+                googleId: user.id,
+                image: user.image || undefined,
+                emailVerified: true,
+                roles: ['user']
+              }
+            },
+            { new: true, runValidators: true }
+          );
+          console.log('Updated user result:', updatedUser);
+          console.log('Updated user details:', { 
+            email: updatedUser?.email, 
+            roles: updatedUser?.roles,
+            _id: updatedUser?._id,
+            toObject: updatedUser?.toObject()
+          });
         }
       } else if (user.email) {
+        console.log('Creating new user from Google auth');
         // Create new user from Google auth
-        await User.create({
+        const newUser = await User.create({
           name: user.name,
           email: user.email,
           image: user.image || undefined, // Convert null to undefined
           googleId: user.id,
           passwordSet: false,
+          emailVerified: true, // Google OAuth automatically verifies email
+          roles: ['user'], // Default role for new users
         })
+        console.log('Created new user details:', { 
+          email: newUser.email, 
+          roles: newUser.roles,
+          _id: newUser._id,
+          toObject: newUser.toObject()
+        });
         isNewUser = true
       }
 
@@ -142,11 +181,17 @@ export const authOptions: AuthOptions = {
       if (token.sub && session.user) {
         session.user.id = token.sub
       }
+      // Add roles to session
+      if (token.roles && session.user) {
+        session.user.roles = token.roles as string[]
+      }
       return session
     },
     async jwt({ token, user }) {
       if (user) {
         token.sub = user.id
+        // Add roles to token
+        token.roles = user.roles
       }
       return token
     },

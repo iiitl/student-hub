@@ -5,7 +5,7 @@ import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { FcGoogle } from 'react-icons/fc'
-import { Mail, Lock } from 'lucide-react'
+import { Mail, Lock, AlertCircle } from 'lucide-react'
 
 export default function SignIn() {
   const [email, setEmail] = useState('')
@@ -14,10 +14,22 @@ export default function SignIn() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
+  // Validate email domain
+  const isValidIIITLEmail = (email: string) => {
+    return email.toLowerCase().endsWith('@iiitl.ac.in')
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
+
+    // Validate IIITL domain
+    if (!isValidIIITLEmail(email)) {
+      setError('Only IIITL email addresses are allowed')
+      setLoading(false)
+      return
+    }
 
     try {
       const result = await signIn('credentials', {
@@ -92,7 +104,10 @@ export default function SignIn() {
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 text-red-700 dark:text-red-400 px-4 py-3 rounded-md text-sm">
-                {error}
+                <div className="flex gap-2 items-start">
+                  <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                  <span>{error}</span>
+                </div>
               </div>
             )}
             <div>
@@ -114,7 +129,7 @@ export default function SignIn() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
+                  placeholder="you@iiitl.ac.in"
                   className="block w-full rounded-md border border-gray-300 dark:border-gray-700 px-4 py-3 pl-10 shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/30 focus:outline-none sm:text-sm bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100"
                 />
               </div>
