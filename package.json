@@ -29,6 +29,7 @@
     "@vercel/kv": "^3.0.0",
     "bcrypt": "^5.1.1",
     "class-variance-authority": "^0.7.1",
+    "dotenv": "^16.5.0",
     "lucide-react": "^0.511.0",
     "mongoose": "^8.12.1",
     "next": "15.3.2",

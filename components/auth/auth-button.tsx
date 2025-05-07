@@ -2,7 +2,8 @@
 
 import { useSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
-import { LogOut, User } from 'lucide-react'
+import { LogOut, User, ShieldAlert } from 'lucide-react'
+import Image from 'next/image'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { isAdmin } from '@/lib/auth-utils'
 
 export default function AuthButton() {
   const { data: session, status } = useSession()
@@ -47,14 +49,29 @@ export default function AuthButton() {
       .substring(0, 2)
   }
 
+  const userIsAdmin = isAdmin(session)
+
   return (
     <div className="flex items-center gap-3">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button className="flex items-center gap-2 focus:outline-none">
-            <div className="h-8 w-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-              {session?.user?.name ? getInitials(session.user.name) : 'U'}
-            </div>
+            {session?.user?.image ? (
+              // Display Google profile picture if available
+              <Image 
+                src={session.user.image}
+                alt={session.user.name || 'User avatar'}
+                width={32}
+                height={32}
+                className="h-8 w-8 rounded-full object-cover ring-2 ring-primary/20"
+                unoptimized
+              />
+            ) : (
+              // Fallback to initials if no profile picture
+              <div className="h-8 w-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                {session?.user?.name ? getInitials(session.user.name) : 'U'}
+              </div>
+            )}
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
@@ -63,6 +80,11 @@ export default function AuthButton() {
             <p className="text-xs text-muted-foreground truncate">
               {session?.user?.email}
             </p>
+            {userIsAdmin && (
+              <span className="mt-1 text-xs bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500 px-1.5 py-0.5 rounded-full self-start">
+                Admin
+              </span>
+            )}
           </div>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
@@ -71,6 +93,19 @@ export default function AuthButton() {
               Profile
             </Link>
           </DropdownMenuItem>
+          
+          {userIsAdmin && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/admin" className="cursor-pointer flex items-center text-yellow-700 dark:text-yellow-500">
+                  <ShieldAlert className="mr-2 h-4 w-4" />
+                  Admin Dashboard
+                </Link>
+              </DropdownMenuItem>
+            </>
+          )}
+          
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={() => signOut({ callbackUrl: '/' })}

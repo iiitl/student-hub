@@ -35,6 +35,14 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  // Validate IIITL domain
+  if (!email.endsWith('@iiitl.ac.in')) {
+    return NextResponse.json(
+      { message: 'Only IIITL email addresses are allowed' },
+      { status: 400 }
+    )
+  }
+
   try {
     await dbConnect()
 
@@ -68,14 +76,6 @@ export async function POST(request: NextRequest) {
       // Send password reset email
       const emailResult = await sendPasswordResetEmail(email, resetToken)
 
-      // For development purposes, log the token (remove in production)
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`Reset token for ${email}: ${resetToken}`)
-        console.log(
-          `Reset link: ${process.env.NEXT_PUBLIC_APP_URL}/auth/reset-password?token=${resetToken}`
-        )
-      }
-
       if (!emailResult.success) {
         console.error('Failed to send password reset email:', emailResult.error)
         // Log detailed error for monitoring
@@ -100,9 +100,9 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     )
   } catch (error) {
-    console.error('Error in forgot password:', error)
+    console.error('Error resetting password:', error)
     return NextResponse.json(
-      { message: 'An error occurred while processing your request.' },
+      { message: 'Internal server error' },
       { status: 500 }
     )
   }

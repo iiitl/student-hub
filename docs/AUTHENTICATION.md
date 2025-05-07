@@ -9,6 +9,7 @@ The Student Hub application uses a flexible authentication system that supports 
 - **Account Linking**: Users who signed up with Google can set a password to use email login
 - **Password Management**: Users can change their passwords or reset forgotten passwords
 - **Profile Management**: Users can view and update their profile information
+- **Institutional Restriction**: Only students from IIITL (Indian Institute of Information Technology, Lucknow) are allowed to register and login
 
 ## Technical Implementation
 
@@ -25,15 +26,19 @@ The authentication system is built using the following technologies:
 1. User clicks "Sign in with Google" button
 2. User is redirected to Google OAuth consent screen
 3. After authentication, the system checks if the user already exists in the database
-4. If the user doesn't exist, a new account is created with their Google information
-5. The user is redirected back to the application and authenticated
+4. The system verifies that the email belongs to an IIITL student (ends with @iiitl.ac.in)
+5. If the email is not from IIITL domain, access is denied with an appropriate message
+6. If the user doesn't exist and has a valid IIITL email, a new account is created with their Google information
+7. The user is redirected back to the application and authenticated
 
 ### Email/Password Sign-Up
 
 1. User fills out the sign-up form with name, email, and password
 2. System checks if the email already exists
-3. If the email is new, the password is hashed and a new user is created
-4. User is automatically signed in after successful registration
+3. System validates that the email belongs to an IIITL student (ends with @iiitl.ac.in)
+4. If the email is not from IIITL domain, registration is rejected with an appropriate message
+5. If the email is new and valid, the password is hashed and a new user is created
+6. User is automatically signed in after successful registration
 
 ### Email/Password Sign-In
 
@@ -56,6 +61,7 @@ The authentication system is built using the following technologies:
 - Sensitive operations require re-authentication
 - User must be logged in to access protected routes
 - Password reset functionality for account recovery
+- Domain restriction ensures only IIITL students (@iiitl.ac.in email addresses) can access the platform
 
 ## Environment Configuration
 
@@ -93,3 +99,107 @@ The User model includes fields for both Google authentication and email/password
 - **image**: User's profile image (from Google or uploaded)
 - **googleId**: ID from Google authentication (for Google users)
 - **passwordSet**: Boolean indicating if the user has set a password
+
+## Role-Based Access Control (RBAC)
+
+The system supports a role-based authentication and authorization system with two roles:
+- **user**: Default role assigned to all registered users
+- **admin**: Special role with additional privileges to manage users and access admin functionality
+
+### User Model Role Implementation
+
+The User model includes a `roles` field which is an array of strings with possible values of `'user'` and `'admin'`. 
+All users are assigned the `'user'` role by default upon registration.
+
+```typescript
+roles: {
+  type: [String],
+  enum: ['user', 'admin'],
+  default: ['user'],
+}
+```
+
+### JWT and Session Security for Roles
+
+The roles are securely stored in the JWT token and added to the user session. The implementation uses NextAuth's 
+JWT callback to securely add roles to the token, making it tamper-proof.
+
+```typescript
+callbacks: {
+  async jwt({ token, user }) {
+    if (user) {
+      token.sub = user.id
+      token.roles = user.roles
+    }
+    return token
+  },
+  async session({ session, token }) {
+    if (token.sub && session.user) {
+      session.user.id = token.sub
+    }
+    if (token.roles && session.user) {
+      session.user.roles = token.roles as string[]
+    }
+    return session
+  },
+}
+```
+
+### Middleware Protection for Admin Routes
+
+A middleware is implemented to protect admin routes by validating the JWT token and checking for the admin role:
+
+```typescript
+export async function middleware(request: NextRequest) {
+  // Check if this is an admin route that needs protection
+  const isAdminRoute = ADMIN_PATHS.some(route => path.startsWith(route))
+
+  if (isAdminRoute) {
+    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET })
+    
+    // Check if the user has the admin role
+    const userRoles = token.roles as string[] || []
+    if (!userRoles.includes('admin')) {
+      return NextResponse.json({ message: 'Forbidden' }, { status: 403 })
+    }
+  }
+}
+```
+
+### Admin Capabilities
+
+Admins can:
+1. Access the admin dashboard at `/admin`
+2. Navigate to user management at `/admin/users`
+3. Promote regular users to admin or demote admins to regular users
+
+### Utility Functions for Role Management
+
+The system includes utility functions for role checking:
+
+```typescript
+// Check if a user has admin role
+isAdmin(session: Session | null): boolean
+
+// Verify admin status in API routes
+verifyAdminApi(request: NextRequest): Promise<{status: number, message: string, success: boolean}>
+
+// Verify JWT token security
+verifyJwt(request: NextRequest): Promise<{verified: boolean, token?: JWT, userId?: string, roles?: string[]}>
+```
+
+### Security Considerations
+
+- JWT tokens are signed with a secret to prevent tampering
+- Admin-only routes are protected by middleware
+- Role validation happens on both client and server sides
+- All role operations are protected from unauthorized access
+- Admin users cannot demote themselves to prevent accidental lockout
+
+### Migrating Existing Users
+
+To migrate existing users to have the default 'user' role, run:
+
+```bash
+npx ts-node -r tsconfig-paths/register scripts/add-roles-to-users.ts
+```

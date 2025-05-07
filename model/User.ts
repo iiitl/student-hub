@@ -9,6 +9,8 @@ export interface IUser extends Document {
   createdAt: Date
   updatedAt: Date
   passwordSet: boolean
+  emailVerified: boolean
+  roles: string[]
 }
 
 const UserSchema: Schema = new Schema(
@@ -37,14 +39,28 @@ const UserSchema: Schema = new Schema(
       type: Boolean,
       default: false,
     },
+    emailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    roles: {
+      type: [String],
+      enum: ['user', 'admin'],
+      default: ['user'],
+      required: true,
+    },
   },
   {
     timestamps: true,
   }
 )
 
-// Prevent model redefinition in development
-const User: Model<IUser> =
-  mongoose.models.User || mongoose.model<IUser>('User', UserSchema)
+// Delete the model if it exists to prevent the "Cannot overwrite model once compiled" error
+if (mongoose.models.User) {
+  delete mongoose.models.User
+}
+
+// Create and export the model
+const User: Model<IUser> = mongoose.model<IUser>('User', UserSchema)
 
 export default User
