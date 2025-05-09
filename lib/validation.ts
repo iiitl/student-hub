@@ -1,7 +1,6 @@
 import {
   isValidEmailFormat,
   meetsPasswordRequirements,
-  isCommonPassword,
   calculatePasswordStrength,
 } from './security'
 
@@ -29,10 +28,6 @@ export const validatePassword = (password: string): string | null => {
 
   if (!meetsPasswordRequirements(password)) {
     return 'Password must be at least 8 characters long and contain uppercase, lowercase, numbers, and special characters'
-  }
-
-  if (isCommonPassword(password)) {
-    return 'This password is too common. Please choose a stronger password'
   }
 
   const strength = calculatePasswordStrength(password)

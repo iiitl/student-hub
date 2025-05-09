@@ -77,7 +77,6 @@ export async function POST(request: NextRequest) {
       passwordSet: true,
       emailVerified: true, // Email is verified since OTP is valid
       roles: ['user'], // Set default role
-      lastLogin: new Date(),
     })
 
     // Mark OTP as verified and delete it

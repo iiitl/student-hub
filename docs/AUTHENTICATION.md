@@ -61,13 +61,13 @@ The authentication system is built using the following technologies:
 - Sensitive operations require re-authentication
 - User must be logged in to access protected routes
 - Password reset functionality for account recovery
-- Domain restriction ensures only IIITL students (@iiitl.ac.in email addresses) can login/signup to the platform. Others can only view.
+- Domain restriction ensures only IIITL students (@iiitl.ac.in email addresses) can log in/sign up to the platform. Others can only view.
 
 ## Environment Configuration
 
 To use the authentication system, you must set the following environment variables:
 
-```
+```env
 MONGODB_URI=your_mongodb_connection_string
 NEXTAUTH_URL=your_app_url (e.g., http://localhost:3000 in development)
 NEXTAUTH_SECRET=your_jwt_secret_key
@@ -162,8 +162,11 @@ export async function middleware(request: NextRequest) {
     })
 
     // Check if the user has the admin role
-    const userRoles = (token.roles as string[]) || []
-    if (!userRoles.includes('admin')) {
+    if (
+      !token ||
+      !Array.isArray(token.roles) ||
+      !token.roles.includes('admin')
+    ) {
       return NextResponse.json({ message: 'Forbidden' }, { status: 403 })
     }
   }

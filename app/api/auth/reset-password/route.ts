@@ -94,7 +94,6 @@ export async function POST(request: NextRequest) {
       error instanceof Error ? error.message : 'Unknown error'
     )
 
-    await session.abortTransaction()
     return NextResponse.json(
       { message: 'Error resetting password' },
       { status: 500 }
