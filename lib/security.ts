@@ -1,31 +1,12 @@
-import crypto from 'crypto'
+import zxcvbn from 'zxcvbn'
+import createDOMPurify from 'dompurify'
+import { JSDOM } from 'jsdom'
 
 // Password strength scoring
 export function calculatePasswordStrength(password: string): number {
-  let score = 0
-
-  // Length check
-  if (password.length >= 8) score += 1
-  if (password.length >= 12) score += 1
-  if (password.length >= 16) score += 1
-
-  // Character type checks
-  if (/[A-Z]/.test(password)) score += 1
-  if (/[a-z]/.test(password)) score += 1
-  if (/[0-9]/.test(password)) score += 1
-  if (/[^A-Za-z0-9]/.test(password)) score += 1
-
-  // Complexity checks
-  if (/(.)\1{2,}/.test(password)) score -= 1 // Penalize repeated characters
-  if (/^(.)\1+$/.test(password)) score -= 2 // Penalize single character repetition
-
-  // Keyboard pattern check
-  if (/qwerty|asdfgh|zxcvbn|12345|54321/i.test(password)) score -= 1
-
-  // Sequential characters check
-  if (/abcdef|ABCDEF|123456/i.test(password)) score -= 1
-
-  return Math.max(0, Math.min(5, score))
+  // Use zxcvbn for a more comprehensive password strength check
+  const result = zxcvbn(password)
+  return result.score
 }
 
 // Generate secure random token using Web Crypto API
@@ -35,16 +16,8 @@ export async function generateSecureToken(
   const array = new Uint8Array(length)
   if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
     crypto.getRandomValues(array)
-  } else if (typeof crypto !== 'undefined') {
-    try {
-      // Use Node.js crypto if available
-      const bytes = crypto.randomBytes(length)
-      array.set(new Uint8Array(bytes))
-    } catch (error) {
-      console.error('Error generating random bytes:', error)
-      throw new Error('Secure random number generation not available')
-    }
   } else {
+    console.error('Crypto API not available')
     throw new Error('Secure random number generation not available')
   }
   return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join(
@@ -62,17 +35,13 @@ export async function hashSensitiveData(data: string): Promise<string> {
     // Check if we're in a browser or Node.js environment
     if (typeof crypto !== 'undefined' && crypto.subtle) {
       hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer)
-    } else if (typeof crypto !== 'undefined') {
-      const hash = crypto.createHash('sha256')
-      hash.update(data)
-      return hash.digest('hex')
+      return Array.from(new Uint8Array(hashBuffer))
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('')
     } else {
+      console.error('Crypto API not available')
       throw new Error('Cryptographic API not available')
     }
-
-    return Array.from(new Uint8Array(hashBuffer))
-      .map((b) => b.toString(16).padStart(2, '0'))
-      .join('')
   } catch (error) {
     throw new Error(
       `Failed to hash data: ${error instanceof Error ? error.message : String(error)}`
@@ -86,7 +55,14 @@ export function isValidIP(ip: string): boolean {
   if (ip === '127.0.0.1' || ip === 'unknown') return true
 
   // Remove port number if present
-  ip = ip.split(':')[0]
+  // Handle IPv4 with port
+  if (ip.includes('.') && ip.includes(':')) {
+    ip = ip.substring(0, ip.lastIndexOf(':'))
+  }
+  // Handle IPv6 with port - IPv6 with port is typically formatted as [IPv6]:port
+  else if (ip.includes('[') && ip.includes(']:')) {
+    ip = ip.substring(1, ip.indexOf(']'))
+  }
 
   // IPv4 validation
   const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/
@@ -111,23 +87,12 @@ export function isValidIP(ip: string): boolean {
   return ip === '::1'
 }
 
-// Sanitize user input
-export function sanitizeInput(input: string): string {
-  // This is a basic implementation and should be replaced with a proper sanitization library
-  let sanitized = input.trim()
-  // More comprehensive attempt to remove dangerous HTML
-  sanitized = sanitized
-    .replace(/<(|\/|[^\/>][^>]+|\/[^>][^>]+)>/g, '')
-    // Remove potentially dangerous protocols
-    .replace(/(javascript|data|vbscript):/gi, '')
-    // Remove all event handlers
-    .replace(/on\w+\s*=\s*["']?[^"']*["']?/gi, '')
-    // Remove dangerous CSS expressions
-    .replace(/expression\s*\(.*\)/gi, '')
-    // Remove eval and other dangerous functions
-    .replace(/eval\s*\(.*\)/gi, '')
+const window = new JSDOM('').window
+const DOMPurify = createDOMPurify(window)
 
-  return sanitized
+// Sanitize user input with DOMPurify for production-grade XSS protection
+export function sanitizeInput(input: string): string {
+  return DOMPurify.sanitize(input.trim())
 }
 
 // Generate device fingerprint
@@ -137,45 +102,6 @@ export async function generateDeviceFingerprint(
 ): Promise<string> {
   const data = `${userAgent}${ip}`
   return hashSensitiveData(data)
-}
-
-// Check if password is in common passwords list
-export function isCommonPassword(password: string): boolean {
-  const commonPasswords = [
-    'password',
-    '123456',
-    'qwerty',
-    'admin',
-    'welcome',
-    'letmein',
-    '123456789',
-    '12345678',
-    '12345',
-    '1234567',
-    '1234567890',
-    'abc123',
-    'football',
-    'monkey',
-    '111111',
-    'password1',
-    'sunshine',
-    'princess',
-    'dragon',
-    'baseball',
-    // Consider loading from a larger file or using an API service
-  ]
-
-  // Check for exact matches and simple variations
-  const lowercasePassword = password.toLowerCase()
-  if (commonPasswords.includes(lowercasePassword)) return true
-
-  // Check for passwords with added digits
-  if (/^[a-z]+\d+$/i.test(password)) {
-    const baseWord = password.replace(/\d+$/, '').toLowerCase()
-    if (commonPasswords.includes(baseWord)) return true
-  }
-
-  return false
 }
 
 // Validate session token
@@ -210,17 +136,28 @@ export function isKnownBot(userAgent: string): boolean {
     /crawler/i,
     /spider/i,
     /slurp/i,
-    /search/i,
+    /searchbot/i,
     /mediapartners/i,
     /nagios/i,
     /monitoring/i,
-    /curl/i,
-    /wget/i,
-    /python/i,
-    /java/i,
-    /perl/i,
-    /ruby/i,
+    /^curl\//i,
+    /^wget\//i,
+    /^python-requests\//i,
+    /^java\//i,
+    /^perl/i,
+    /^ruby/i,
+    /HeadlessChrome/i,
+    /PhantomJS/i,
   ]
+
+  // Whitelist known legitimate bots
+  const whitelistedBots = [/googlebot/i, /bingbot/i, /yandexbot/i]
+
+  // Check if it's a whitelisted bot
+  if (whitelistedBots.some((pattern) => pattern.test(userAgent))) {
+    return false
+  }
+
   return botPatterns.some((pattern) => pattern.test(userAgent))
 }
 
@@ -231,7 +168,9 @@ export function calculateBackoff(attempts: number): number {
 
 // Validate email format
 export function isValidEmailFormat(email: string): boolean {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  // More comprehensive email regex that enforces TLD rules
+  const emailRegex =
+    /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
   return emailRegex.test(email)
 }
 

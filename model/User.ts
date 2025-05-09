@@ -11,9 +11,6 @@ export interface IUser extends Document {
   passwordSet: boolean
   emailVerified: boolean
   roles: string[]
-  lastLogin: Date
-  loginAttempts: number
-  lockUntil: Date
 }
 
 const UserSchema: Schema<IUser> = new Schema<IUser>(
@@ -71,38 +68,11 @@ const UserSchema: Schema<IUser> = new Schema<IUser>(
       required: true,
       index: true, // Create a single index
     },
-    lastLogin: {
-      type: Date,
-      default: Date.now,
-      index: true, // Create a single index
-    },
-    loginAttempts: {
-      type: Number,
-      default: 0,
-      max: [5, 'Maximum login attempts exceeded'],
-    },
-    lockUntil: {
-      type: Date,
-      index: true, // Create a single index
-    },
   },
   {
     timestamps: true,
   }
 )
-
-UserSchema.pre('find', function (next) {
-  // Unlock accounts where lockUntil date has passed
-  this.find({
-    lockUntil: { $lt: new Date() },
-  })
-    .updateMany({
-      $set: { loginAttempts: 0, lockUntil: null },
-    })
-    .exec()
-
-  next()
-})
 
 // Method to check if user has a specific role
 UserSchema.methods.hasRole = function (role: string): boolean {

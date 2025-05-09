@@ -132,6 +132,13 @@ export async function middleware(request: NextRequest) {
   if (path.startsWith('/api/') && !path.startsWith('/api/auth/')) {
     const token = await getToken({ req: request })
     if (!token) {
+      // Check if this is a page route or API route
+      if (!path.startsWith('/api/')) {
+        // Redirect to login for page routes
+        const url = new URL('/auth/signin', request.url)
+        url.searchParams.set('callbackUrl', encodeURI(request.url))
+        return NextResponse.redirect(url)
+      }
       return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
       })

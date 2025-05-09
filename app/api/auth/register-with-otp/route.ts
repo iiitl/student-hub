@@ -88,6 +88,13 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(responseData, { status: 409 })
       }
 
+      console.log({
+        sanitizedEmail,
+        otp,
+        expires: { $gt: new Date() },
+        verified: false, // OTP must not have been verified before
+      })
+
       // Find and verify OTP
       const otpDoc = await OTP.findOne({
         email: sanitizedEmail,
@@ -95,6 +102,8 @@ export async function POST(request: NextRequest) {
         expires: { $gt: new Date() },
         verified: true, // OTP must be verified
       }).session(session)
+
+      console.log('OTP Document:', otpDoc)
 
       if (!otpDoc) {
         await session.abortTransaction()
