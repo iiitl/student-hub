@@ -1,3 +1,5 @@
+export const runtime = 'nodejs'
+
 import { NextRequest, NextResponse } from 'next/server'
 import { sendPasswordResetEmail } from '@/lib/email'
 import dbConnect from '@/lib/dbConnect'
