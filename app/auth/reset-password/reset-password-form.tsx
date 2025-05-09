@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Lock } from 'lucide-react'
-import { validatePassword } from '@/lib/validation'
+import { validatePassword, validatePasswordsMatch } from '@/lib/validation'
 
 export default function ResetPasswordForm() {
   const [password, setPassword] = useState('')
@@ -33,6 +33,7 @@ export default function ResetPasswordForm() {
 
   const validateToken = async (token: string) => {
     try {
+      console.log('Validating token:', token)
       const response = await fetch(
         `/api/auth/validate-reset-token?token=${encodeURIComponent(token)}`
       )
@@ -43,11 +44,12 @@ export default function ResetPasswordForm() {
       } else {
         setTokenValid(false)
         setError(data.message || 'Invalid or expired token')
+        console.error('Token validation failed:', data.message)
       }
-    } catch {
-      // Error doesn't need to be used since we have a generic fallback message
+    } catch (error) {
+      console.error('Token validation error:', error)
       setTokenValid(false)
-      setError('Failed to validate token')
+      setError('Failed to validate token. Please try again.')
     } finally {
       setValidating(false)
     }
@@ -58,6 +60,7 @@ export default function ResetPasswordForm() {
     setLoading(true)
     setError('')
     setSuccess(false)
+
     // Validate password
     const passwordError = validatePassword(password)
     if (passwordError) {
@@ -66,13 +69,18 @@ export default function ResetPasswordForm() {
       return
     }
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match')
+    const passwordsMatchError = validatePasswordsMatch(
+      password,
+      confirmPassword
+    )
+    if (passwordsMatchError) {
+      setError(passwordsMatchError)
       setLoading(false)
       return
     }
 
     try {
+      console.log('Submitting password reset with token:', token)
       const response = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: {
@@ -84,9 +92,11 @@ export default function ResetPasswordForm() {
       const data = await response.json()
 
       if (!response.ok) {
+        console.error('Password reset failed:', data.message)
         throw new Error(data.message || 'Failed to reset password')
       }
 
+      console.log('Password reset successful')
       setSuccess(true)
 
       // Redirect to sign in page after 2 seconds
@@ -94,6 +104,7 @@ export default function ResetPasswordForm() {
         router.push('/auth/signin')
       }, 2000)
     } catch (error: unknown) {
+      console.error('Password reset error:', error)
       const errorMessage =
         error instanceof Error
           ? error.message

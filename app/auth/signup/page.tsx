@@ -6,7 +6,13 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { FcGoogle } from 'react-icons/fc'
 import { User, Mail, Lock, AlertCircle, CheckCircle2 } from 'lucide-react'
-import { validatePassword } from '@/lib/validation'
+import {
+  validatePassword,
+  validateEmail,
+  validateOTP,
+  validateName,
+  validatePasswordsMatch,
+} from '@/lib/validation'
 
 export default function SignUp() {
   const [name, setName] = useState('')
@@ -21,23 +27,13 @@ export default function SignUp() {
   const [otpLoading, setOtpLoading] = useState(false)
   const router = useRouter()
 
-  // Validate email domain
-  const isValidIIITLEmail = (email: string) => {
-    return email.toLowerCase().endsWith('@iiitl.ac.in')
-  }
-
   const handleSendOTP = async () => {
     setOtpLoading(true)
     setError('')
 
-    if (!email.trim()) {
-      setError('Email is required')
-      setOtpLoading(false)
-      return
-    }
-
-    if (!isValidIIITLEmail(email)) {
-      setError('Only IIITL email addresses are allowed')
+    const emailError = validateEmail(email)
+    if (emailError) {
+      setError(emailError)
       setOtpLoading(false)
       return
     }
@@ -74,22 +70,14 @@ export default function SignUp() {
     setOtpLoading(true)
     setError('')
 
-    if (!otp.trim()) {
-      setError('OTP is required')
-      setOtpLoading(false)
-      return
-    }
-
-    // Ensure OTP is exactly 6 digits
-    if (!/^\d{6}$/.test(otp)) {
-      setError('OTP must be 6 digits')
+    const otpError = validateOTP(otp)
+    if (otpError) {
+      setError(otpError)
       setOtpLoading(false)
       return
     }
 
     try {
-      console.log('Verifying OTP:', { email, otpLength: otp.length })
-      
       const response = await fetch('/api/auth/verify-otp', {
         method: 'POST',
         headers: {
@@ -123,8 +111,16 @@ export default function SignUp() {
     setError('')
 
     // Validate form
-    if (password !== confirmPassword) {
-      setError('Passwords do not match')
+    const nameError = validateName(name)
+    if (nameError) {
+      setError(nameError)
+      setLoading(false)
+      return
+    }
+
+    const emailError = validateEmail(email)
+    if (emailError) {
+      setError(emailError)
       setLoading(false)
       return
     }
@@ -132,6 +128,16 @@ export default function SignUp() {
     const passwordError = validatePassword(password)
     if (passwordError) {
       setError(passwordError)
+      setLoading(false)
+      return
+    }
+
+    const passwordsMatchError = validatePasswordsMatch(
+      password,
+      confirmPassword
+    )
+    if (passwordsMatchError) {
+      setError(passwordsMatchError)
       setLoading(false)
       return
     }
@@ -297,8 +303,8 @@ export default function SignUp() {
                     {otpLoading
                       ? 'Sending...'
                       : otpSent
-                      ? 'OTP Sent'
-                      : 'Send OTP'}
+                        ? 'OTP Sent'
+                        : 'Send OTP'}
                   </button>
                 ) : (
                   <div className="flex items-center text-green-600 dark:text-green-400 px-4 py-3">
@@ -326,8 +332,10 @@ export default function SignUp() {
                     value={otp}
                     onChange={(e) => {
                       // Only allow digits and limit to 6 characters
-                      const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 6);
-                      setOtp(value);
+                      const value = e.target.value
+                        .replace(/[^0-9]/g, '')
+                        .slice(0, 6)
+                      setOtp(value)
                     }}
                     placeholder="123456"
                     maxLength={6}
@@ -335,7 +343,7 @@ export default function SignUp() {
                     // Only allow numbers
                     onKeyPress={(e) => {
                       if (!/\d/.test(e.key)) {
-                        e.preventDefault();
+                        e.preventDefault()
                       }
                     }}
                   />
@@ -357,14 +365,22 @@ export default function SignUp() {
                   >
                     <span>Resend OTP</span>
                   </button>
-                  <span className="text-sm text-gray-500">OTP valid for 10 minutes</span>
+                  <span className="text-sm text-gray-500">
+                    OTP valid for 10 minutes
+                  </span>
                 </div>
                 <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">
                   <p>Having trouble with OTP verification?</p>
                   <ul className="list-disc ml-5 mt-1 space-y-1">
-                    <li>Make sure you're entering the 6-digit code sent to your email</li>
-                    <li>Check your spam/junk folder if you don't see the email</li>
-                    <li>Click "Resend OTP" to get a new code</li>
+                    <li>
+                      Make sure you&lsquo;re entering the 6-digit code sent to
+                      your email
+                    </li>
+                    <li>
+                      Check your spam/junk folder if you don&lsquo;t see the
+                      email
+                    </li>
+                    <li>Click &ldquo;Resend OTP&rdquo; to get a new code</li>
                   </ul>
                 </div>
               </div>

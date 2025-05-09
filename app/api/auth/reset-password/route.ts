@@ -1,105 +1,105 @@
 import { NextRequest, NextResponse } from 'next/server'
-import crypto from 'crypto'
 import bcrypt from 'bcrypt'
 import dbConnect from '@/lib/dbConnect'
 import User from '@/model/User'
 import PasswordReset from '@/model/PasswordReset'
-import { Ratelimit } from '@upstash/ratelimit'
-import { kv } from '@vercel/kv'
 import { validatePassword } from '@/lib/validation'
-
-// Remove edge runtime since bcrypt and mongoose aren't edge-compatible
-
-// 5 requests per minute per IP
-const resetPasswordLimiter = new Ratelimit({
-  redis: kv,
-  limiter: Ratelimit.slidingWindow(5, '1m'),
-})
+import { hashSensitiveData } from '@/lib/security'
+import mongoose from 'mongoose'
 
 export async function POST(request: NextRequest) {
-  // Identify client IP
-  const ip =
-    request.headers.get('x-forwarded-for')?.split(',')[0].trim() || // may be a list
-    request.headers.get('x-real-ip') ||
-    'unknown'
-
-  // Apply rate limit
-  if (
-    process.env.NODE_ENV === 'production' &&
-    process.env.KV_REST_API_URL &&
-    process.env.KV_REST_API_TOKEN
-  ) {
-    const { success } = await resetPasswordLimiter.limit(`reset-password_${ip}`)
-    if (!success) {
-      return NextResponse.json(
-        { message: 'Too many requests, please try again later.' },
-        { status: 429 }
-      )
-    }
-  }
+  const session = await mongoose.startSession()
+  session.startTransaction()
 
   try {
     await dbConnect()
 
-    const { token, password } = await request.json()
+    // Sanitize inputs
+    let { token, password } = await request.json()
+    token = typeof token === 'string' ? token.trim() : null
+    password = typeof password === 'string' ? password : null
 
-    // Validate inputs
     if (!token || !password) {
+      await session.abortTransaction()
       return NextResponse.json(
         { message: 'Token and password are required' },
         { status: 400 }
       )
     }
 
-    // Password validation
-    const passwordError = validatePassword(password)
-    if (passwordError) {
-      return NextResponse.json({ message: passwordError }, { status: 400 })
+    const validationError = validatePassword(password)
+    if (validationError) {
+      await session.abortTransaction()
+      return NextResponse.json({ message: validationError }, { status: 400 })
     }
 
-    // Hash the token to compare with stored value
-    const hashedToken = crypto.createHash('sha256').update(token).digest('hex')
+    const hashedToken = await hashSensitiveData(token)
 
-    // Find token document and check expiry
     const resetRequest = await PasswordReset.findOne({
       token: hashedToken,
-      expires: { $gt: new Date() }, // Token must not be expired
-    })
+      expires: { $gt: new Date() },
+      used: false,
+    }).session(session)
 
     if (!resetRequest) {
+      await session.abortTransaction()
       return NextResponse.json(
         { message: 'Invalid or expired token' },
         { status: 400 }
       )
     }
 
-    // Find the user by email
-    const user = await User.findOne({ email: resetRequest.email })
+    // Increment attempts counter
+    resetRequest.attempts = (resetRequest.attempts || 0) + 1
 
+    // If too many attempts, invalidate the token
+    const MAX_ATTEMPTS = 5
+    if (resetRequest.attempts > MAX_ATTEMPTS) {
+      resetRequest.used = true
+      await resetRequest.save({ session })
+      await session.abortTransaction()
+      return NextResponse.json(
+        { message: 'Too many attempts. Please request a new reset link.' },
+        { status: 400 }
+      )
+    }
+
+    const user = await User.findOne({ email: resetRequest.email }).session(
+      session
+    )
     if (!user) {
+      await session.abortTransaction()
       return NextResponse.json({ message: 'User not found' }, { status: 404 })
     }
 
-    // Hash the new password
     const hashedPassword = await bcrypt.hash(password, 10)
-
-    // Update user with new password
     user.password = hashedPassword
-    user.passwordSet = true
-    await user.save()
+    await user.save({ session })
 
-    // Delete all password reset tokens for this user
-    await PasswordReset.deleteMany({ email: resetRequest.email })
+    resetRequest.used = true
+    await resetRequest.save({ session })
+
+    await session.commitTransaction()
 
     return NextResponse.json(
-      { message: 'Password has been reset successfully' },
+      { message: 'Password reset successful' },
       { status: 200 }
     )
   } catch (error) {
-    console.error('Error resetting password')
+    await session.abortTransaction()
+
+    // Log error details
+    console.error(
+      'Error in reset-password route:',
+      error instanceof Error ? error.message : 'Unknown error'
+    )
+
+    await session.abortTransaction()
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { message: 'Error resetting password' },
       { status: 500 }
     )
+  } finally {
+    session.endSession()
   }
 }

@@ -1,11 +1,18 @@
-import mongoose, { Schema, Document, Model } from 'mongoose'
+import mongoose, { Schema, Model } from 'mongoose'
 
-export interface IOTP extends Document {
+export interface IOTP {
   email: string
   otp: string
   expires: Date
+  verified: boolean
+  attempts: number
+  lastAttempt: Date
   createdAt: Date
   updatedAt: Date
+  ipAddress: string
+  userAgent: string
+  generationCount: number
+  lastGeneration: Date
 }
 
 const OTPSchema: Schema = new Schema(
@@ -15,22 +22,51 @@ const OTPSchema: Schema = new Schema(
       required: [true, 'Email is required'],
       lowercase: true,
       trim: true,
-      index: true,
+      match: [
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        'Please enter a valid email address',
+      ],
     },
     otp: {
       type: String,
       required: [true, 'OTP is required'],
-      validate: {
-        validator: function(v: string) {
-          return /^\d{6}$/.test(v);
-        },
-        message: (props: { value: string }) => `${props.value} is not a valid 6-digit OTP!`
-      }
+      minlength: [6, 'OTP must be 6 digits'],
+      maxlength: [6, 'OTP must be 6 digits'],
     },
     expires: {
       type: Date,
       required: [true, 'Expiry date is required'],
-      index: true,
+      index: { expires: 0 }, // TTL index to automatically delete expired documents
+    },
+    verified: {
+      type: Boolean,
+      default: false,
+    },
+    attempts: {
+      type: Number,
+      default: 0,
+      max: [3, 'Maximum verification attempts exceeded'],
+    },
+    lastAttempt: {
+      type: Date,
+      default: Date.now,
+    },
+    ipAddress: {
+      type: String,
+      required: true,
+    },
+    userAgent: {
+      type: String,
+      required: true,
+    },
+    generationCount: {
+      type: Number,
+      default: 0,
+      max: [5, 'Maximum OTP generation attempts exceeded'],
+    },
+    lastGeneration: {
+      type: Date,
+      default: Date.now,
     },
   },
   {
@@ -38,24 +74,11 @@ const OTPSchema: Schema = new Schema(
   }
 )
 
-// Add index to automatically delete expired OTPs
-OTPSchema.index({ expires: 1 }, { expireAfterSeconds: 0 })
-
-// Add compound index for faster lookups
+// Add indexes for better query performance
 OTPSchema.index({ email: 1, otp: 1 })
-
-// Ensure indexes are created
-const ensureIndexes = async () => {
-  try {
-    if (mongoose.connection.readyState === 1) { // Connected
-      console.log('Creating OTP indexes...');
-      await mongoose.model('OTP').createIndexes();
-      console.log('OTP indexes created successfully');
-    }
-  } catch (error) {
-    console.error('Error creating OTP indexes:', error);
-  }
-};
+OTPSchema.index({ email: 1, verified: 1 })
+OTPSchema.index({ ipAddress: 1, createdAt: 1 })
+OTPSchema.index({ email: 1, generationCount: 1 })
 
 // Prevent model redefinition in development
 const OTP: Model<IOTP> =
@@ -63,7 +86,7 @@ const OTP: Model<IOTP> =
 
 // Create indexes if connected
 if (mongoose.connection.readyState === 1) {
-  ensureIndexes();
+  OTP.createIndexes().catch(console.error)
 }
 
-export default OTP 
+export default OTP

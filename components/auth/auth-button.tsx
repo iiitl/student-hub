@@ -58,7 +58,7 @@ export default function AuthButton() {
           <button className="flex items-center gap-2 focus:outline-none">
             {session?.user?.image ? (
               // Display Google profile picture if available
-              <Image 
+              <Image
                 src={session.user.image}
                 alt={session.user.name || 'User avatar'}
                 width={32}
@@ -93,19 +93,22 @@ export default function AuthButton() {
               Profile
             </Link>
           </DropdownMenuItem>
-          
+
           {userIsAdmin && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href="/admin" className="cursor-pointer flex items-center text-yellow-700 dark:text-yellow-500">
+                <Link
+                  href="/admin"
+                  className="cursor-pointer flex items-center text-yellow-700 dark:text-yellow-500"
+                >
                   <ShieldAlert className="mr-2 h-4 w-4" />
                   Admin Dashboard
                 </Link>
               </DropdownMenuItem>
             </>
           )}
-          
+
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={() => signOut({ callbackUrl: '/' })}

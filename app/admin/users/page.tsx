@@ -27,12 +27,20 @@ export default function AdminUsersPage() {
       try {
         const response = await fetch('/api/admin/roles')
         if (!response.ok) {
-          throw new Error(`Error: ${response.status}`)
+          const errorData = await response.json()
+          throw new Error(errorData.message || `Error: ${response.status}`)
         }
         const data = await response.json()
+        if (!data.users || !Array.isArray(data.users)) {
+          throw new Error('Invalid response format')
+        }
         setUsers(data.users)
       } catch (err) {
-        setError('Failed to fetch users. You may not have admin privileges.')
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Failed to fetch users. You may not have admin privileges.'
+        )
       } finally {
         setLoading(false)
       }
@@ -51,7 +59,10 @@ export default function AdminUsersPage() {
   }, [session, status, router])
 
   // Handle role change (promote/demote)
-  const handleRoleChange = async (userId: string, action: 'promote' | 'demote') => {
+  const handleRoleChange = async (
+    userId: string,
+    action: 'promote' | 'demote'
+  ) => {
     setActionLoading(userId)
     try {
       const response = await fetch('/api/admin/roles', {
@@ -66,11 +77,13 @@ export default function AdminUsersPage() {
       }
 
       const data = await response.json()
-      
+
       // Update the users state with the updated user
-      setUsers(users.map(user => 
-        user.id === userId ? { ...user, roles: data.user.roles } : user
-      ))
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user.id === userId ? { ...user, roles: data.user.roles } : user
+        )
+      )
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
@@ -106,6 +119,10 @@ export default function AdminUsersPage() {
       {loading ? (
         <div className="flex justify-center my-12">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      ) : users.length === 0 ? (
+        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+          No users found
         </div>
       ) : (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
@@ -151,7 +168,7 @@ export default function AdminUsersPage() {
                       ))}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
                     {user.roles.includes('admin') ? (
                       <button
                         onClick={() => handleRoleChange(user.id, 'demote')}
@@ -188,4 +205,4 @@ export default function AdminUsersPage() {
       )}
     </div>
   )
-} 
+}
