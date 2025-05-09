@@ -29,7 +29,8 @@ The authentication system is built using the following technologies:
 4. The system verifies that the email belongs to an IIITL student (ends with @iiitl.ac.in)
 5. If the email is not from IIITL domain, access is denied with an appropriate message
 6. If the user doesn't exist and has a valid IIITL email, a new account is created with their Google information
-7. The user is redirected back to the application and authenticated
+7. If the user hasn't set a password, they're prompted to create one
+8. The user is redirected back to the application and authenticated
 
 ### Email/Password Sign-Up
 
@@ -44,8 +45,7 @@ The authentication system is built using the following technologies:
 
 1. User enters email and password
 2. System verifies the email exists and password is correct
-3. If the user signed up with Google but hasn't set a password, they're prompted to create one
-4. After successful authentication, the user is redirected to the requested page
+3. After successful authentication, the user is redirected to the requested page
 
 ### Setting Password for Google Users
 
@@ -61,7 +61,7 @@ The authentication system is built using the following technologies:
 - Sensitive operations require re-authentication
 - User must be logged in to access protected routes
 - Password reset functionality for account recovery
-- Domain restriction ensures only IIITL students (@iiitl.ac.in email addresses) can access the platform
+- Domain restriction ensures only IIITL students (@iiitl.ac.in email addresses) can login/signup to the platform. Others can only view.
 
 ## Environment Configuration
 
@@ -103,12 +103,13 @@ The User model includes fields for both Google authentication and email/password
 ## Role-Based Access Control (RBAC)
 
 The system supports a role-based authentication and authorization system with two roles:
+
 - **user**: Default role assigned to all registered users
 - **admin**: Special role with additional privileges to manage users and access admin functionality
 
 ### User Model Role Implementation
 
-The User model includes a `roles` field which is an array of strings with possible values of `'user'` and `'admin'`. 
+The User model includes a `roles` field which is an array of strings with possible values of `'user'` and `'admin'`.
 All users are assigned the `'user'` role by default upon registration.
 
 ```typescript
@@ -121,7 +122,7 @@ roles: {
 
 ### JWT and Session Security for Roles
 
-The roles are securely stored in the JWT token and added to the user session. The implementation uses NextAuth's 
+The roles are securely stored in the JWT token and added to the user session. The implementation uses NextAuth's
 JWT callback to securely add roles to the token, making it tamper-proof.
 
 ```typescript
@@ -152,13 +153,16 @@ A middleware is implemented to protect admin routes by validating the JWT token 
 ```typescript
 export async function middleware(request: NextRequest) {
   // Check if this is an admin route that needs protection
-  const isAdminRoute = ADMIN_PATHS.some(route => path.startsWith(route))
+  const isAdminRoute = ADMIN_PATHS.some((route) => path.startsWith(route))
 
   if (isAdminRoute) {
-    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET })
-    
+    const token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+    })
+
     // Check if the user has the admin role
-    const userRoles = token.roles as string[] || []
+    const userRoles = (token.roles as string[]) || []
     if (!userRoles.includes('admin')) {
       return NextResponse.json({ message: 'Forbidden' }, { status: 403 })
     }
@@ -169,6 +173,7 @@ export async function middleware(request: NextRequest) {
 ### Admin Capabilities
 
 Admins can:
+
 1. Access the admin dashboard at `/admin`
 2. Navigate to user management at `/admin/users`
 3. Promote regular users to admin or demote admins to regular users
@@ -195,11 +200,3 @@ verifyJwt(request: NextRequest): Promise<{verified: boolean, token?: JWT, userId
 - Role validation happens on both client and server sides
 - All role operations are protected from unauthorized access
 - Admin users cannot demote themselves to prevent accidental lockout
-
-### Migrating Existing Users
-
-To migrate existing users to have the default 'user' role, run:
-
-```bash
-npx ts-node -r tsconfig-paths/register scripts/add-roles-to-users.ts
-```

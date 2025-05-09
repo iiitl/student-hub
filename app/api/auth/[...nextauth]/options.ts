@@ -12,7 +12,7 @@ type PossibleMongooseDocument = unknown
 // Type guard to check if an object is a Mongoose document
 const isMongooseDocument = (obj: PossibleMongooseDocument): boolean => {
   if (!obj) return false
-  
+
   // Type assertion to check for _id property
   const docCandidate = obj as { _id?: mongoose.Types.ObjectId }
   return (
@@ -42,10 +42,10 @@ export const authOptions: AuthOptions = {
 
         await dbConnect()
 
-        // Find user by email
+        // Find user by email and explicitly select password and passwordSet
         const user = await User.findOne({
           email: credentials.email.toLowerCase(),
-        })
+        }).select('+password +passwordSet')
 
         if (!user) {
           throw new Error('Invalid Credentials')
@@ -74,7 +74,7 @@ export const authOptions: AuthOptions = {
           userId = userWithId._id.toString()
         } else {
           // Fallback for TypeScript
-          userId = String((user as any)._id)
+          userId = String((user as IUser)._id)
         }
 
         return {
@@ -105,28 +105,17 @@ export const authOptions: AuthOptions = {
 
       await dbConnect()
 
-      // Debug: Check User model and schema
-      console.log('User model schema:', User.schema.obj);
-      console.log('User model paths:', Object.keys(User.schema.paths));
-
       // Check if user already exists
       const existingUser = (await User.findOne({
         email:
           typeof user.email === 'string' ? user.email.toLowerCase() : undefined,
-      })) as IUser | null
+      }).select('+passwordSet +roles')) as IUser | null
 
       let isNewUser = false
 
       if (existingUser) {
-        console.log('Existing user found:', { 
-          email: existingUser.email, 
-          roles: existingUser.roles,
-          _id: existingUser._id,
-          toObject: existingUser.toObject()
-        });
         // Update Google ID if needed
         if (!existingUser.googleId && user.id) {
-          console.log('Updating existing user with Google ID');
           // Use findOneAndUpdate to ensure atomic update
           const updatedUser = await User.findOneAndUpdate(
             { email: existingUser.email },
@@ -135,23 +124,26 @@ export const authOptions: AuthOptions = {
                 googleId: user.id,
                 image: user.image || undefined,
                 emailVerified: true,
-                roles: ['user']
-              }
+              },
             },
             { new: true, runValidators: true }
-          );
-          console.log('Updated user result:', updatedUser);
-          console.log('Updated user details:', { 
-            email: updatedUser?.email, 
-            roles: updatedUser?.roles,
-            _id: updatedUser?._id,
-            toObject: updatedUser?.toObject()
-          });
+          )
+
+          // Ensure we have the latest user data with roles
+          if (updatedUser) {
+            user.roles = updatedUser.roles
+          }
+        } else {
+          // If user already has Google ID, ensure roles are passed
+          user.roles = existingUser.roles
+        }
+        // If user exists and has a password set, allow sign in
+        if (existingUser.passwordSet) {
+          return true
         }
       } else if (user.email) {
-        console.log('Creating new user from Google auth');
         // Create new user from Google auth
-        const newUser = await User.create({
+        await User.create({
           name: user.name,
           email: user.email,
           image: user.image || undefined, // Convert null to undefined
@@ -160,16 +152,10 @@ export const authOptions: AuthOptions = {
           emailVerified: true, // Google OAuth automatically verifies email
           roles: ['user'], // Default role for new users
         })
-        console.log('Created new user details:', { 
-          email: newUser.email, 
-          roles: newUser.roles,
-          _id: newUser._id,
-          toObject: newUser.toObject()
-        });
         isNewUser = true
       }
 
-      // For new Google users or existing Google users without a password set
+      // Only redirect to set-password for new users or existing users without a password
       if (isNewUser || (existingUser && !existingUser.passwordSet)) {
         const email = user.email || ''
         return `/auth/set-password?email=${encodeURIComponent(email)}${isNewUser ? '&new=true' : ''}`
@@ -198,6 +184,11 @@ export const authOptions: AuthOptions = {
   },
   session: {
     strategy: 'jwt',
+    maxAge: 24 * 60 * 60, // 24 hours
+    updateAge: 60 * 60, // 1 hour
+  },
+  jwt: {
+    maxAge: 24 * 60 * 60, // 24 hours
   },
   secret: process.env.NEXTAUTH_SECRET,
 }

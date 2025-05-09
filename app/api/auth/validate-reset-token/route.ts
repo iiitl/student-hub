@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import crypto from 'crypto'
 import dbConnect from '@/lib/dbConnect'
 import PasswordReset from '@/model/PasswordReset'
+import { hashSensitiveData } from '@/lib/security'
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,13 +16,12 @@ export async function GET(request: NextRequest) {
 
     await dbConnect()
 
-    // Hash the token to compare with stored value
-    const hashedToken = crypto.createHash('sha256').update(token).digest('hex')
+    const hashedToken = await hashSensitiveData(token)
 
-    // Find token document and check expiry
     const resetRequest = await PasswordReset.findOne({
       token: hashedToken,
-      expires: { $gt: new Date() }, // Token must not be expired
+      expires: { $gt: new Date() },
+      used: false,
     })
 
     if (!resetRequest) {
@@ -32,11 +31,10 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({ valid: true }, { status: 200 })
-  } catch (error) {
-    console.error('Error validating token:', error)
+    return NextResponse.json({ message: 'Token is valid' }, { status: 200 })
+  } catch {
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { message: 'Error validating token' },
       { status: 500 }
     )
   }

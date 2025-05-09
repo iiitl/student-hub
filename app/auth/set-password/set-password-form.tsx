@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Mail, Lock } from 'lucide-react'
-import { validatePassword } from '@/lib/validation'
+import { validatePassword, validatePasswordsMatch } from '@/lib/validation'
 
 export default function SetPasswordForm() {
   const [email, setEmail] = useState('')
@@ -45,8 +45,12 @@ export default function SetPasswordForm() {
       return
     }
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match')
+    const passwordsMatchError = validatePasswordsMatch(
+      password,
+      confirmPassword
+    )
+    if (passwordsMatchError) {
+      setError(passwordsMatchError)
       setLoading(false)
       return
     }

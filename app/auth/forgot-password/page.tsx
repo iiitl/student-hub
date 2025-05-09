@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Mail, AlertCircle } from 'lucide-react'
+import { validateEmail } from '@/lib/validation'
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('')
@@ -10,20 +11,15 @@ export default function ForgotPassword() {
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  // Validate email domain
-  const isValidIIITLEmail = (email: string) => {
-    return email.toLowerCase().endsWith('@iiitl.ac.in')
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
     setSuccess(false)
 
-    // Validate IIITL domain
-    if (!isValidIIITLEmail(email)) {
-      setError('Only IIITL email addresses are allowed')
+    const emailError = validateEmail(email)
+    if (emailError) {
+      setError(emailError)
       setLoading(false)
       return
     }
@@ -113,8 +109,8 @@ export default function ForgotPassword() {
             <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/30 text-green-700 dark:text-green-400 px-4 py-5 rounded-md">
               <h3 className="text-lg font-medium mb-2">Check your email</h3>
               <p className="text-sm">
-                If an account with that email exists, we've sent a password reset
-                link. Please check your inbox.
+                If an account with that email exists, we&lsquo;ve sent a
+                password reset link. Please check your inbox.
               </p>
             </div>
           )}

@@ -12,13 +12,16 @@ export default function AdminDashboard() {
       <div className="flex items-center gap-3">
         <h1 className="text-2xl font-bold">Admin Dashboard</h1>
       </div>
-      
+
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-        <h2 className="text-lg font-medium mb-4">Welcome, {session?.user?.name}</h2>
+        <h2 className="text-lg font-medium mb-4">
+          Welcome, {session?.user?.name || 'Admin'}
+        </h2>
         <p className="text-gray-600 dark:text-gray-400 mb-6">
-          This is the admin area where you can manage your Student Hub application.
+          This is the admin area where you can manage your Student Hub
+          application.
         </p>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Link
             href="/admin/users"
@@ -34,7 +37,7 @@ export default function AdminDashboard() {
               </p>
             </div>
           </Link>
-          
+
           <div className="flex items-start p-4 bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-700 rounded-lg">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
@@ -50,4 +53,4 @@ export default function AdminDashboard() {
       </div>
     </div>
   )
-} 
+}

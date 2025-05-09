@@ -27,7 +27,7 @@ export default function AuthErrorContent() {
       SessionRequired: 'You need to be signed in to access this page.',
       PASSWORD_NOT_SET:
         'You need to set a password for your account. You previously signed in with Google.',
-      OnlyIIITLEmailsAllowed: 
+      OnlyIIITLEmailsAllowed:
         'Only @iiitl.ac.in email addresses are allowed to register for this application.',
     }
 

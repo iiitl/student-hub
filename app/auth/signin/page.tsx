@@ -44,8 +44,13 @@ export default function SignIn() {
           router.push(`/auth/set-password?email=${encodeURIComponent(email)}`)
           return
         }
-        setError(result.error)
-      } else {
+        // Handle other errors
+        if (result.error === 'Invalid Credentials') {
+          setError('Invalid email or password')
+        } else {
+          setError(result.error)
+        }
+      } else if (result?.ok) {
         // Successful login
         router.push('/')
         router.refresh()

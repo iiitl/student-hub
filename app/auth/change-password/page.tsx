@@ -5,7 +5,11 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Lock } from 'lucide-react'
-import { validatePassword } from '@/lib/validation'
+import {
+  validatePassword,
+  validatePasswordsMatch,
+  validateNewPasswordDifferent,
+} from '@/lib/validation'
 
 export default function ChangePassword() {
   const { data: session, status } = useSession()
@@ -39,14 +43,22 @@ export default function ChangePassword() {
       return
     }
 
-    if (newPassword !== confirmPassword) {
-      setError('New passwords do not match')
+    const passwordsMatchError = validatePasswordsMatch(
+      newPassword,
+      confirmPassword
+    )
+    if (passwordsMatchError) {
+      setError(passwordsMatchError)
       setLoading(false)
       return
     }
 
-    if (newPassword === currentPassword) {
-      setError('New password must be different from current password')
+    const newPasswordDifferentError = validateNewPasswordDifferent(
+      currentPassword,
+      newPassword
+    )
+    if (newPasswordDifferentError) {
+      setError(newPasswordDifferentError)
       setLoading(false)
       return
     }

@@ -5,7 +5,13 @@ import { useSession } from 'next-auth/react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { isAdmin } from '@/lib/auth-utils'
-import { Loader2, Users, Settings, ShieldAlert, ChevronRight } from 'lucide-react'
+import {
+  Loader2,
+  Users,
+  Settings,
+  ShieldAlert,
+  ChevronRight,
+} from 'lucide-react'
 
 export default function AdminLayout({
   children,
@@ -39,8 +45,16 @@ export default function AdminLayout({
 
   // Navigation links for admin area
   const navLinks = [
-    { href: '/admin', label: 'Dashboard', icon: <Settings className="h-4 w-4" /> },
-    { href: '/admin/users', label: 'User Management', icon: <Users className="h-4 w-4" /> },
+    {
+      href: '/admin',
+      label: 'Dashboard',
+      icon: <Settings className="h-4 w-4" />,
+    },
+    {
+      href: '/admin/users',
+      label: 'User Management',
+      icon: <Users className="h-4 w-4" />,
+    },
   ]
 
   return (
@@ -52,7 +66,7 @@ export default function AdminLayout({
             <ShieldAlert className="h-6 w-6" />
             <h1 className="text-xl font-bold">Admin Area</h1>
           </div>
-          <Link 
+          <Link
             href="/"
             className="text-sm bg-white/20 px-3 py-1 rounded hover:bg-white/30 transition-colors"
           >
@@ -93,11 +107,9 @@ export default function AdminLayout({
           </aside>
 
           {/* Main content */}
-          <main className="flex-1">
-            {children}
-          </main>
+          <main className="flex-1">{children}</main>
         </div>
       </div>
     </div>
   )
-} 
+}
