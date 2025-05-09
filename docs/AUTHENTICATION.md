@@ -38,14 +38,14 @@ The authentication system is built using the following technologies:
 2. System checks if the email already exists
 3. System validates that the email belongs to an IIITL student (ends with @iiitl.ac.in)
 4. If the email is not from IIITL domain, registration is rejected with an appropriate message
-5. If the email is new and valid, the password is hashed and a new user is created
+5. If the email is new and valid, the password is hashed, and a new user is created
 6. User is automatically signed in after successful registration
 
 ### Email/Password Sign-In
 
 1. User enters email and password
-2. System verifies the email exists and password is correct
-3. After successful authentication, the user is redirected to the requested page
+2. System verifies the email exists and the password is correct
+3. After successful authentication, the user is redirected to the requested page.
 
 ### Setting Password for Google Users
 

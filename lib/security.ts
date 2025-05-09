@@ -96,6 +96,8 @@ export async function generateDeviceFingerprint(
   userAgent: string,
   ip: string
 ): Promise<string> {
+  // Note: This provides a basic fingerprint, but both userAgent and IP can be spoofed
+  // For higher security, consider additional signals or a specialized fingerprinting library
   const data = `${userAgent}${ip}`
   return hashSensitiveData(data)
 }
@@ -127,6 +129,11 @@ export function validateSessionToken(token: string): boolean {
 
 // Check if request is from a known bot
 export function isKnownBot(userAgent: string): boolean {
+  // Note: This detection relies on user agent which can be spoofed
+  // For more reliable detection, consider:
+  // 1. IP reputation checking
+  // 2. Behavioral analysis
+  // 3. CAPTCHA for suspicious requests
   const botPatterns = [
     /bot/i,
     /crawler/i,

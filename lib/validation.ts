@@ -32,7 +32,7 @@ export const validatePassword = (password: string): string | null => {
 
   const strength = calculatePasswordStrength(password)
   if (strength < 3) {
-    return 'Password is too weak. Please choose a stronger password'
+    return 'Password is too weak. Please choose a stronger password with more variety, avoiding common words and patterns'
   }
 
   return null
