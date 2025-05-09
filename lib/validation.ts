@@ -114,7 +114,8 @@ export const validateName = (name: string): string | null => {
     return 'Name cannot be more than 100 characters'
   }
 
-  if (!/^[a-zA-Z\s-']+$/.test(sanitizedName)) {
+  // Allow any Unicode letters (including accents/diacritics), spaces, apostrophes, and hyphens
+  if (!/^[\p{L}\p{M}'\-\s]+$/u.test(sanitizedName)) {
     return 'Name can only contain letters, spaces, hyphens, and apostrophes'
   }
 

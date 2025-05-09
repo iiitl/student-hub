@@ -1,6 +1,5 @@
 import zxcvbn from 'zxcvbn'
-import createDOMPurify from 'dompurify'
-import { JSDOM } from 'jsdom'
+import DOMPurify from 'dompurify'
 
 // Password strength scoring
 export function calculatePasswordStrength(password: string): number {
@@ -86,9 +85,6 @@ export function isValidIP(ip: string): boolean {
   // Support for IPv6 localhost
   return ip === '::1'
 }
-
-const window = new JSDOM('').window
-const DOMPurify = createDOMPurify(window)
 
 // Sanitize user input with DOMPurify for production-grade XSS protection
 export function sanitizeInput(input: string): string {
