@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { Ratelimit } from '@upstash/ratelimit'
 import { kv } from '@vercel/kv'
+import crypto from 'crypto'
 
 // Rate limiters for different operations
 const signInLimiter = new Ratelimit({
@@ -38,7 +39,6 @@ const passwordChangeLimiter = new Ratelimit({
 const rateLimiters = {
   '/api/auth/signin': signInLimiter,
   '/api/auth/register': signUpLimiter,
-  '/api/auth/otp': otpLimiter,
   '/api/auth/send-otp': otpLimiter,
   '/api/auth/verify-otp': otpLimiter,
   '/api/auth/reset-password': passwordResetLimiter,
@@ -67,6 +67,8 @@ export async function middleware(request: NextRequest) {
     const ip =
       request.headers.get('x-forwarded-for') ||
       request.headers.get('x-real-ip') ||
+      request.headers.get('cf-connecting-ip') || // Cloudflare
+      request.headers.get('true-client-ip') || // Akamai and Cloudflare
       '127.0.0.1'
 
     try {
@@ -103,10 +105,16 @@ export async function middleware(request: NextRequest) {
   response.headers.set('X-Frame-Options', 'DENY')
   response.headers.set('X-XSS-Protection', '1; mode=block')
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  // Generate a unique nonce for this request
+  const nonce = crypto.randomBytes(16).toString('base64')
+
   response.headers.set(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;"
+    `default-src 'self'; script-src 'self' 'nonce-${nonce}' 'strict-dynamic'; style-src 'self' 'nonce-${nonce}'; img-src 'self' data: https:; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';`
   )
+
+  // Store nonce in a header so it can be accessed by server components
+  response.headers.set('x-nonce', nonce)
   response.headers.set(
     'Permissions-Policy',
     'camera=(), microphone=(), geolocation=()'
@@ -116,5 +124,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/api/:path*'],
+  matcher: ['/api/:path*', '/admin/:path*'],
 }

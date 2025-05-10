@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import dbConnect from '@/lib/dbConnect'
 import User from '@/model/User'
 import { verifyAdminApi } from '@/lib/auth-utils'
+import mongoose from 'mongoose'
 
 export async function GET(request: NextRequest) {
   // Verify admin privileges
@@ -88,6 +89,14 @@ export async function PATCH(request: NextRequest) {
 
     await dbConnect()
 
+    // Validate userId format
+    if (!mongoose.isValidObjectId(userId)) {
+      return NextResponse.json(
+        { error: 'Invalid user ID format' },
+        { status: 400 }
+      )
+    }
+
     // Find user
     const user = await User.findById(userId)
     if (!user) {
@@ -102,28 +111,40 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    // Update roles
-    if (action === 'promote' && !user.roles.includes('admin')) {
-      // Ensure user role exists and add admin role
-      if (!user.roles.includes('user')) {
-        user.roles.push('user')
+    // Update roles using Set for cleaner operations
+    const roleSet = new Set(user.roles)
+
+    // Always ensure 'user' role is present
+    roleSet.add('user')
+
+    if (action === 'promote') {
+      // Add admin role if not already present
+      if (roleSet.has('admin')) {
+        return NextResponse.json(
+          { message: 'User is already an admin' },
+          { status: 200 }
+        )
       }
-      user.roles.push('admin')
+      roleSet.add('admin')
     } else if (action === 'demote') {
-      // Only remove admin role, preserve user role
-      user.roles = user.roles.filter((role) => role !== 'admin')
-      // Ensure user role exists
-      if (!user.roles.includes('user')) {
-        user.roles.push('user')
+      // Remove admin role if present
+      if (!roleSet.has('admin')) {
+        return NextResponse.json(
+          { message: 'User is not an admin' },
+          { status: 200 }
+        )
       }
-    } else {
-      return NextResponse.json(
-        { message: 'No change needed - user already has the appropriate role' },
-        { status: 200 }
-      )
+      roleSet.delete('admin')
     }
 
+    user.roles = Array.from(roleSet)
+
     await user.save()
+
+    // Log role change for audit purposes
+    console.log(
+      `[AUDIT] User role changed: ${user.email} ${action}d by ${authData.email || 'unknown'} at ${new Date().toISOString()}`
+    )
 
     return NextResponse.json({
       message: `User ${action === 'promote' ? 'promoted to admin' : 'demoted from admin'} successfully`,
