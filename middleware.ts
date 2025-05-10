@@ -142,13 +142,17 @@ export async function middleware(request: NextRequest) {
   }
 
   // Check admin access for admin routes
-  if (path.startsWith('/api/admin/')) {
+  if (path.startsWith('/api/admin/') || path.startsWith('/admin/')) {
     const token = await getToken({ req: request })
     if (
       !token ||
       !Array.isArray(token.roles) ||
       !token.roles.includes('admin')
     ) {
+      // For page routes, redirect to access denied page
+      if (path.startsWith('/admin/')) {
+        return NextResponse.redirect(new URL('/', request.url))
+      }
       return new NextResponse(JSON.stringify({ error: 'Forbidden' }), {
         status: 403,
       })

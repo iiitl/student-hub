@@ -77,12 +77,13 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret
 
 ## Authentication API Endpoints
 
-- **POST /api/auth/register**: Register a new user with email/password
-- **POST /api/auth/register-with-otp**: Register a new user with email verification
-- **POST /api/auth/send-otp**: Send an OTP for email verification
-- **POST /api/auth/verify-otp**: Verify an OTP
-- **POST /api/auth/set-password**: Set a password for Google users
-- **POST /api/auth/change-password**: Change password for authenticated users
+- **POST /api/auth/forgot-password**: Initiate password reset process
+- **POST /api/auth/reset-password**: Reset password using token
+- **POST /api/auth/validate-reset-token**: Validate a password reset token
+- **GET/POST /api/auth/[...nextauth]**: NextAuth.js authentication handlers
+- **GET /api/auth/check-admin**: Check if the current user has admin privileges
+- **GET /api/admin/roles**: Get paginated list of users with roles (admin only)
+- **PATCH /api/admin/roles**: Promote or demote users (admin only)
 
 ## Components
 
