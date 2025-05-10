@@ -8,36 +8,47 @@ interface EmailOptions {
   html: string
 }
 
-const requiredEnvVars = [
-  'EMAIL_SERVER_HOST',
-  'EMAIL_SERVER_USER',
-  'EMAIL_SERVER_PASSWORD',
-  'EMAIL_SERVER_FROM',
-]
+function validateEmailEnvVars() {
+  const requiredEnvVars = [
+    'EMAIL_SERVER_HOST',
+    'EMAIL_SERVER_USER',
+    'EMAIL_SERVER_PASSWORD',
+    'EMAIL_SERVER_FROM',
+  ]
 
-const missingVars = requiredEnvVars.filter((varName) => !process.env[varName])
-if (missingVars.length > 0) {
-  console.error(
-    `Missing required environment variables: ${missingVars.join(', ')}`
-  )
+  const missingVars = requiredEnvVars.filter((varName) => !process.env[varName])
+  if (missingVars.length > 0) {
+    console.error(
+      `Missing required environment variables: ${missingVars.join(', ')}`
+    )
+
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(
+        `Missing required email configuration: ${missingVars.join(', ')}`
+      )
+    }
+  }
 }
 
-// In production, throw an error to prevent runtime failures
-if (process.env.NODE_ENV === 'production') {
-  throw new Error(
-    `Missing required email configuration: ${missingVars.join(', ')}`
-  )
-}
+let transporter: nodemailer.Transporter | null = null
 
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_SERVER_HOST,
-  port: parseInt(process.env.EMAIL_SERVER_PORT || '587'),
-  secure: process.env.EMAIL_SERVER_SECURE === 'true',
-  auth: {
-    user: process.env.EMAIL_SERVER_USER,
-    pass: process.env.EMAIL_SERVER_PASSWORD,
-  },
-})
+function getTransporter() {
+  validateEmailEnvVars()
+
+  if (!transporter) {
+    transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_SERVER_HOST,
+      port: parseInt(process.env.EMAIL_SERVER_PORT || '587'),
+      secure: process.env.EMAIL_SERVER_SECURE === 'true',
+      auth: {
+        user: process.env.EMAIL_SERVER_USER,
+        pass: process.env.EMAIL_SERVER_PASSWORD,
+      },
+    })
+  }
+
+  return transporter
+}
 
 export async function sendEmail({
   to,
@@ -45,6 +56,7 @@ export async function sendEmail({
   text,
   html,
 }: EmailOptions): Promise<void> {
+  const transporter = getTransporter()
   try {
     await transporter.sendMail({
       from: process.env.EMAIL_SERVER_FROM,
