@@ -171,7 +171,11 @@ export default function AdminUsersPage() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
                     {user.roles.includes('admin') ? (
                       <button
-                        onClick={() => handleRoleChange(user.id, 'demote')}
+                        onClick={() => {
+                          if (window.confirm(`Are you sure you want to revoke admin role from ${user.name}?`)) {
+                            handleRoleChange(user.id, 'demote')
+                          }
+                        }}
                         disabled={actionLoading === user.id}
                         className="text-red-600 hover:text-red-900 dark:text-red-500 dark:hover:text-red-400 inline-flex items-center gap-1"
                       >

@@ -57,6 +57,7 @@ const rateLimiterMap = rateLimiters
       '/api/auth/register': rateLimiters.signUp,
       '/api/auth/otp': rateLimiters.otp,
       '/api/auth/reset-password': rateLimiters.passwordReset,
+      '/api/auth/forgot-password': rateLimiters.passwordReset,
       '/api/auth/change-password': rateLimiters.passwordChange,
     }
   : {}

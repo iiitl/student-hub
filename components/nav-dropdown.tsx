@@ -11,6 +11,7 @@ interface NavDropdownProps {
 
 export default function NavDropdown({ group }: NavDropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [focusedIndex, setFocusedIndex] = useState<number | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   // Close the dropdown when clicking outside
@@ -33,6 +34,7 @@ export default function NavDropdown({ group }: NavDropdownProps) {
   return (
     <div className="relative" ref={dropdownRef}>
       <button
+        id={`${group.name}-trigger`}
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-1 text-sm hover:text-primary transition-colors focus:outline-none"
         onKeyDown={(e) => {
@@ -62,16 +64,17 @@ export default function NavDropdown({ group }: NavDropdownProps) {
           className="absolute top-full left-0 mt-1 bg-background border rounded-md shadow-lg py-2 w-48 z-50 animate-in fade-in-0 slide-in-from-top-3 duration-200"
           role="menu"
           id={`${group.name}-dropdown`}
+          aria-labelledby={`${group.name}-trigger`}
           tabIndex={-1}
         >
-          {group.items.map((item) => (
+          {group.items.map((item, idx) => (
             <Link
               key={item.url}
               href={item.url}
               className="block px-4 py-2 text-sm hover:bg-muted hover:text-primary transition-colors"
               onClick={() => setIsOpen(false)}
-              role="menuitem"
-              tabIndex={0}
+              tabIndex={focusedIndex === idx ? 0 : -1}
+              onFocus={() => setFocusedIndex(idx)}
               onKeyDown={(e) => {
                 if (e.key === 'Escape') {
                   setIsOpen(false)
@@ -81,6 +84,14 @@ export default function NavDropdown({ group }: NavDropdownProps) {
                   if (button instanceof HTMLElement) {
                     button.focus()
                   }
+                } else if (e.key === 'ArrowDown') {
+                  setFocusedIndex((prev) =>
+                    prev === null || prev === group.items.length - 1 ? 0 : prev + 1
+                  )
+                } else if (e.key === 'ArrowUp') {
+                  setFocusedIndex((prev) =>
+                    prev === null || prev === 0 ? group.items.length - 1 : prev - 1
+                  )
                 }
               }}
             >
