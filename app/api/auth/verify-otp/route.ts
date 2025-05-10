@@ -80,8 +80,9 @@ export async function POST(request: NextRequest) {
           lastAttempt: new Date(),
           verified: true,
         },
-      }
-    , { session })
+      },
+      { session }
+    )
 
     await session.commitTransaction()
 

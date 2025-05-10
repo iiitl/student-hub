@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     await OTP.deleteMany({ email: email.toLowerCase() })
 
     // Create OTP document
-    const otpDoc = await OTP.create({
+    await OTP.create({
       email: email.toLowerCase(),
       otp: otpCode,
       expires: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes

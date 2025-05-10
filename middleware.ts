@@ -88,7 +88,7 @@ export async function middleware(request: NextRequest) {
       request.headers.get('x-forwarded-for') ||
       request.headers.get('x-real-ip') ||
       request.headers.get('cf-connecting-ip') || // Cloudflare
-      request.headers.get('true-client-ip') ||   // Akamai and Cloudflare
+      request.headers.get('true-client-ip') || // Akamai and Cloudflare
       '127.0.0.1'
 
     try {
