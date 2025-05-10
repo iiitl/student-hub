@@ -39,8 +39,11 @@ const rateLimiters = {
   '/api/auth/signin': signInLimiter,
   '/api/auth/register': signUpLimiter,
   '/api/auth/otp': otpLimiter,
+  '/api/auth/send-otp': otpLimiter,
+  '/api/auth/verify-otp': otpLimiter,
   '/api/auth/reset-password': passwordResetLimiter,
   '/api/auth/change-password': passwordChangeLimiter,
+  '/api/auth/set-password': passwordChangeLimiter,
 }
 
 // Maximum request size (10MB)

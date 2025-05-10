@@ -44,7 +44,7 @@ The authentication system is built using the following technologies:
 ### Email/Password Sign-In
 
 1. User enters email and password
-2. System verifies the email exists and the password is correct
+2. System verifies the email exists, and the password is correct
 3. After successful authentication, the user is redirected to the requested page.
 
 ### Setting Password for Google Users
@@ -78,6 +78,9 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret
 ## Authentication API Endpoints
 
 - **POST /api/auth/register**: Register a new user with email/password
+- **POST /api/auth/register-with-otp**: Register a new user with email verification
+- **POST /api/auth/send-otp**: Send an OTP for email verification
+- **POST /api/auth/verify-otp**: Verify an OTP
 - **POST /api/auth/set-password**: Set a password for Google users
 - **POST /api/auth/change-password**: Change password for authenticated users
 

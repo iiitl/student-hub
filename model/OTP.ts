@@ -23,8 +23,8 @@ const OTPSchema: Schema = new Schema(
       lowercase: true,
       trim: true,
       match: [
-        /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-        'Please enter a valid email address',
+        /^[^\s@]+@iiitl\.ac\.in$/,
+        'Please enter a valid IIITL email address',
       ],
     },
     otp: {
@@ -32,11 +32,6 @@ const OTPSchema: Schema = new Schema(
       required: [true, 'OTP is required'],
       minlength: [6, 'OTP must be 6 digits'],
       maxlength: [6, 'OTP must be 6 digits'],
-    },
-    expires: {
-      type: Date,
-      required: [true, 'Expiry date is required'],
-      index: { expires: 0 }, // TTL index to automatically delete expired documents
     },
     verified: {
       type: Boolean,

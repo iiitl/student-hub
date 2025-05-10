@@ -88,7 +88,13 @@ export function isValidIP(ip: string): boolean {
 
 // Sanitize user input with DOMPurify for production-grade XSS protection
 export function sanitizeInput(input: string): string {
-  return DOMPurify.sanitize(input.trim())
+  // Configure DOMPurify with specific allowed tags and attributes for tighter control
+  return DOMPurify.sanitize(input.trim(), {
+    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a'],
+    ALLOWED_ATTR: ['href', 'title', 'target'],
+    FORBID_TAGS: ['script', 'style', 'iframe', 'form', 'object'],
+    FORBID_ATTR: ['onerror', 'onload', 'onclick']
+  })
 }
 
 // Generate device fingerprint

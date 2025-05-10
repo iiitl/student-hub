@@ -5,6 +5,7 @@ import { validateEmail } from '@/lib/validation'
 import mongoose from 'mongoose'
 
 export async function POST(request: NextRequest) {
+  await dbConnect()
   const session = await mongoose.startSession()
   session.startTransaction()
 
@@ -27,8 +28,6 @@ export async function POST(request: NextRequest) {
 
     // Sanitize email
     const sanitizedEmail = email.trim().toLowerCase()
-
-    await dbConnect()
 
     // Find the OTP document
     const otpDoc = await OTP.findOne({
@@ -82,7 +81,7 @@ export async function POST(request: NextRequest) {
           verified: true,
         },
       }
-    ).session(session)
+    , { session })
 
     await session.commitTransaction()
 

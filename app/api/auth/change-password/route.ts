@@ -17,11 +17,29 @@ export async function POST(request: NextRequest) {
     const userEmail = session.user.email.toLowerCase()
     await dbConnect()
 
-    const { currentPassword, newPassword } = await request.json()
+    let reqBody;
+    try {
+      reqBody = await request.json()
+    } catch (jsonError) {
+      return NextResponse.json(
+        { message: 'Invalid request body' },
+        { status: 400 }
+      )
+    }
+
+    const { currentPassword, newPassword } = reqBody
 
     if (!currentPassword || !newPassword) {
       return NextResponse.json(
         { message: 'Current password and new password are required' },
+        { status: 400 }
+      )
+    }
+
+    // Prevent password reuse
+    if (currentPassword === newPassword) {
+      return NextResponse.json(
+        { message: 'New password must be different from current password' },
         { status: 400 }
       )
     }

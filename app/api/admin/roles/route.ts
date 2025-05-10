@@ -18,8 +18,20 @@ export async function GET(request: NextRequest) {
   try {
     await dbConnect()
 
+    // Get pagination parameters from query
+    const url = new URL(request.url)
+    const page = parseInt(url.searchParams.get('page') || '1')
+    const limit = parseInt(url.searchParams.get('limit') || '20')
+    const skip = (page - 1) * limit
+
     // Return a list of all users with their roles
     const users = await User.find({}, 'name email roles')
+      .skip(skip)
+      .limit(limit)
+      .sort({ name: 1 })
+      
+    // Get total count for pagination metadata
+    const total = await User.countDocuments({})
 
     return NextResponse.json({
       users: users.map((user) => ({
@@ -28,6 +40,12 @@ export async function GET(request: NextRequest) {
         email: user.email,
         roles: user.roles,
       })),
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit)
+      }
     })
   } catch (error) {
     console.error('Error fetching users:', error)

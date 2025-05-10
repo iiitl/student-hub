@@ -22,6 +22,11 @@ if (missingVars.length > 0) {
   )
 }
 
+// In production, throw an error to prevent runtime failures
+if (process.env.NODE_ENV === 'production') {
+  throw new Error(`Missing required email configuration: ${missingVars.join(', ')}`)
+}
+
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_SERVER_HOST,
   port: parseInt(process.env.EMAIL_SERVER_PORT || '587'),

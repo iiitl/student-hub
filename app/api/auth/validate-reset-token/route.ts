@@ -32,7 +32,8 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({ message: 'Token is valid' }, { status: 200 })
-  } catch {
+  } catch (error) {
++    console.error('Error validating reset token:', error)
     return NextResponse.json(
       { message: 'Error validating token' },
       { status: 500 }

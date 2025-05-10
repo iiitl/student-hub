@@ -16,7 +16,8 @@ export default function SignIn() {
 
   // Validate email domain
   const isValidIIITLEmail = (email: string) => {
-    return email.toLowerCase().endsWith('@iiitl.ac.in')
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@iiitl\.ac\.in$/i
+    return emailRegex.test(email)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

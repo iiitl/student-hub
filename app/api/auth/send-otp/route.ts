@@ -35,12 +35,6 @@ export async function POST(request: NextRequest) {
     const otp = await generateSecureToken(3) // This will give us 6 hex characters
     const otpCode = parseInt(otp, 16).toString().padStart(6, '0').slice(0, 6)
 
-    console.log('Generated OTP:', {
-      email: email.toLowerCase(),
-      otp: otpCode,
-      expires: new Date(Date.now() + 10 * 60 * 1000),
-    })
-
     // Delete any existing OTPs for this email
     await OTP.deleteMany({ email: email.toLowerCase() })
 
@@ -53,13 +47,6 @@ export async function POST(request: NextRequest) {
       lastAttempt: new Date(),
       userAgent,
       ipAddress,
-    })
-
-    console.log('Created OTP document:', {
-      id: otpDoc._id,
-      email: otpDoc.email,
-      otp: otpDoc.otp,
-      expires: otpDoc.expires,
     })
 
     // Send OTP via email
