@@ -93,7 +93,7 @@ export function sanitizeInput(input: string): string {
     ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a'],
     ALLOWED_ATTR: ['href', 'title', 'target'],
     FORBID_TAGS: ['script', 'style', 'iframe', 'form', 'object'],
-    FORBID_ATTR: ['onerror', 'onload', 'onclick']
+    FORBID_ATTR: ['onerror', 'onload', 'onclick'],
   })
 }
 

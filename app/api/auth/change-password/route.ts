@@ -17,10 +17,10 @@ export async function POST(request: NextRequest) {
     const userEmail = session.user.email.toLowerCase()
     await dbConnect()
 
-    let reqBody;
+    let reqBody
     try {
       reqBody = await request.json()
-    } catch (jsonError) {
+    } catch {
       return NextResponse.json(
         { message: 'Invalid request body' },
         { status: 400 }

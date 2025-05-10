@@ -172,7 +172,11 @@ export default function AdminUsersPage() {
                     {user.roles.includes('admin') ? (
                       <button
                         onClick={() => {
-                          if (window.confirm(`Are you sure you want to revoke admin role from ${user.name}?`)) {
+                          if (
+                            window.confirm(
+                              `Are you sure you want to revoke admin role from ${user.name}?`
+                            )
+                          ) {
                             handleRoleChange(user.id, 'demote')
                           }
                         }}

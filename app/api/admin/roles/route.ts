@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       .skip(skip)
       .limit(limit)
       .sort({ name: 1 })
-      
+
     // Get total count for pagination metadata
     const total = await User.countDocuments({})
 
@@ -44,8 +44,8 @@ export async function GET(request: NextRequest) {
         total,
         page,
         limit,
-        pages: Math.ceil(total / limit)
-      }
+        pages: Math.ceil(total / limit),
+      },
     })
   } catch (error) {
     console.error('Error fetching users:', error)

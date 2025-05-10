@@ -86,11 +86,15 @@ export default function NavDropdown({ group }: NavDropdownProps) {
                   }
                 } else if (e.key === 'ArrowDown') {
                   setFocusedIndex((prev) =>
-                    prev === null || prev === group.items.length - 1 ? 0 : prev + 1
+                    prev === null || prev === group.items.length - 1
+                      ? 0
+                      : prev + 1
                   )
                 } else if (e.key === 'ArrowUp') {
                   setFocusedIndex((prev) =>
-                    prev === null || prev === 0 ? group.items.length - 1 : prev - 1
+                    prev === null || prev === 0
+                      ? group.items.length - 1
+                      : prev - 1
                   )
                 }
               }}
