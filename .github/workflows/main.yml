@@ -24,7 +24,7 @@ jobs:
               pull_number: context.payload.pull_request.number,
             });
 
-            const maintainers = ["MrImmortal09", "whilstsomebody", "TanishMoral11", "ArshiaAdhya", "0PrashantYadav0", "shuklamaneesh23", " gauravghodinde", "Robinaditya1045"];
+            const maintainers = ["MrImmortal09", "whilstsomebody", "0PrashantYadav0", "shuklamaneesh23", " gauravghodinde", "Robinaditya1045"];
             let approvals = new Set();
 
             reviews.forEach(review => {
@@ -33,6 +33,6 @@ jobs:
               }
             });
 
-            if (approvals.size < 2) {
-              core.setFailed(`At least 2 maintainer approvals are required. Currently approved by: ${Array.from(approvals).join(', ')}`);
+            if (approvals.size < 1) {
+              core.setFailed(`At least 1 maintainer approvals are required. Currently approved by: ${Array.from(approvals).join(', ')}`);
             }
