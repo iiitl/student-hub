@@ -1,60 +1,68 @@
-"use client";
+'use client'
 
-import React, { useState, useEffect } from "react";
-import { PlusCircle, ShoppingBag } from "lucide-react";
-import marketplaceData from "../../data/marketplace_data.json";
+import React, { useState, useEffect } from 'react'
+import { PlusCircle, ShoppingBag } from 'lucide-react'
+import marketplaceData from '../../data/marketplace_data.json'
 
 const Marketplace = () => {
-  const [listings, setListings] = useState([]);
-  const [formData, setFormData] = useState({ 
-    name: "", 
-    description: "", 
-    price: "", 
-    seller: "", 
-    contact: "", 
-    location: "" 
-  });
-  const [errors, setErrors] = useState({});
+  const [listings, setListings] = useState([])
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    price: '',
+    seller: '',
+    contact: '',
+    location: '',
+  })
+  const [errors, setErrors] = useState({})
 
   useEffect(() => {
-    setListings(marketplaceData.listings);
-  }, []);
+    setListings(marketplaceData.listings)
+  }, [])
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    const { name, value } = e.target
+    setFormData({ ...formData, [name]: value })
     // Clear error when user types
     if (errors[name]) {
-      setErrors({...errors, [name]: ""});
+      setErrors({ ...errors, [name]: '' })
     }
-  };
+  }
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+    e.preventDefault()
     // Validate all required fields
-    const newErrors = {};
-    if (!formData.name) newErrors.name = "Name is required";
-    if (!formData.description) newErrors.description = "Description is required";
-    if (!formData.price) newErrors.price = "Price is required";
-    if (formData.price && parseFloat(formData.price) <= 0) newErrors.price = "Price must be greater than zero";
+    const newErrors = {}
+    if (!formData.name) newErrors.name = 'Name is required'
+    if (!formData.description) newErrors.description = 'Description is required'
+    if (!formData.price) newErrors.price = 'Price is required'
+    if (formData.price && parseFloat(formData.price) <= 0)
+      newErrors.price = 'Price must be greater than zero'
     // if (!formData.seller) newErrors.seller = "Seller name is required";
-    if (!formData.contact) newErrors.contact = "Contact number is required";
-    if (formData.contact && !/^\d{10}$/.test(formData.contact)) newErrors.contact = "Please enter a valid 10-digit phone number";
+    if (!formData.contact) newErrors.contact = 'Contact number is required'
+    if (formData.contact && !/^\d{10}$/.test(formData.contact))
+      newErrors.contact = 'Please enter a valid 10-digit phone number'
     // if (!formData.location) newErrors.location = "Location is required";
-    
+
     if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
+      setErrors(newErrors)
+      return
     }
     // Generate a new ID based on the largest existing ID
-    const newId = listings.length > 0 
-      ? Math.max(...listings.map(item => item.id)) + 1 
-      : 1;
-      
-    setListings([...listings, { ...formData, id: newId }]);
-    setFormData({ name: "", description: "", price: "", seller: "", contact: "", location: "" });
-    setErrors({});
-  };
+    const newId =
+      listings.length > 0 ? Math.max(...listings.map((item) => item.id)) + 1 : 1
+
+    setListings([...listings, { ...formData, id: newId }])
+    setFormData({
+      name: '',
+      description: '',
+      price: '',
+      seller: '',
+      contact: '',
+      location: '',
+    })
+    setErrors({})
+  }
 
   return (
     <div className="container mx-auto p-6 max-w-6xl">
@@ -62,7 +70,10 @@ const Marketplace = () => {
         Student Marketplace
       </h1>
       {/* Form to List an Item */}
-      <form onSubmit={handleSubmit} className="mb-6 bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md">
+      <form
+        onSubmit={handleSubmit}
+        className="mb-6 bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md"
+      >
         <h2 className="text-xl font-semibold mb-4">List an Item for Sale</h2>
         <input
           type="text"
@@ -72,7 +83,9 @@ const Marketplace = () => {
           value={formData.name}
           onChange={handleInputChange}
         />
-        {errors.name && <p className="text-red-500 text-sm mb-3">{errors.name}</p>}
+        {errors.name && (
+          <p className="text-red-500 text-sm mb-3">{errors.name}</p>
+        )}
         <textarea
           name="description"
           placeholder="Item Description"
@@ -80,7 +93,9 @@ const Marketplace = () => {
           value={formData.description}
           onChange={handleInputChange}
         ></textarea>
-        {errors.description && <p className="text-red-500 text-sm mb-3">{errors.description}</p>}
+        {errors.description && (
+          <p className="text-red-500 text-sm mb-3">{errors.description}</p>
+        )}
         <input
           type="number"
           name="price"
@@ -89,7 +104,9 @@ const Marketplace = () => {
           value={formData.price}
           onChange={handleInputChange}
         />
-        {errors.price && <p className="text-red-500 text-sm mb-3">{errors.price}</p>}
+        {errors.price && (
+          <p className="text-red-500 text-sm mb-3">{errors.price}</p>
+        )}
         {/* <input
           type="text"
           name="seller"
@@ -107,7 +124,9 @@ const Marketplace = () => {
           value={formData.contact}
           onChange={handleInputChange}
         />
-        {errors.contact && <p className="text-red-500 text-sm mb-3">{errors.contact}</p>}
+        {errors.contact && (
+          <p className="text-red-500 text-sm mb-3">{errors.contact}</p>
+        )}
         {/* <input
           type="text"
           name="location"
@@ -154,7 +173,7 @@ const Marketplace = () => {
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Marketplace;
+export default Marketplace
