@@ -43,7 +43,7 @@ The authentication system is built using the following technologies:
 
 ### Email/Password Sign-In
 
-1. User enters email and password
+1. User enters the email and password
 2. System verifies the email exists, and the password is correct
 3. After successful authentication, the user is redirected to the requested page.
 
@@ -77,6 +77,12 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret
 
 ## Authentication API Endpoints
 
+- **POST /api/auth/register**: Register a new user with email/password
+- **POST /api/auth/register-with-otp**: Register a new user with email verification
+- **POST /api/auth/send-otp**: Send an OTP for email verification
+- **POST /api/auth/verify-otp**: Verify an OTP
+- **POST /api/auth/set-password**: Set a password for Google users
+- **POST /api/auth/change-password**: Change password for authenticated users
 - **POST /api/auth/forgot-password**: Initiate password reset process
 - **POST /api/auth/reset-password**: Reset password using token
 - **POST /api/auth/validate-reset-token**: Validate a password reset token
@@ -113,7 +119,7 @@ The system supports a role-based authentication and authorization system with tw
 
 ### User Model Role Implementation
 
-The User model includes a `roles` field which is an array of strings with possible values of `'user'` and `'admin'`.
+The User model includes a `roles` field, which is an array of strings with possible values of `'user'` and `'admin'`.
 All users are assigned the `'user'` role by default upon registration.
 
 ```typescript

@@ -32,7 +32,7 @@ const PasswordResetSchema: Schema = new Schema(
     expires: {
       type: Date,
       required: [true, 'Expiry date is required'],
-      index: { expires: 0 }, // TTL index to automatically delete expired documents
+      index: { expireAfterSeconds: 0 }, // TTL index to automatically delete expired documents
     },
     used: {
       type: Boolean,

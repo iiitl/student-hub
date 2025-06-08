@@ -57,8 +57,7 @@ const OTPSchema: Schema = new Schema(
     expires: {
       type: Date,
       required: [true, 'Expiry date is required'],
-      index: true,
-      expire: 0,
+      index: { expireAfterSeconds: 0 },
     },
     generationCount: {
       type: Number,
