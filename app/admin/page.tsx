@@ -38,7 +38,7 @@ export default function AdminDashboard() {
             </div>
           </Link>
 
-          <div className="flex items-start p-4 bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-700 rounded-lg">
+          <div className="flex items-start p-4 bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-700 rounded-lg opacity-70 cursor-not-allowed">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <UserCog className="h-5 w-5 text-gray-600 dark:text-gray-400" />
