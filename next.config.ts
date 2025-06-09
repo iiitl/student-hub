@@ -11,8 +11,8 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'lh3.googleusercontent.com',
-        pathname: '/**', // Allows all Google user avatars
+        hostname: 'avatars.githubusercontent.com',
+        pathname: '/in/**', // Allows all organization avatars
       },
       {
         protocol: 'https',
