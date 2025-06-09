@@ -30,7 +30,8 @@ export default function useContributors() {
           throw new Error('Failed to fetch contributors')
         }
         const data = await response.json()
-        setContributors(data)
+        const userData = data.filter((c: TypeContributors) => !c.login.includes('[bot]'))
+        setContributors(userData)
       } catch (err: any) {
         setError(err.message)
       } finally {
