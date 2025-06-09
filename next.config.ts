@@ -11,6 +11,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'avatars.githubusercontent.com',
+        pathname: '/in/**', // Allows all user avatars
+      },
+      {
+        protocol: 'https',
         hostname: 'ts4.mm.bing.net',
         pathname: '/**', // Allows all Participant avatars
       },
