@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'avatars.githubusercontent.com',
-        pathname: '/in/**', // Allows all user avatars
+        pathname: '/in/**', // Allows all organization avatars
       },
       {
         protocol: 'https',
