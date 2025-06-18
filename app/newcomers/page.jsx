@@ -83,6 +83,9 @@ const NewcomersPage = () => {
               <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
                 {location.address}
               </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-1">
+                {location.distance}
+              </p>
 
               {/* View on Map Button */}
               <button
