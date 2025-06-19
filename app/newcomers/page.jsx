@@ -20,7 +20,8 @@ const NewcomersPage = () => {
   const [filteredLocations, setFilteredLocations] = useState([])
 
   useEffect(() => {
-    const filtered = locationData.locations.filter((location) => {
+  const filtered = locationData.locations
+    .filter((location) => {
       return (
         (selectedCategory === 'All' ||
           location.category.trim() === selectedCategory) &&
@@ -28,8 +29,14 @@ const NewcomersPage = () => {
           location.address.toLowerCase().includes(searchQuery.toLowerCase()))
       )
     })
-    setFilteredLocations(filtered)
-  }, [searchQuery, selectedCategory])
+    .sort((a, b) => {
+      const distA = parseFloat(a.distance.replace('km', '').trim())
+      const distB = parseFloat(b.distance.replace('km', '').trim())
+      return distA - distB 
+    })
+
+  setFilteredLocations(filtered)
+}, [searchQuery, selectedCategory])
 
   return (
     <div className="container mx-auto p-6 max-w-6xl">
@@ -84,7 +91,7 @@ const NewcomersPage = () => {
                 {location.address}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-1">
-                {location.distance}
+                {location.distance.trim()}
               </p>
 
               {/* View on Map Button */}
