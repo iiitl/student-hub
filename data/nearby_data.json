@@ -1,109 +1,124 @@
 {
   "locations": [
     {
-      "name": "Emerpial Hotel ",
+      "name": "Imperial Hotel",
       "category": "Restaurant",
       "address": "123 Main St, City Center",
       "map_link": "https://maps.app.goo.gl/snM5v9vSPQ3inEo8A",
-      "image": "https://images.app.goo.gl/rvnoLJ7PG2Ysd7DR8"
+      "image": "https://images.app.goo.gl/rvnoLJ7PG2Ysd7DR8",
+      "distance": "16km"
     },
     {
-      "name": "Dastarkhwan ",
+      "name": "Dastarkhwan",
       "category": "Hotel",
       "address": "Aminabad ",
       "map_link": "https://maps.app.goo.gl/34wZgaFGsfxCeDQj8",
-      "image": "https://images.app.goo.gl/6nj5abzqCUGBJzVB7"
+      "image": "https://images.app.goo.gl/6nj5abzqCUGBJzVB7",
+      "distance": "14km"
     },
     {
-      "name": "DR BR Ambedkar Park ",
+      "name": "DR BR Ambedkar Park",
       "category": "Landmarks",
       "address": "789 Heritage Lane, Old Town",
       "map_link": "https://maps.app.goo.gl/FXhyBdNQ9C5PQb737",
-      "image": "https://images.app.goo.gl/bhxCzt86F8roeKfbA"
+      "image": "https://images.app.goo.gl/bhxCzt86F8roeKfbA",
+      "distance": "11km"
     },
     {
-      "name": "LuLu Mall ",
+      "name": "LuLu Mall",
       "category": "Shop",
       "address": "101 Market St, Shopping District",
       "map_link": "https://maps.app.goo.gl/rc1bpU9zSCPUpboM6",
-      "image": "https://images.app.goo.gl/7e2soByQzbmuDz9K7"
+      "image": "https://images.app.goo.gl/7e2soByQzbmuDz9K7",
+      "distance": "5.4km"
     },
     {
-      "name": "Plassio Mall ",
+      "name": "Palassio Mall",
       "category": "Shop",
       "address": "Ahmamau , Sultanpr road ",
       "map_link": "https://maps.app.goo.gl/yXX3fZZgcqcDWY5N6",
-      "image": "https://images.app.goo.gl/6jyhMSM7YLFPX4V66"
+      "image": "https://images.app.goo.gl/6jyhMSM7YLFPX4V66",
+      "distance": "2.6km"
     },
     {
-      "name": "Chhota Imambada ",
-      "category": "landmarks",
+      "name": "Chhota Imambada",
+      "category": "Landmarks",
       "address": "303 Innovation Blvd, Tech District",
       "map_link": "https://maps.app.goo.gl/ojNq7t6LZF3EKg7NA",
-      "image": "https://images.app.goo.gl/ejpAvYhUJ82cZ4aH7"
+      "image": "https://images.app.goo.gl/ejpAvYhUJ82cZ4aH7",
+      "distance": "21km"
     },
     {
       "name": "Moti Mahal",
       "category": "Restaurant",
       "address": "Hazratganj",
       "map_link": "https://maps.app.goo.gl/8b6JvxfRNngLhy4h6",
-      "image": "https://images.app.goo.gl/rvnoLJ7PG2Ysd7DR8"
+      "image": "https://images.app.goo.gl/rvnoLJ7PG2Ysd7DR8",
+      "distance": "13km"
     },
     {
       "name": "Janpath Market",
       "category": "Shop",
       "address": "Sushanpura,Hazratganj",
       "map_link": "https://maps.app.goo.gl/HmWxtLzjUxzojLVz8",
-      "image": "https://images.app.goo.gl/6jyhMSM7YLFPX4V66"
+      "image": "https://images.app.goo.gl/6jyhMSM7YLFPX4V66",
+      "distance": "12km"
     },
     {
       "name": "Surya Continental",
       "category":"Hotel",
       "address": "Ahmamau , Sultanpur road ",
       "map_link": "https://maps.app.goo.gl/3RC5Kn8tryYDeXHJA",
-      "image": "https://images.app.goo.gl/6nj5abzqCUGBJzVB7"
+      "image": "https://images.app.goo.gl/6nj5abzqCUGBJzVB7",
+      "distance": "4.4km"
     },
     {
       "name": "Hotel Meghalaya",
       "category":"Hotel",
       "address": "Gomti Nagar, Ardonamau ",
       "map_link": "https://maps.app.goo.gl/mwG4aFGJVoHDF6ko8",
-      "image": "https://images.app.goo.gl/6nj5abzqCUGBJzVB7"
+      "image": "https://images.app.goo.gl/6nj5abzqCUGBJzVB7",
+      "distance": "2.4km"
     },
     {
       "name": "Prithvi Resort",
       "category":"Hotel",
       "address": "Ahmamau,sultanpur road ",
       "map_link": "https://maps.app.goo.gl/MFwfQeuYd8b8HvX77",
-      "image": "https://images.app.goo.gl/6nj5abzqCUGBJzVB7"
+      "image": "https://images.app.goo.gl/6nj5abzqCUGBJzVB7",
+      "distance": "3.5km"
     },
     {
       "name": "Mishri Malai",
       "category": "Restaurant",
       "address": "Palassio Mall,Ahmamau",
       "map_link": "https://maps.app.goo.gl/R2andYqupZE6rUbX8",
-      "image": "https://images.app.goo.gl/rvnoLJ7PG2Ysd7DR8"
+      "image": "https://images.app.goo.gl/rvnoLJ7PG2Ysd7DR8",
+      "distance": "2.1km"
     },
     {
-      "name": "Janeshwar Mishra Park ",
-      "category": "landmarks",
+      "name": "Janeshwar Mishra Park",
+      "category": "Landmarks",
       "address": "Gomti Nagar, Lucknow",
       "map_link": "https://maps.app.goo.gl/2MSJFpfmQ9FMQAYh8",
-      "image": "https://images.app.goo.gl/ejpAvYhUJ82cZ4aH7"
+      "image": "https://images.app.goo.gl/ejpAvYhUJ82cZ4aH7",
+      "distance": "8km"
     },
     {
       "name": "Royal Cafe",
       "category": "Restaurant",
       "address": "51,Mahatma Gandhi Marg, Hazratganj",
       "map_link": "https://maps.app.goo.gl/qkK8yf8J6JNZYDBV6",
-      "image": "https://images.app.goo.gl/rvnoLJ7PG2Ysd7DR8"
+      "image": "https://images.app.goo.gl/rvnoLJ7PG2Ysd7DR8",
+      "distance": "14km"
     },
     {
       "name": "Curry Leaf",
       "category": "Restaurant",
       "address": "Jaynagar 3rd block east, Hazratganj",
       "map_link": "https://maps.app.goo.gl/7doNzvSe5ioiDT5FA",
-      "image": "https://images.app.goo.gl/rvnoLJ7PG2Ysd7DR8"
+      "image": "https://images.app.goo.gl/rvnoLJ7PG2Ysd7DR8",
+      "distance": "14km"
     }
 
   ]
