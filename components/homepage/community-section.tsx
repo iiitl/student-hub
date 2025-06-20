@@ -1,6 +1,6 @@
 "use client";
-import React, { use, useEffect } from 'react';
-import { useTransform, useScroll, motion } from 'framer-motion';
+import React from 'react';
+import { useTransform, useScroll, motion, MotionValue } from 'framer-motion';
 import { useRef } from 'react';
 import Image from 'next/image';
 import useDimensions from '@/hooks/useDimensions';
@@ -42,11 +42,11 @@ const CommunitySection = () =>{
 
 type ColumnProps = {
   images: string[];
-  y?: any; // from framer-motion
+  y?: MotionValue<number>;
   top?: string; // new prop for custom top offset
 };
 
-const Column: React.FC<ColumnProps> = ({ images, y = 0, top = '0%' }) => (
+const Column: React.FC<ColumnProps> = ({ images, y = undefined, top = '0%' }) => (
   <motion.div
     style={{ y, top }}
     className='w-1/4 h-full flex flex-col gap-[2vw] relative'

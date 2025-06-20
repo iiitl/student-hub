@@ -1,8 +1,7 @@
 import React, { useRef } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { DivideSquare } from 'lucide-react';
+import { motion, useScroll, useTransform, MotionValue } from 'framer-motion';
 import Image from 'next/image';
 import useDimensions from '@/hooks/useDimensions';
 
@@ -41,7 +40,6 @@ const MarketplaceSection = () => {
   ];
   // Separate refs for left and right galleries
   const leftContainer = useRef(null);
-  const rightContainer = useRef(null);
   const { height } = useDimensions();
   // Left gallery scroll
   const { scrollYProgress: leftScrollY } = useScroll({
@@ -52,20 +50,18 @@ const MarketplaceSection = () => {
   const leftY1 = useTransform(leftScrollY, [0, 1], [0, height * 0.35]);
   const leftY2 = useTransform(leftScrollY, [0, 1], [0, height * 0.15]);
   // Right gallery scroll
-  const { scrollYProgress: rightScrollY } = useScroll({
-    target: rightContainer,
-    offset: ['start end', 'end start']
-  });
-  const rightY = useTransform(rightScrollY, [0, 1], [0, height * 0.2]);
-  const rightY1 = useTransform(rightScrollY, [0, 1], [0, height * 0.35]);
-  const rightY2 = useTransform(rightScrollY, [0, 1], [0, height * 0.15]);
+  // const { scrollYProgress: rightScrollY } = useScroll({
+  //   target: rightContainer,
+  //   offset: ['start end', 'end start']
+  // });
+  // Removed unused rightScrollY
 
   type ColumnProps = {
     images: string[];
-    y?: any;
+    y?: MotionValue<number>;
     top?: string;
   };
-  const Column: React.FC<ColumnProps> = ({ images, y = 0, top = '0%' }) => (
+  const Column: React.FC<ColumnProps> = ({ images, y = undefined, top = '0%' }) => (
     <motion.div
       style={{ y, translateY: top }}
       className="w-full h-full flex flex-col gap-[2vw] relative"

@@ -1,6 +1,5 @@
 "use client";
 import HeroSection from '@/components/homepage/hero-section'
-import CtaSection from '@/components/homepage/cta-section'
 import Head from 'next/head'
 import NotesSection from '@/components/homepage/notes-section'
 import MarketplaceSection from '@/components/homepage/marketplace-section'

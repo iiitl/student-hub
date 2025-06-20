@@ -1,12 +1,11 @@
 "use client"
-import React, { use } from 'react'
+import React from 'react'
 import Link from "next/link"
-import {useTransform,useScroll, motion} from "framer-motion"
+import {useTransform,useScroll, motion, MotionValue} from "framer-motion"
 import { Button } from '@/components/ui/button'
 import useDimensions from '@/hooks/useDimensions'
 import Image from 'next/image'
 import { useRef } from 'react'
-import { useEffect } from 'react';
 
 const containerVariants = {
   hidden: {},
@@ -63,10 +62,10 @@ const NotesSection = ()=>{
 
     type ColumnProps = {
       images: string[];
-      y?: any; // from framer-motion
+      y?: MotionValue<number>;
       top?: string; // new prop for custom top offset
     }; 
-const Column: React.FC<ColumnProps> = ({ images, y = 0, top = '0%' }) => (
+const Column: React.FC<ColumnProps> = ({ images, y = undefined, top = '0%' }) => (
 <motion.div
   style={{ y, translateY: top }}
   className="w-full h-full flex flex-col gap-[2vw] relative"
