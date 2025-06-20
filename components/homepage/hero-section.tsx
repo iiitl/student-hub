@@ -135,13 +135,13 @@ const HeroSection: React.FC = () => {
         initial="hidden"
         animate="show"
       >
-        <motion.h1 variants={item} className="text-2xl sm:text-3xl font-semibold mb-1">
+        <motion.h1 variants={item} className="text-2xl sm:text-3xl font-semibold mb-1 dark:text-white">
           One Platform. Every Student Needs.
         </motion.h1>
-        <motion.h1 variants={item} className="text-4xl sm:text-6xl font-bold mb-6">
+        <motion.h1 variants={item} className="text-4xl sm:text-6xl font-bold mb-6 dark:text-white">
           By the Students, For the Students
         </motion.h1>
-        <motion.h1 variants={item} className="text-base sm:text-xl mx-1 mb-4">
+        <motion.h1 variants={item} className="text-base sm:text-xl mx-1 mb-4 dark:text-white">
           Resources, community, and expert support to guide you<br className="hidden sm:block" />through academics, opportunities, and campus life — all in one place.
         </motion.h1>
         <motion.div

@@ -38,7 +38,6 @@ const MarketplaceSection = () => {
     "5.jpeg", "6.jpeg", "7.jpeg", "8.jpeg",
     "9.jpeg", "10.jpeg", "11.jpeg", "12.jpeg",
   ];
-  // Separate refs for left and right galleries
   const leftContainer = useRef(null);
   const { height } = useDimensions();
   // Left gallery scroll
@@ -46,16 +45,27 @@ const MarketplaceSection = () => {
     target: leftContainer,
     offset: ['start end', 'end start']
   });
-  const leftY = useTransform(leftScrollY, [0, 1], [0, height * 0.2]);
-  const leftY1 = useTransform(leftScrollY, [0, 1], [0, height * 0.35]);
-  const leftY2 = useTransform(leftScrollY, [0, 1], [0, height * 0.15]);
-  // Right gallery scroll
-  // const { scrollYProgress: rightScrollY } = useScroll({
-  //   target: rightContainer,
-  //   offset: ['start end', 'end start']
-  // });
-  // Removed unused rightScrollY
+  const [parallaxMultipliers, setParallaxMultipliers] = React.useState([0.2, 0.35, 0.15]);
 
+  React.useEffect(() => {
+    const updateParallax = () => {
+      const width = window.innerWidth;
+      if (width < 640) {
+        setParallaxMultipliers([0.08, 0.15, 0.06]);
+      } else if (width < 1024) {
+        setParallaxMultipliers([0.13, 0.22, 0.09]);
+      } else {
+        setParallaxMultipliers([0.2, 0.35, 0.15]);
+      }
+    };
+    updateParallax();
+    window.addEventListener('resize', updateParallax);
+    return () => window.removeEventListener('resize', updateParallax);
+  }, []);
+
+  const leftY = useTransform(leftScrollY, [0, 1], [0, height * parallaxMultipliers[0]]);
+  const leftY1 = useTransform(leftScrollY, [0, 1], [0, height * parallaxMultipliers[1]]);
+  const leftY2 = useTransform(leftScrollY, [0, 1], [0, height * parallaxMultipliers[2]]);
   type ColumnProps = {
     images: string[];
     y?: MotionValue<number>;
@@ -69,7 +79,7 @@ const MarketplaceSection = () => {
       {images.map((src, index) => (
         <div key={index} className="w-full min-h-[40vh] relative overflow-hidden">
           <Image
-            src={`/marketgall/${src}`}
+            src={`/marketplace-gallery/${src}`}
             alt="image"
             fill
             className="object-cover"
@@ -111,14 +121,17 @@ const MarketplaceSection = () => {
               A campus-wide platform where students can easily buy and sell pre-loved items—whether it’s books, gadgets, furniture, or anything in between.
             </motion.p>
             <motion.div variants={buttonVariant} className="mb-8">
-            <Button
-            className="bg-black text-white dark:bg-white dark:text-black 
-                        rounded-full w-28 h-16 sm:w-32 sm:h-32 
-                        hover:bg-transparent hover:text-black hover:border-black hover:border-2
-                        dark:hover:bg-transparent dark:hover:text-white dark:hover:border-white 
-                        transition-all duration-500 hover:scale-110 text-base sm:text-xl">
-            <Link href="/marketplace">Explore</Link>
-            </Button>
+                <Link href="/marketplace">
+                  <Button
+                    className="bg-black text-white dark:bg-white dark:text-black
+                              rounded-full w-28 h-16 sm:w-32 sm:h-32
+                              hover:bg-transparent hover:text-black hover:border-black hover:border-2
+                              dark:hover:bg-transparent dark:hover:text-white dark:hover:border-white
+                              transition-all duration-500 hover:scale-110 text-base sm:text-xl"
+                  >
+                    Explore
+                  </Button>
+                </Link>
             </motion.div>
           </motion.div>
         </div>

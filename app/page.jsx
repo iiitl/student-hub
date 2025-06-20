@@ -10,7 +10,9 @@ import { useEffect } from 'react'
 export default function Home() {
   useEffect(() => {
     const lenis = new Lenis({ autoRaf: true });
-    lenis.on('scroll', () => {});
+    return()=>{
+      lenis.destroy();
+    };
   }, []);
 
   return (
@@ -21,7 +23,7 @@ export default function Home() {
           rel="stylesheet"
         />
       </Head>
-      <div className="flex flex-col bg-blue-100 dark:bg-slate-800 font-satoshi dark:text-gray-300">
+      <div className="flex flex-col bg-blue-100 dark:bg-slate-800 font-satoshi dark:text-white">
         <main className="flex-1"> 
           <HeroSection />
           <NotesSection />

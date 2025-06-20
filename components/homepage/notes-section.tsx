@@ -55,9 +55,27 @@ const NotesSection = ()=>{
         target: container,
         offset:['start end', 'end start']
     });
-    const y = useTransform(scrollYProgress, [0, 1], [0, height * 0.2]);
-    const y1 = useTransform(scrollYProgress, [0, 1], [0, height * 0.35]);
-    const y2 = useTransform(scrollYProgress, [0, 1], [0, height * 0.15]);
+    const [parallaxMultipliers, setParallaxMultipliers] = React.useState([0.2, 0.35, 0.15]);
+
+    React.useEffect(() => {
+        const updateParallax = () => {
+            const width = window.innerWidth;
+            if (width < 640) {
+                setParallaxMultipliers([0.08, 0.15, 0.06]);
+            } else if (width < 1024) {
+                setParallaxMultipliers([0.13, 0.22, 0.09]);
+            } else {
+                setParallaxMultipliers([0.2, 0.35, 0.15]);
+            }
+        };
+        updateParallax();
+        window.addEventListener('resize', updateParallax);
+        return () => window.removeEventListener('resize', updateParallax);
+    }, []);
+
+    const y = useTransform(scrollYProgress, [0, 1], [0, height * parallaxMultipliers[0]]);
+    const y1 = useTransform(scrollYProgress, [0, 1], [0, height * parallaxMultipliers[1]]);
+    const y2 = useTransform(scrollYProgress, [0, 1], [0, height * parallaxMultipliers[2]]);
 
 
     type ColumnProps = {
@@ -73,7 +91,7 @@ const Column: React.FC<ColumnProps> = ({ images, y = undefined, top = '0%' }) =>
   {images.map((src, index) => (
     <div key={index} className="w-full min-h-[40vh] relative overflow-hidden">
       <Image
-        src={`/notesgall/${src}`}
+        src={`/notes-gallery/${src}`}
         alt="image"
         fill
         className="object-cover"
@@ -91,7 +109,7 @@ const Column: React.FC<ColumnProps> = ({ images, y = undefined, top = '0%' }) =>
         <section className="py-8 md:py-20 relative">
             <div className='flex flex-col md:flex-row justify-between px-2 md:px-4 w-full gap-8'>
                 <motion.div
-                  className='w-full md:w-1/2 h-auto md:h-screen flex flex-col justify-center items-start px-2 md:px-8 mb-8 md:mb-0 dark:text:gray-200'
+                  className='w-full md:w-1/2 h-auto md:h-screen flex flex-col justify-center items-start px-2 md:px-8 mb-8 md:mb-0 dark:text-white'
                   variants={containerVariants}
                   initial="hidden"
                   animate="show"
