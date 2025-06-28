@@ -39,7 +39,6 @@ const NoteViewer: FC<NoteViewerProps> = ({ url }) => {
         src={url}
         className="w-full h-[80vh] rounded shadow"
         title="PDF Viewer"
-      //  sandbox="allow-same-origin allow-scripts"
         onLoad={() => setLoading(false)}
         onError={() => setError(true)}
         role="application"
