@@ -3,14 +3,7 @@
 import { useState } from 'react'
 import { notesTree } from '@/data/mock_notes'
 import { ChevronDown, ChevronRight, FileText, Folder } from 'lucide-react'
-
-type TreeNode = {
-  name: string
-  type: 'folder' | 'note'
-  noteType?: 'text' | 'pdf' | 'code' | 'todo'
-  id?: string
-  children?: TreeNode[]
-}
+import { TreeNode } from '@/types/notes'
 
 interface SidebarProps {
   data?: TreeNode[]

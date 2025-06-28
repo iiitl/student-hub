@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import SidebarFolderTree from '@/components/notes/SidebarFolderTree'
 import NoteViewer from '@/components/notes/NoteViewer'
-import { notesTree, notesContent } from '@/data/mock_notes'
+import { notesContent } from '@/data/mock_notes'
 
 export default function NotesPage() {
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null)

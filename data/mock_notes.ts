@@ -1,10 +1,4 @@
-export type TreeNode = {
-  name: string
-  type: 'folder' | 'note'
-  noteType?: 'pdf'
-  id?: string
-  children?: TreeNode[]
-}
+import { TreeNode } from '@/types/notes'
 
 export const notesTree: TreeNode[] = [
   {
