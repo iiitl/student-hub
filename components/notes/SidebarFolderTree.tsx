@@ -32,7 +32,7 @@ const SidebarFolderTree = ({
     return (
       <ul className="ml-2 space-y-1">
         {nodes.map((node) => (
-          <li key={node.name + depth} className="text-sm">
+          <li key={`${node.type}-${node.name}-${depth}-${node.type === 'note' ? node.id : ''}`} className="text-sm">
             {node.type === 'folder' ? (
               <div>
                 <button
