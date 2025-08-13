@@ -19,7 +19,7 @@ const semesters = [...Array(8).keys()]
 const subjects = [
   ...new Set(questionPapers.map((paper) => paper.subjectCode)),
 ].concat('All')
-const exams = ['Mid', 'End', 'Both']
+const exams = ['Mid', 'End', 'Both', 'Class_test_1', 'Class_test_2', 'Class_test_3']
 
 const QuestionPapers = () => {
   const [selectedBatch, setSelectedBatch] = React.useState<string>('All')

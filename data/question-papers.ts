@@ -131,6 +131,36 @@ const questionPapers: TypeQuestionPaper[] = [
     viewUrl:
       'https://drive.google.com/file/d/1ktnlydVNITx1lpjPHFNhmHPZ8iGqhmYp/view?usp=sharing',
   },
+  {
+    subject: 'Discrete Mathematics',
+    subjectCode: 'DM',
+    batch: 2023,
+    semester: 4,
+    exam: 'Class_test_1',
+    url: 'question_papers/btech/4th_sem/2023/DM_Test/Test1.pdf',
+    viewUrl:
+      'https://drive.google.com/file/d/1agwqGXz6-NSc1Z32damaKvYbDHrOyBAO/view?usp=drive_link',
+  },
+  {
+    subject: 'Discrete Mathematics',
+    subjectCode: 'DM',
+    batch: 2023,
+    semester: 4,
+    exam: 'Class_test_2',
+    url: 'question_papers/btech/4th_sem/2023/DM_Test/Test2.pdf',
+    viewUrl:
+      'https://drive.google.com/file/d/16V7KbkBsWTEIvA5jPYSCbP1Or7ktk8LA/view?usp=drive_link',
+  },
+  {
+    subject: 'Discrete Mathematics',
+    subjectCode: 'DM',
+    batch: 2023,
+    semester: 4,
+    exam: 'Class_test_3',
+    url: 'question_papers/btech/4th_sem/2023/DM_Test/Test3.pdf',
+    viewUrl:
+      'https://drive.google.com/file/d/1dYjwsT34xYCPBgub2WEja-d85y_Gkr79/view?usp=drive_link',
+  },
 ]
 
 export default questionPapers
