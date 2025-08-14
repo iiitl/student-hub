@@ -19,12 +19,12 @@ const semesters = [...Array(8).keys()]
 const subjects = [
   ...new Set(questionPapers.map((paper) => paper.subjectCode)),
 ].concat('All')
-const exams = ['Mid', 'End', 'Both', 'Class_test_1', 'Class_test_2', 'Class_test_3']
+const exams = ['Mid', 'End', 'All', 'Class_test_1', 'Class_test_2', 'Class_test_3']
 
 const QuestionPapers = () => {
   const [selectedBatch, setSelectedBatch] = React.useState<string>('All')
   const [selectedSemester, setSelectedSemester] = React.useState<string>('All')
-  const [selectedExam, setSelectedExam] = React.useState<string>('Both')
+  const [selectedExam, setSelectedExam] = React.useState<string>('All')
   const [selectedSubject, setSelectedSubject] = React.useState<string>('All')
 
   const [userQuestionPapers, setUserQuestionPapers] =
@@ -48,7 +48,7 @@ const QuestionPapers = () => {
           questionPaper.subjectCode !== selectedSubject
         )
           return false
-        if (selectedExam !== 'Both' && questionPaper.exam !== selectedExam)
+        if (selectedExam !== 'All' && questionPaper.exam !== selectedExam)
           return false
         return true
       }
@@ -108,7 +108,7 @@ const QuestionPapers = () => {
               onClick={() => {
                 setSelectedBatch('All')
                 setSelectedSemester('All')
-                setSelectedExam('Both')
+                setSelectedExam('All')
                 setSelectedSubject('All')
               }}
             >
