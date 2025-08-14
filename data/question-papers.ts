@@ -51,6 +51,116 @@ const questionPapers: TypeQuestionPaper[] = [
     viewUrl:
       'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
   },
+  {
+    subject: 'Computer Networks',
+    subjectCode: 'CN',
+    batch: 2023,
+    semester: 4,
+    exam: 'Mid',
+    url: 'question_papers/btech/4th_sem/2023/mid/CN.pdf',
+    viewUrl:
+      'https://drive.google.com/file/d/1S89NbLy5Wy2zVQdVlXbdAAb1SOasIu2q/view?usp=sharing',
+  },
+  {
+    subject: 'Computer Networks',
+    subjectCode: 'CN',
+    batch: 2023,
+    semester: 4,
+    exam: 'End',
+    url: 'question_papers/btech/4th_sem/2023/end/CN.pdf',
+    viewUrl:
+      'https://drive.google.com/file/d/1Qvdg28fhZvn2_uIe4OjHWyMr1_-G-H6s/view?usp=sharing',
+  },
+  {
+    subject: 'Python',
+    subjectCode: 'PY',
+    batch: 2023,
+    semester: 4,
+    exam: 'Mid',
+    url: 'question_papers/btech/4th_sem/2023/mid/PY.pdf',
+    viewUrl:
+      'https://drive.google.com/file/d/1yGVSczSjz5mieHzbVu2RFr7-U9AFw0Of/view?usp=sharing',
+  },
+  {
+    subject: 'Python',
+    subjectCode: 'PY',
+    batch: 2023,
+    semester: 4,
+    exam: 'End',
+    url: 'question_papers/btech/4th_sem/2023/end/PY.pdf',
+    viewUrl:
+      'https://drive.google.com/file/d/1LP8HF9vGYDQEJYYNevWq0xbWwITsn0N9/view?usp=sharing',
+  },
+  {
+    subject: 'Discrete Mathematics',
+    subjectCode: 'DM',
+    batch: 2023,
+    semester: 4,
+    exam: 'Mid',
+    url: 'question_papers/btech/4th_sem/2023/mid/DM.pdf',
+    viewUrl:
+      'https://drive.google.com/file/d/1mVtB7ufEa6OQeik1TqUNxhE7LbyAoyeK/view?usp=sharing',
+  },
+  {
+    subject: 'Discrete Mathematics',
+    subjectCode: 'DM',
+    batch: 2023,
+    semester: 4,
+    exam: 'End',
+    url: 'question_papers/btech/4th_sem/2023/end/DM.pdf',
+    viewUrl:
+      'https://drive.google.com/file/d/1k9H6l3e7FHc0ORupsDmASDzmjMPwuPVB/view?usp=sharing',
+  },
+  {
+    subject: 'Compiler Design',
+    subjectCode: 'CD',
+    batch: 2023,
+    semester: 4,
+    exam: 'Mid',
+    url: 'question_papers/btech/4th_sem/2023/mid/CD.pdf',
+    viewUrl:
+      'https://drive.google.com/file/d/1r9djiJ8Z7F9nzrfRWV0fqzqFuSZjYoUg/view?usp=sharing',
+  },
+  {
+    subject: 'Compiler Design',
+    subjectCode: 'CD',
+    batch: 2023,
+    semester: 4,
+    exam: 'End',
+    url: 'question_papers/btech/4th_sem/2023/end/CD.pdf',
+    viewUrl:
+      'https://drive.google.com/file/d/1ktnlydVNITx1lpjPHFNhmHPZ8iGqhmYp/view?usp=sharing',
+  },
+  {
+    subject: 'Discrete Mathematics',
+    subjectCode: 'DM',
+    batch: 2023,
+    semester: 4,
+    exam: 'Class_test_1',
+    url: 'question_papers/btech/4th_sem/2023/DM_Test/Test1.pdf',
+    viewUrl:
+      'https://drive.google.com/file/d/1agwqGXz6-NSc1Z32damaKvYbDHrOyBAO/view?usp=drive_link',
+  },
+  {
+    subject: 'Discrete Mathematics',
+    subjectCode: 'DM',
+    batch: 2023,
+    semester: 4,
+    exam: 'Class_test_2',
+    url: 'question_papers/btech/4th_sem/2023/DM_Test/Test2.pdf',
+    viewUrl:
+      'https://drive.google.com/file/d/16V7KbkBsWTEIvA5jPYSCbP1Or7ktk8LA/view?usp=drive_link',
+  },
+  {
+    subject: 'Discrete Mathematics',
+    subjectCode: 'DM',
+    batch: 2023,
+    semester: 4,
+    exam: 'Class_test_3',
+    url: 'question_papers/btech/4th_sem/2023/DM_Test/Test3.pdf',
+    viewUrl:
+      'https://drive.google.com/file/d/1dYjwsT34xYCPBgub2WEja-d85y_Gkr79/view?usp=drive_link',
+  },
 ]
 
 export default questionPapers
