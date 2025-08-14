@@ -8,9 +8,9 @@ import NavDropdown from '@/components/nav-dropdown'
 
 const Header = () => {
   return (
-    <header className="border-b sticky top-0 text-foreground bg-background z-40">
+    <header className="sticky top-0 z-40 bg-blue-100/60 dark:bg-slate-800/60 backdrop-blur-xl border-b border-white/20 shadow-md font-satoshi text-foreground">
       <div className="container mx-auto px-4 py-5 flex justify-between items-center">
-        <Link href="/" className="font-extrabold text-2xl ">
+        <Link href="/" className="font-extrabold text-2xl">
           Student<span className="text-primary">Hub</span>
         </Link>
 
