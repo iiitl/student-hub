@@ -107,7 +107,7 @@ const questionPapers: TypeQuestionPaper[] = [
     batch: 2023,
     semester: 2,
     exam: 'End',
-    url: 'http://drive.google.com/uc?export=download&id=1wuxF-hNEbP0qqB-J7nGaC7wqFLLZ_B8a',
+    url: 'https://drive.google.com/uc?export=download&id=1wuxF-hNEbP0qqB-J7nGaC7wqFLLZ_B8a',
     viewUrl:
       'https://drive.google.com/file/d/1wuxF-hNEbP0qqB-J7nGaC7wqFLLZ_B8a/preview',
   },
@@ -157,7 +157,7 @@ const questionPapers: TypeQuestionPaper[] = [
     batch: 2024,
     semester: 2,
     exam: 'Mid',
-    url: 'http://drive.google.com/uc?export=download&id=1qg3rGTcqIaPciPkg91V2vqmXdCOQwzAG',
+    url: 'https://drive.google.com/uc?export=download&id=1qg3rGTcqIaPciPkg91V2vqmXdCOQwzAG',
     viewUrl:
       'https://drive.google.com/file/d/1qg3rGTcqIaPciPkg91V2vqmXdCOQwzAG/preview',
   },
@@ -197,7 +197,7 @@ const questionPapers: TypeQuestionPaper[] = [
     batch: 2024,
     semester: 2,
     exam: 'End',
-    url: 'http://drive.google.com/uc?export=download&id=11iStYNIWwi02vKRFvoFiQIk7hrt0R5dO',
+    url: 'https://drive.google.com/uc?export=download&id=11iStYNIWwi02vKRFvoFiQIk7hrt0R5dO',
     viewUrl:
       'https://drive.google.com/file/d/11iStYNIWwi02vKRFvoFiQIk7hrt0R5dO/preview',
   },
@@ -309,7 +309,7 @@ const questionPapers: TypeQuestionPaper[] = [
     exam: 'CT',
     url: 'https://drive.google.com/uc?export=download&id=1a0lDv31buwdoGl73uP9Sy_Rss0pCpTZr',
     viewUrl:
-      'https://drive.google.com/file/d/1a0lDv31buwdoGl73uP9Sy_Rss0pCpTZr/view?usp=drive_link',
+      'https://drive.google.com/file/d/1a0lDv31buwdoGl73uP9Sy_Rss0pCpTZr/preview',
   },
 ]
 

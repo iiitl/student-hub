@@ -17,7 +17,7 @@ export function PdfModal({ url, setUrl }: PdfModalProps) {
   return (
     <Dialog open={!!url} onOpenChange={(open) => !open && setUrl(null)}>
       <DialogContent className="max-w-5xl w-full h-[80vh] p-0 overflow-hidden gap-0 flex flex-col">
-        <DialogHeader className="px-4 py-2 border-b h-fit">
+        <DialogHeader className="px-4 py-2 border-b h-fit flex items-start justify-between">
           <DialogTitle className="text-lg font-semibold">
             PDF Preview
           </DialogTitle>

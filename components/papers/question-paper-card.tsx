@@ -34,9 +34,10 @@ const QuestionPaperCard: React.FC<QuestionPaperCardProps> = ({
           <FaDownload />
         </a>
         <button
+        type='button'
           className="cursor-pointer bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors duration-200"
           onClick={() =>
-            setSelectedPdfUrl(questionPaper.viewUrl || questionPaper.url)
+            setSelectedPdfUrl(questionPaper.viewUrl)
           }
           aria-label={`View ${questionPaper.subject} question paper`}
         >
