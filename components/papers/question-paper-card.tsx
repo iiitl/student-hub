@@ -5,7 +5,7 @@ import { TypeQuestionPaper } from '@/types/question-paper'
 import { FaEye, FaDownload } from 'react-icons/fa'
 
 type QuestionPaperCardProps = {
-  questionPaper: TypeQuestionPaper,
+  questionPaper: TypeQuestionPaper
   setSelectedPdfUrl: (url: string | null) => void
 }
 
@@ -35,7 +35,9 @@ const QuestionPaperCard: React.FC<QuestionPaperCardProps> = ({
         </a>
         <button
           className="cursor-pointer bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors duration-200"
-          onClick={() => setSelectedPdfUrl(questionPaper.viewUrl || questionPaper.url)}
+          onClick={() =>
+            setSelectedPdfUrl(questionPaper.viewUrl || questionPaper.url)
+          }
           aria-label={`View ${questionPaper.subject} question paper`}
         >
           <FaEye />

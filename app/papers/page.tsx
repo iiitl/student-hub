@@ -123,7 +123,10 @@ const QuestionPapers = () => {
               key={`${questionPaper.subject}-${questionPaper.subjectCode}-${questionPaper.batch}-${questionPaper.exam}-${questionPaper.semester}`}
               className="w-full"
             >
-              <QuestionPaperCard questionPaper={questionPaper} setSelectedPdfUrl={setSelectedPdfUrl} />
+              <QuestionPaperCard
+                questionPaper={questionPaper}
+                setSelectedPdfUrl={setSelectedPdfUrl}
+              />
             </div>
           ))
         )}

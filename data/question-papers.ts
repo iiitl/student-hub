@@ -12,8 +12,8 @@ const questionPapers: TypeQuestionPaper[] = [
       'https://drive.google.com/file/d/1CUsMqcj_A69hl8nBCAmwpVIKQUiZxtOS/preview',
   },
   {
-    subject: "Professional Communication",
-    subjectCode: "PC",
+    subject: 'Professional Communication',
+    subjectCode: 'PC',
     semester: 1,
     batch: 2024,
     exam: 'Mid',
@@ -22,8 +22,8 @@ const questionPapers: TypeQuestionPaper[] = [
       'https://drive.google.com/file/d/1Z97AxfslFLd08r9zkx0Uaf1WEARnMD6F/preview',
   },
   {
-    subject: "Web Design and Application development - I",
-    subjectCode: "WDA-I",
+    subject: 'Web Design and Application development - I',
+    subjectCode: 'WDA-I',
     semester: 1,
     batch: 2024,
     exam: 'Mid',
