@@ -1,9 +1,10 @@
 'use client'
-import React, { useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import QuestionPaperCard from '@/components/papers/question-paper-card'
 import { TypeQuestionPaper } from '@/types/question-paper'
 import questionPapers from '@/data/question-papers'
 import PaperFilterDropdown from '@/components/papers/paper-filter-dropdown'
+import { PdfModal } from '@/components/papers/pdf-modal'
 
 // Use Set for automatic deduplication
 const batches = [
@@ -19,16 +20,17 @@ const semesters = [...Array(8).keys()]
 const subjects = [
   ...new Set(questionPapers.map((paper) => paper.subjectCode)),
 ].concat('All')
-const exams = ['Mid', 'End', 'All', 'Class_test_1', 'Class_test_2', 'Class_test_3']
+const exams = ['All', 'Mid', 'End', 'CT']
 
 const QuestionPapers = () => {
-  const [selectedBatch, setSelectedBatch] = React.useState<string>('All')
-  const [selectedSemester, setSelectedSemester] = React.useState<string>('All')
-  const [selectedExam, setSelectedExam] = React.useState<string>('All')
-  const [selectedSubject, setSelectedSubject] = React.useState<string>('All')
+  const [selectedBatch, setSelectedBatch] = useState<string>('All')
+  const [selectedSemester, setSelectedSemester] = useState<string>('All')
+  const [selectedExam, setSelectedExam] = useState<string>('All')
+  const [selectedSubject, setSelectedSubject] = useState<string>('All')
+  const [selectedPdfUrl, setSelectedPdfUrl] = useState<string | null>(null)
 
   const [userQuestionPapers, setUserQuestionPapers] =
-    React.useState<TypeQuestionPaper[]>(questionPapers)
+    useState<TypeQuestionPaper[]>(questionPapers)
 
   useEffect(() => {
     const filteredQuestionPapers = questionPapers.filter(
@@ -118,14 +120,15 @@ const QuestionPapers = () => {
         ) : (
           userQuestionPapers.map((questionPaper: TypeQuestionPaper) => (
             <div
-              key={`${questionPaper.subjectCode}-${questionPaper.batch}-${questionPaper.exam}-${questionPaper.semester}`}
+              key={`${questionPaper.subject}-${questionPaper.subjectCode}-${questionPaper.batch}-${questionPaper.exam}-${questionPaper.semester}`}
               className="w-full"
             >
-              <QuestionPaperCard questionPaper={questionPaper} />
+              <QuestionPaperCard questionPaper={questionPaper} setSelectedPdfUrl={setSelectedPdfUrl} />
             </div>
           ))
         )}
       </div>
+      <PdfModal url={selectedPdfUrl} setUrl={setSelectedPdfUrl} />
     </div>
   )
 }

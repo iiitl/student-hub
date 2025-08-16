@@ -5,14 +5,13 @@ import { TypeQuestionPaper } from '@/types/question-paper'
 import { FaEye, FaDownload } from 'react-icons/fa'
 
 type QuestionPaperCardProps = {
-  questionPaper: TypeQuestionPaper
+  questionPaper: TypeQuestionPaper,
+  setSelectedPdfUrl: (url: string | null) => void
 }
-
-// Path to question paper files, configurable via environment variable
-const FILE_PATH = process.env.NEXT_PUBLIC_FILES_PATH || '/'
 
 const QuestionPaperCard: React.FC<QuestionPaperCardProps> = ({
   questionPaper,
+  setSelectedPdfUrl,
 }) => {
   return (
     <Card className="w-full flex flex-col md:flex-row p-4 justify-between items-start md:items-center bg-border/20 shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
@@ -26,21 +25,21 @@ const QuestionPaperCard: React.FC<QuestionPaperCardProps> = ({
         </p>
         <a
           className="cursor-pointer bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors duration-200"
-          href={`${FILE_PATH}${questionPaper.url}`}
+          href={`${questionPaper.url}`}
           aria-label={`Download ${questionPaper.subject} question paper`}
+          rel="noopener noreferrer"
+          target="_blank"
           download
         >
           <FaDownload />
         </a>
-        <a
+        <button
           className="cursor-pointer bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors duration-200"
-          href={`${questionPaper.viewUrl || questionPaper.url}`}
-          rel="noopener noreferrer"
-          target="_blank"
+          onClick={() => setSelectedPdfUrl(questionPaper.viewUrl || questionPaper.url)}
           aria-label={`View ${questionPaper.subject} question paper`}
         >
           <FaEye />
-        </a>
+        </button>
       </div>
     </Card>
   )
