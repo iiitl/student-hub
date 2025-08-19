@@ -51,6 +51,161 @@ const questionPapers: TypeQuestionPaper[] = [
     viewUrl:
       'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
   },
+  {
+    subject: 'CTP',
+    subjectCode: 'CTP',
+    batch: 2024,
+    semester: 1,
+    exam: 'End',
+    url: 'question_papers/btech/1st_sem/2024/end/ctp_end.pdf',
+    // viewUrl:
+      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+  },
+  {
+    subject: 'Professional Communication',
+    subjectCode: 'PC',
+    batch: 2024,
+    semester: 1,
+    exam: 'End',
+    url: 'question_papers/btech/1st_sem/2024/end/PC_1_end.pdf',
+    // viewUrl:
+      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+  },
+  {
+    subject: 'SPS',
+    subjectCode: 'SPS',
+    batch: 2024,
+    semester: 1,
+    exam: 'End',
+    url: 'question_papers/btech/1st_sem/2024/end/sps_end.pdf',
+    // viewUrl:
+      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+  },
+  {
+    subject: 'Web Development',
+    subjectCode: 'WDA',
+    batch: 2024,
+    semester: 1,
+    exam: 'End',
+    url: 'question_papers/btech/1st_sem/2024/end/wda1_end.pdf',
+    // viewUrl:
+      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+  },
+  {
+    subject: 'DBMS',
+    subjectCode: 'DBMS',
+    batch: 2024,
+    semester: 1,
+    exam: 'Mid',
+    url: 'question_papers/btech/1st_sem/2024/mid/dbms_mid_sem.pdf',
+    // viewUrl:
+      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+  },
+  {
+    subject: 'Professional Communication',
+    subjectCode: 'PC',
+    batch: 2024,
+    semester: 1,
+    exam: 'Mid',
+    url: 'question_papers/btech/1st_sem/2024/mid/pc_1_mid.pdf',
+    // viewUrl:
+      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+  },
+  {
+    subject: 'Web Development',
+    subjectCode: 'WDA',
+    batch: 2024,
+    semester: 1,
+    exam: 'Mid',
+    url: 'question_papers/btech/1st_sem/2024/mid/wda1_mid.pdf',
+    // viewUrl:
+      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+  },
+  {
+    subject: 'Computer Org and Architecture',
+    subjectCode: 'COA',
+    batch: 2024,
+    semester: 2,
+    exam: 'End',
+    url: 'question_papers/btech/2nd_sem/2024/end/Coa_end_sem.pdf',
+    // viewUrl:
+      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+  },
+  {
+    subject: 'Data Structure',
+    subjectCode: 'DS',
+    batch: 2024,
+    semester: 2,
+    exam: 'End',
+    url: 'question_papers/btech/2nd_sem/2024/end/DS_end_sem.pdf',
+    // viewUrl:
+      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+  },
+  {
+    subject: 'OOPs',
+    subjectCode: 'OOPS',
+    batch: 2024,
+    semester: 2,
+    exam: 'End',
+    url: 'question_papers/btech/2nd_sem/2024/end/OOPS_end_sem.pdf',
+    // viewUrl:
+      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+  },
+  {
+    subject: 'Professional Communication',
+    subjectCode: 'PC',
+    batch: 2024,
+    semester: 2,
+    exam: 'End',
+    url: 'question_papers/btech/2nd_sem/2024/end/PC_end_sem.pdf',
+    // viewUrl:
+      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+  },
+  {
+    subject: 'Computer Org and Architecture',
+    subjectCode: 'COA',
+    batch: 2024,
+    semester: 2,
+    exam: 'Mid',
+    url: 'question_papers/btech/2nd_sem/2024/mid/coa_mid.pdf',
+    // viewUrl:
+      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+  },
+  {
+    subject: 'OOPs',
+    subjectCode: 'OOPS',
+    batch: 2024,
+    semester: 2,
+    exam: 'Mid',
+    url: 'question_papers/btech/2nd_sem/2024/mid/oops_mid.pdf',
+    // viewUrl:
+      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+  },
+  {
+    subject: 'Professional Communication',
+    subjectCode: 'PC',
+    batch: 2024,
+    semester: 2,
+    exam: 'Mid',
+    url: 'question_papers/btech/2nd_sem/2024/mid/PC_2_mid.pdf',
+    // viewUrl:
+      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+  },
+  {
+    subject: 'Web Development',
+    subjectCode: 'WDA',
+    batch: 2024,
+    semester: 2,
+    exam: 'Mid',
+    url: 'question_papers/btech/2nd_sem/2024/mid/wda_2_mid.pdf',
+    // viewUrl:
+      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+  },
+
+
+
+
+
 ]
 
 export default questionPapers
