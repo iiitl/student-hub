@@ -66,7 +66,7 @@
     },
     {
       "name": "Surya Continental",
-      "category":"Hotel",
+      "category": "Hotel",
       "address": "Ahmamau , Sultanpur road ",
       "map_link": "https://maps.app.goo.gl/3RC5Kn8tryYDeXHJA",
       "image": "https://images.app.goo.gl/6nj5abzqCUGBJzVB7",
@@ -74,7 +74,7 @@
     },
     {
       "name": "Hotel Meghalaya",
-      "category":"Hotel",
+      "category": "Hotel",
       "address": "Gomti Nagar, Ardonamau ",
       "map_link": "https://maps.app.goo.gl/mwG4aFGJVoHDF6ko8",
       "image": "https://images.app.goo.gl/6nj5abzqCUGBJzVB7",
@@ -82,7 +82,7 @@
     },
     {
       "name": "Prithvi Resort",
-      "category":"Hotel",
+      "category": "Hotel",
       "address": "Ahmamau,sultanpur road ",
       "map_link": "https://maps.app.goo.gl/MFwfQeuYd8b8HvX77",
       "image": "https://images.app.goo.gl/6nj5abzqCUGBJzVB7",
@@ -120,6 +120,5 @@
       "image": "https://images.app.goo.gl/rvnoLJ7PG2Ysd7DR8",
       "distance": "14km"
     }
-
   ]
 }
