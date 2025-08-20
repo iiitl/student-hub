@@ -32,8 +32,8 @@ const questionPapers: TypeQuestionPaper[] = [
       'https://drive.google.com/file/d/1mluV_CQw5lpfOBRAr6T6rPDubV20HAPc/view?usp=drive_link',
   },
   {
-    subject: 'OOPs',
-    subjectCode: 'OOPs',
+    subject: 'Object-Oriented Programming System',
+    subjectCode: 'OOPS',
     batch: 2023,
     semester: 2,
     exam: 'End',
@@ -52,7 +52,7 @@ const questionPapers: TypeQuestionPaper[] = [
       'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
   },
   {
-    subject: 'CTP',
+    subject: 'Computational Thinking through programming',
     subjectCode: 'CTP',
     batch: 2024,
     semester: 1,
@@ -72,7 +72,7 @@ const questionPapers: TypeQuestionPaper[] = [
       // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
   },
   {
-    subject: 'SPS',
+    subject: 'System Programming and Scripting',
     subjectCode: 'SPS',
     batch: 2024,
     semester: 1,
@@ -92,7 +92,7 @@ const questionPapers: TypeQuestionPaper[] = [
       // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
   },
   {
-    subject: 'DBMS',
+    subject: 'Database Management System',
     subjectCode: 'DBMS',
     batch: 2024,
     semester: 1,
@@ -142,7 +142,7 @@ const questionPapers: TypeQuestionPaper[] = [
       // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
   },
   {
-    subject: 'OOPs',
+    subject: 'Object-Oriented Programming System',
     subjectCode: 'OOPS',
     batch: 2024,
     semester: 2,
@@ -172,7 +172,7 @@ const questionPapers: TypeQuestionPaper[] = [
       // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
   },
   {
-    subject: 'OOPs',
+    subject: 'Object-Oriented Programming System',
     subjectCode: 'OOPS',
     batch: 2024,
     semester: 2,
