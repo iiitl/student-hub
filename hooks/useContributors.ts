@@ -30,7 +30,16 @@ export default function useContributors() {
           throw new Error('Failed to fetch contributors')
         }
         const data = await response.json()
-        setContributors(data)
+
+          // Filter out users with type "Bot" or login ending with [bot]
+      const filteredContributors = data.filter(
+        (contributor: any) =>
+          contributor.type !== 'Bot' &&
+          !contributor.login.toLowerCase().includes('[bot]')
+      )
+
+        setContributors(filteredContributors)
+        
       } catch (err: any) {
         setError(err.message)
       } finally {
