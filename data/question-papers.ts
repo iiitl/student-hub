@@ -311,6 +311,96 @@ const questionPapers: TypeQuestionPaper[] = [
     viewUrl:
       'https://drive.google.com/file/d/1dYjwsT34xYCPBgub2WEja-d85y_Gkr79/view?usp=drive_link',
   },
+    {
+    subject: 'Probability & Statistics',
+    subjectCode: 'PSS',
+    batch: 2023,
+    semester: 3,
+    exam: 'Mid',
+    url: 'question_papers/btech/3rd_sem/2023/mid/PSS_MID.pdf',
+    viewUrl:
+      'https://drive.google.com/file/d/1QXH1O1cjgNy7vPZ0-w1OMM9zd0RCpBS7/view?usp=drive_link',
+  },
+  {
+    subject: 'Probability & Statistics',
+    subjectCode: 'PSS',
+    batch: 2023,
+    semester: 3,
+    exam: 'End',
+    url: 'question_papers/btech/3rd_sem/2023/end/PSS_END.pdf',
+    viewUrl:
+      'https://drive.google.com/file/d/1QWwox6e9uG5lYtq5x9-7S13LVDmZRvvm/view?usp=drive_link',
+  },
+  {
+    subject: 'Design & Analysis of Algorithms',
+    subjectCode: 'DAA',
+    batch: 2023,
+    semester: 3,
+    exam: 'Mid',
+    url: 'question_papers/btech/3rd_sem/2023/mid/DAA_MID.pdf',
+    viewUrl:
+      'https://drive.google.com/file/d/1QhTUOl92dw_myXxmfnnX-F3GXb4zJZZ-/view?usp=drive_link',
+  },
+  {
+    subject: 'Design & Analysis of Algorithms',
+    subjectCode: 'DAA',
+    batch: 2023,
+    semester: 3,
+    exam: 'End',
+    url: 'question_papers/btech/3rd_sem/2023/end/DAA_END.pdf',
+    viewUrl:
+      'https://drive.google.com/file/d/1QJHSoL167OW9ASdt_uDX-W7IcOTPQeQl/view?usp=drive_link',
+  },
+  {
+    subject: 'Data Communications',
+    subjectCode: 'DC',
+    batch: 2023,
+    semester: 3,
+    exam: 'Mid',
+    url: 'question_papers/btech/3rd_sem/2023/mid/DC_MID.pdf',
+    viewUrl:
+      'https://drive.google.com/file/d/1QZysjEJ9LCJ5-thdRtyeuI1rTo220ZTC/view?usp=drive_link',
+  },
+  {
+    subject: 'Data Communications',
+    subjectCode: 'DC',
+    batch: 2023,
+    semester: 3,
+    exam: 'End',
+    url: 'question_papers/btech/3rd_sem/2023/end/DC_END.pdf',
+    viewUrl:
+      'https://drive.google.com/file/d/1Q_uVKmh53-xbhMkSjCGULI9E2foNc8kx/view?usp=drive_link',
+  },
+  {
+    subject: 'Theory of Automata',
+    subjectCode: 'TOA',
+    batch: 2023,
+    semester: 3,
+    exam: 'Mid',
+    url: 'question_papers/btech/3rd_sem/2023/mid/TOA_MID.pdf',
+    viewUrl:
+      'https://drive.google.com/file/d/1QPkKSJu46vkQpuyAVXXg58zsSDlf3Dmk/view?usp=drive_link',
+  },
+  {
+    subject: 'Theory of Automata',
+    subjectCode: 'TOA',
+    batch: 2023,
+    semester: 3,
+    exam: 'End',
+    url: 'question_papers/btech/3rd_sem/2023/end/TOA_END.pdf',
+    viewUrl:
+      'https://drive.google.com/file/d/1QTkJVr6aKRHMvR7WxcOKsJfYOrqPb6LV/view?usp=drive_link',
+  },
+  {
+    subject: 'Software Engineering',
+    subjectCode: 'SE',
+    batch: 2023,
+    semester: 3,
+    exam: 'End',
+    url: 'question_papers/btech/3rd_sem/2023/end/SE_END.pdf',
+    viewUrl:
+      'https://drive.google.com/file/d/1QVmWJZJker6rS-t9mYRp6gLEAjQ1WbR_/view?usp=drive_link',
+  },
 ]
 
 export default questionPapers
