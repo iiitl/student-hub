@@ -118,7 +118,7 @@ Student Hub is a **modern platform** designed to help students **collaborate, sh
 Before you begin, ensure you have the following installed:  
 ✔ **Git**  
 ✔ **Node.js** (Recommended: v18.x or later)  
-✔ **npm** (Comes with Node.js)
+✔ **pnpm** (Recommended: v8.x or later)
 
 ---
 
@@ -138,8 +138,16 @@ cd student-hub
 
 #### **2️⃣ Install Dependencies**
 
+> **Note:** This project uses [pnpm](https://pnpm.io/) as the only supported package manager. Please install pnpm globally if you haven't already:
+
 ```bash
-npm install
+npm install -g pnpm
+```
+
+Then, install dependencies:
+
+```bash
+pnpm install
 ```
 
 #### **3️⃣ Setup Environment Variables**
@@ -153,7 +161,7 @@ MONGO_URI=""
 #### **4️⃣ Run the Development Server**
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 The app will be available at **http://localhost:3000**.
@@ -173,6 +181,7 @@ student-hub/
 │   ├── hooks/          # Custom React hooks
 │── .env.local          # Environment variables
 │── package.json        # Project dependencies & scripts
+│── pnpm-lock.yaml      # pnpm lockfile (only pnpm is supported)
 │── tailwind.config.js  # Tailwind CSS configuration
 │── next.config.js      # Next.js configuration
 ```
