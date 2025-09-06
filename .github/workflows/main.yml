@@ -1,13 +1,12 @@
-name: Enforce Maintainer Approvals
+
+name: PR Checks and Maintainer Approvals
+
 
 on:
   pull_request:
-    types:
-      - opened
-      - synchronize
-      - reopened
-      - review_requested
-      - review_submitted
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+      - main
 
 jobs:
   require-approvals:
@@ -24,15 +23,15 @@ jobs:
               pull_number: context.payload.pull_request.number,
             });
 
-            const maintainers = ["MrImmortal09", "whilstsomebody", "0PrashantYadav0", "shuklamaneesh23", " gauravghodinde", "Robinaditya1045"];
+            const maintainers = ["MrImmortal09", "whilstsomebody", "0PrashantYadav0", "shuklamaneesh23", "gauravghodinde", "Robinaditya1045"];
             let approvals = new Set();
 
             reviews.forEach(review => {
-              if (review.state === "APPROVED" && maintainers.includes(review.user.login)) {
-                approvals.add(review.user.login);
+              if (review.state === "APPROVED" && maintainers.includes(review.user.login.trim())) {
+                approvals.add(review.user.login.trim());
               }
             });
 
             if (approvals.size < 1) {
-              core.setFailed(`At least 1 maintainer approvals are required. Currently approved by: ${Array.from(approvals).join(', ')}`);
+              core.setFailed(`At least 1 maintainer approval is required. Currently approved by: ${Array.from(approvals).join(', ') || 'none'}`);
             }
