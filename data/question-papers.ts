@@ -102,7 +102,7 @@ const questionPapers: TypeQuestionPaper[] = [
       'https://drive.google.com/file/d/1mJ-taI_X6KcYRM7aHud6gYJ3Zh2lwURb/preview',
   },
   {
-    subject: 'Object Oriented Programming',
+    subject: 'Object-Oriented Programming System',
     subjectCode: 'OOPS',
     batch: 2023,
     semester: 2,

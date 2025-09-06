@@ -1,0 +1,2 @@
+# Prevent usage of Bun. Only pnpm is allowed.
+# This project does not support Bun. Please use pnpm for all package management tasks.
