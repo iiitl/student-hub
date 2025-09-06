@@ -1,4 +1,4 @@
-import mongoose,{Schema,Document,Model, mongo} from "mongoose";
+import mongoose,{Schema,Document,Model} from "mongoose";
 
 export interface IPaper extends Document{
     title:string,
