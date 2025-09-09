@@ -1,13 +1,20 @@
 import mongoose,{Schema,Document,Model} from "mongoose";
+import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
+
+export interface IPaperUpdate{
+    user:Schema.Types.ObjectId,
+    updatedAt:Date
+}
 
 export interface IPaper extends Document{
     title:string,
     content:string,
     subject:string,
-    year:Date,
+    year:Number,
     term:string,
-    document_url?:string,
-    uploaded_by?:string
+    document_url:string,
+    uploaded_by:Schema.Types.ObjectId,
+    updated_by:IPaperUpdate[]
 }
 
 const PaperSchema: Schema<IPaper> = new Schema<IPaper>(
@@ -16,7 +23,7 @@ const PaperSchema: Schema<IPaper> = new Schema<IPaper>(
             type:String,
             required:[true,"Title of question paper is required"],
             trim:true,
-            maxlength:[100,"Title must be withing 100 words"]
+            maxlength:[100,"Title must be withing 100 characters"]
         },
         content:{
             type:String,
@@ -29,14 +36,16 @@ const PaperSchema: Schema<IPaper> = new Schema<IPaper>(
             trim:true
         },
         year:{
-            type:Date,
+            type:Number,
             required:[true,"Year of question paper is necessary"],
+            min:2015,
             max:new Date().getFullYear()
         },
         term:{
             type:String,
             enum:["Mid","End","Class_test_1","Class_test_2","Class_test_3"],
-            required:[true,"Term of exam is required"]
+            required:[true,"Term of exam is required"],
+            set: (v: string) => v.charAt(0).toUpperCase() + v.slice(1).toLowerCase()
         },
         document_url:{
             type:String,
@@ -47,9 +56,23 @@ const PaperSchema: Schema<IPaper> = new Schema<IPaper>(
             ref:"User",
             required:true,
             index:true
-        }
+        },
+        updated_by:[
+            {
+                user:{
+                    type:mongoose.Schema.Types.ObjectId,
+                    ref:"User"
+                },
+                updatedAt:{
+                    type:Date,
+                    default:Date.now()
+                }
+            }
+        ]
     },{timestamps:true}
 )
+
+PaperSchema.plugin(aggregatePaginate)
 
 const Paper: Model<IPaper>=
     mongoose.models.Paper||mongoose.model<IPaper>('Paper',PaperSchema)

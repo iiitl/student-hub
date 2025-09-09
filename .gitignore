@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+#formidable
+/types/formidable.d.ts
+/lib/parseForm.ts
