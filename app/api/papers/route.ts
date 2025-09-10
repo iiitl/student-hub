@@ -7,7 +7,8 @@ import {deleteOnCloudinary, uploadOnCloudinary} from "@/helpers/cloudinary"
 import Paper from "@/model/paper";
 import { verifyJwt } from "@/lib/auth-utils";
 import Log from "@/model/logs"
-import { console } from "inspector";
+import { tmpdir } from "os";
+import { randomUUID } from "crypto";
 
 export const config={
   api:{
@@ -31,7 +32,12 @@ export async function POST(req: NextRequest){
         const title = formData.get("title") as string;
         const content = formData.get("content") as string;
         const subject = formData.get("subject") as string;
-        const year = formData.get("year") as string;
+        const yearRaw = formData.get("year") as string;
+        const year = parseInt(yearRaw ?? "", 10);
+        if (Number.isNaN(year)) {
+        return NextResponse.json({ message: "Invalid year" }, { status: 400 });
+        }
+
         const term = formData.get("term") as string;
         const file = formData.get("uploaded_file") as File | null;
 
@@ -50,15 +56,29 @@ export async function POST(req: NextRequest){
             )
         }
 
+        //Validate files before buffering
+        const maxBytes=25*1024*1024;
+        const allowed = new Set(["application/pdf","image/png","image/jpeg","image/webp"]);
+        if(!allowed.has(file.type)){
+          return NextResponse.json(
+            {message:"Unsupported file format"},
+            {status:415}
+          )
+        }
+        if((file.size??0)>maxBytes){
+          return NextResponse.json(
+            {message:"File uploaded is too large"},
+            {status:413}
+          )
+        }
+
         // Convert File → Buffer
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
 
-         // Step 1: Save temporarily to local cache
-        const uploadDir = path.join(process.cwd(), "public/question_papers");
-        await fs.mkdir(uploadDir, { recursive: true });
-
-        const tempFilePath = path.join(uploadDir, `${Date.now()}-${file.name}`);
+        // Step 1: Save to os temp, sanitize name, with cleanup
+        const safeExt = path.extname(file.name || "").replace(/[^.\w]/g, "").slice(0, 10);
+        const tempFilePath = path.join(tmpdir(), `paper-${Date.now()}-${randomUUID()}${safeExt}`);
         await fs.writeFile(tempFilePath, buffer);
 
         //Upload to cloudinary
@@ -70,6 +90,7 @@ export async function POST(req: NextRequest){
         { status: 500 }
         );
         }
+        await fs.unlink(tempFilePath).catch(() => {});
         
         //Create paper object in database
         const paper=await Paper.create({
@@ -87,7 +108,6 @@ export async function POST(req: NextRequest){
           user:userId,
           action:"Paper upload succeeded",
           paper:paper._id,
-          timestamp:Date.now()
         })
 
         return NextResponse.json(
@@ -103,7 +123,6 @@ export async function POST(req: NextRequest){
         "user": null,
         "action": "Paper upload failed",
         "error": "Failed to upload file to Cloudinary",
-        "timestamp": Date.now(),
         "details":error.stack
         })
 
@@ -134,18 +153,34 @@ export async function GET(req:NextRequest){
     const query = searchParams.get("query") || "";
     const search = searchParams.get("search");
     const sortBy = searchParams.get("sortBy") || "createdAt";
-    const sortType = parseInt(searchParams.get("sortType") || "-1", 10);
+    const rawSortType = parseInt(searchParams.get("sortType") || "-1", 10);
+    const sortType = rawSortType === 1 ? 1 : -1;
+    const subjectFilter = searchParams.get("subject");
+    const termFilter = searchParams.get("term");
+    const yearFilter = searchParams.get("year");
 
     //For pipeline so we don't have to write params again and again
-    const searchStage:any={};
-    if(search && query){
-      searchStage[search]={$regex:query, $options:"im"}
+    const match: any = {};
+    if(subjectFilter){
+      match.subject={$regex:`^${subjectFilter}$`,$options:"i"};
     }
+    if(termFilter){
+      match.term={$regex:`^${subjectFilter}$`,$options:"i"};
+    }
+    if(yearFilter){
+      const y=parseInt(yearFilter, 10);
+      if(!Number.isNaN(y)) match.year = y;
+    }
+    if(search && query){
+      match[search]={$regex:query,$options:"i"};
+    }
+    
+    // console.log("MATCH:", JSON.stringify(match, null, 2));
 
     //Pipeline with some user info to keep track of who uploaded what
     const pipeline:any[]=[
       {
-        $match:searchStage
+        $match:match
       },
       {
         $lookup:{

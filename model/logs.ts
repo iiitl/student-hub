@@ -24,10 +24,6 @@ const LogSchema: Schema<ILog> = new Schema<ILog>(
             ref:"Paper",
             required:false
         },
-        timestamp:{
-            type:Date,
-            default:Date.now()
-        },
         details:{
             type:String
         }
