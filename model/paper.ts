@@ -35,11 +35,14 @@ const PaperSchema: Schema<IPaper> = new Schema<IPaper>(
             required:[true,"Please enter subject name for given paper"],
             trim:true
         },
-        year:{
-            type:Number,
-            required:[true,"Year of question paper is necessary"],
-            min:2015,
-            max:new Date().getFullYear()
+        year: {
+          type: Number,
+          required: [true, "Year of question paper is necessary"],
+          validate: {
+            validator: (v: number) =>
+              Number.isInteger(v) && v >= 2015 && v <= new Date().getFullYear(),
+            message: "Year must be an integer between 2015 and the current year"
+          }
         },
         term:{
             type:String,
@@ -65,7 +68,7 @@ const PaperSchema: Schema<IPaper> = new Schema<IPaper>(
                 },
                 updatedAt:{
                     type:Date,
-                    default:Date.now()
+                    default:Date.now
                 }
             }
         ]
