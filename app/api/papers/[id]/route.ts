@@ -150,7 +150,7 @@ export async function PATCH(req:NextRequest,{params}:{params:{id:string}}){
 
     if(!paper){
       return NextResponse.json(
-        {message:"Paper deletion failed"},
+        {message:"Paper does not exist with this given id"},
         {status:404}
       )
     }
@@ -242,10 +242,10 @@ export async function PATCH(req:NextRequest,{params}:{params:{id:string}}){
             if(!deleteImg){
             const log=await Log.create({
             user:userId,
-            action:"Paper object deleted",
+            action:"Paper object updated vut previous paper deletion failed",
             paper:paper._id,
             timestamp:Date.now(),
-            details:"Paper was deleted but cloudinary file deletion failed"
+            details:"Previous file deletion failed"
             })
             }
       } 
