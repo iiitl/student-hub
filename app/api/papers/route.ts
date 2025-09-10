@@ -171,20 +171,18 @@ export async function GET(req:NextRequest){
 
     //For pipeline so we don't have to write params again and again
     const match: any = {};
-    const esc = (s: string) => s.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
-    if (subjectFilter) {
-      match.subject = { $regex: `^${esc(subjectFilter)}$`, $options: "i" };
+    if(subjectFilter){
+      match.subject={$regex:`^${subjectFilter}$`,$options:"i"};
     }
-    if (termFilter) {
-      match.term = { $regex: `^${esc(termFilter)}$`, $options: "i" };
+    if(termFilter){
+      match.term={$regex:`^${termFilter}$`,$options:"i"};
     }
     if(yearFilter){
       const y=parseInt(yearFilter, 10);
       if(!Number.isNaN(y)) match.year = y;
     }
-
-    if (search && query) {
-      match[search] = { $regex: esc(query), $options: "i" };
+    if(search && query){
+      match[search]={$regex:query,$options:"i"};
     }
     
     // console.log("MATCH:", JSON.stringify(match, null, 2));
@@ -203,7 +201,8 @@ export async function GET(req:NextRequest){
           pipeline:[
             {
             $project:{
-              name:1
+              name:1,
+              email:1
             }
             }
           ]
