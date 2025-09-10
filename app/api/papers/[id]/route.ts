@@ -46,13 +46,16 @@ export async function DELETE(req:NextRequest,{params}:{params:{id:string}}){
     }
     const imageId=paperForDeletion?.document_url
     
+    let uploadedPublicId:string|null=null;
+    let userId:string|null=null
     const authResponse=await verifyJwt(req)
-      if (authResponse.status !== 200) {
-      return authResponse;
+    if (authResponse.status !== 200) {
+    return authResponse;
     }
         
     const authData = await authResponse.json();
-    const userId = authData.userId;
+    userId = authData.userId as string;
+
     const roles=authData.roles
     if(userId.toString()!==paperForDeletion?.uploaded_by.toString() && !roles.includes("admin")){
       return NextResponse.json(
@@ -152,13 +155,16 @@ export async function PATCH(req:NextRequest,{params}:{params:{id:string}}){
       )
     }
 
+    let uploadedPublicId:string|null=null;
+    let userId:string|null=null
     const authResponse=await verifyJwt(req)
-    if(authResponse.status !== 200){
-      return authResponse;
+    if (authResponse.status !== 200) {
+    return authResponse;
     }
-    
+        
     const authData = await authResponse.json();
-    const userId = authData.userId;
+    userId = authData.userId as string;
+    
     const roles=authData.roles
     if(userId.toString()!==paper?.uploaded_by.toString() && !roles.includes("admin")){
       return NextResponse.json(
@@ -212,15 +218,22 @@ export async function PATCH(req:NextRequest,{params}:{params:{id:string}}){
             await fs.writeFile(tempFilePath, buffer);
           
             //Upload to cloudinary
-            const cloudinaryResult = await uploadOnCloudinary(tempFilePath);
-          
-            if (!cloudinaryResult) {
-            return NextResponse.json(
-            { message: "Failed to upload file to Cloudinary" },
-            { status: 500 }
-            );
+            let cloudinaryResult:any;
+            try{
+              cloudinaryResult = await uploadOnCloudinary(tempFilePath);
             }
-            await fs.unlink(tempFilePath).catch(() => {});
+            finally{
+              await fs.unlink(tempFilePath).catch(() => {});
+            }
+            
+            if(!cloudinaryResult){
+              return NextResponse.json(
+              { message: "Failed to upload file to Cloudinary" },
+              { status: 500 }
+              );
+            }
+            
+            uploadedPublicId=getPublicIdFromUrl(cloudinaryResult.secure_url)
 
             updates.document_url=cloudinaryResult.secure_url
             const public_id=paper.document_url;

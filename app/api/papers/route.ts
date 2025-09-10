@@ -9,6 +9,7 @@ import { verifyJwt } from "@/lib/auth-utils";
 import Log from "@/model/logs"
 import { tmpdir } from "os";
 import { randomUUID } from "crypto";
+import { getPublicIdFromUrl } from "./[id]/route";
 
 export const config={
   api:{
@@ -19,13 +20,15 @@ export const config={
 export async function POST(req: NextRequest){
     try {
         await dbConnect();
+        let uploadedPublicId:string|null=null;
+        let userId:string|null=null
         const authResponse=await verifyJwt(req)
         if (authResponse.status !== 200) {
         return authResponse;
         }
         
         const authData = await authResponse.json();
-        const userId = authData.userId;
+        userId = authData.userId as string;
 
         const formData = await req.formData();
 
@@ -43,11 +46,11 @@ export async function POST(req: NextRequest){
 
         if(!title || !content || !subject || !year|| !term || !file){
             const missingFields = []
-            if (!title) missingFields.push('title')
-            if (!content) missingFields.push('content')
-            if (!subject) missingFields.push('subject')
+            if (!title?.trim()) missingFields.push('title')
+            if (!content?.trim()) missingFields.push('content')
+            if (!subject?.trim()) missingFields.push('subject')
             if (!year) missingFields.push('year')
-            if (!term) missingFields.push('term')
+            if (!term?.trim()) missingFields.push('term')
             if (!file) missingFields.push('file')
         
             return NextResponse.json(
@@ -82,15 +85,22 @@ export async function POST(req: NextRequest){
         await fs.writeFile(tempFilePath, buffer);
 
         //Upload to cloudinary
-        const cloudinaryResult = await uploadOnCloudinary(tempFilePath);
-
-        if (!cloudinaryResult) {
-        return NextResponse.json(
-        { message: "Failed to upload file to Cloudinary" },
-        { status: 500 }
-        );
+        let cloudinaryResult:any;
+        try{
+          cloudinaryResult = await uploadOnCloudinary(tempFilePath);
         }
-        await fs.unlink(tempFilePath).catch(() => {});
+        finally{
+          await fs.unlink(tempFilePath).catch(() => {});
+        }
+
+        if(!cloudinaryResult){
+          return NextResponse.json(
+          { message: "Failed to upload file to Cloudinary" },
+          { status: 500 }
+          );
+        }
+
+        uploadedPublicId=getPublicIdFromUrl(cloudinaryResult.secure_url)
         
         //Create paper object in database
         const paper=await Paper.create({
@@ -165,7 +175,7 @@ export async function GET(req:NextRequest){
       match.subject={$regex:`^${subjectFilter}$`,$options:"i"};
     }
     if(termFilter){
-      match.term={$regex:`^${subjectFilter}$`,$options:"i"};
+      match.term={$regex:`^${termFilter}$`,$options:"i"};
     }
     if(yearFilter){
       const y=parseInt(yearFilter, 10);
