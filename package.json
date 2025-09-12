@@ -2,6 +2,7 @@
   "name": "student-hub",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.15.1",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",

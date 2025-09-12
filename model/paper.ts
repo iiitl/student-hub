@@ -1,5 +1,6 @@
 import mongoose,{Schema,Document,Model} from "mongoose";
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
+// import {isURL} from 'validator'
 
 export interface IPaperUpdate{
     user:Schema.Types.ObjectId,
@@ -52,7 +53,12 @@ const PaperSchema: Schema<IPaper> = new Schema<IPaper>(
         },
         document_url:{
             type:String,
-            required:[true,"Document url is required for paper"]
+            required:[true,"Document url is required for paper"],
+            // validate: {
+            //    validator: (v: string) =>
+            //     isURL(v, { require_protocol: true, protocols: ["http","https"] }),
+            //    message: "document_url must be a valid http(s) URL"
+            // }
         },
         uploaded_by:{
             type:mongoose.Schema.Types.ObjectId,

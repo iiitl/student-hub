@@ -56,7 +56,7 @@ export async function DELETE(req:NextRequest,{params}:{params:{id:string}}){
     const authData = await authResponse.json();
     userId = authData.userId as string;
 
-    const roles=authData.roles
+    const roles:string[]=Array.isArray(authData.roles)?authData.roles:[];
     if(userId.toString()!==paperForDeletion?.uploaded_by.toString() && !roles.includes("admin")){
       return NextResponse.json(
         {message:"You are not eligible to delete this post"},
@@ -165,7 +165,7 @@ export async function PATCH(req:NextRequest,{params}:{params:{id:string}}){
     const authData = await authResponse.json();
     userId = authData.userId as string;
     
-    const roles=authData.roles
+    const roles:string[]=Array.isArray(authData.roles)?authData.roles:[];
     if(userId.toString()!==paper?.uploaded_by.toString() && !roles.includes("admin")){
       return NextResponse.json(
         {message:"You are not eligible to update this post"},

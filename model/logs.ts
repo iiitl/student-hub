@@ -4,7 +4,8 @@ export interface ILog extends Document{
     user:mongoose.Types.ObjectId,
     action:string,
     paper?:mongoose.Types.ObjectId,
-    timestamp: Date,
+    createdAt?: Date,
+    updatedAt?:Date,
     details?: string
 }
 
