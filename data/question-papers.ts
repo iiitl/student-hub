@@ -312,7 +312,7 @@ const questionPapers: TypeQuestionPaper[] = [
       'https://drive.google.com/file/d/1dYjwsT34xYCPBgub2WEja-d85y_Gkr79/view?usp=drive_link',
   },
     {
-    subject: 'Probability & Statistics',
+    subject: 'Probability & Statistics(MD)',
     subjectCode: 'PSS',
     batch: 2023,
     semester: 3,
@@ -322,7 +322,7 @@ const questionPapers: TypeQuestionPaper[] = [
       'https://drive.google.com/file/d/1QXH1O1cjgNy7vPZ0-w1OMM9zd0RCpBS7/view?usp=drive_link',
   },
   {
-    subject: 'Probability & Statistics',
+    subject: 'Probability & Statistics(MD)',
     subjectCode: 'PSS',
     batch: 2023,
     semester: 3,
@@ -401,6 +401,24 @@ const questionPapers: TypeQuestionPaper[] = [
     viewUrl:
       'https://drive.google.com/file/d/1QVmWJZJker6rS-t9mYRp6gLEAjQ1WbR_/view?usp=drive_link',
   },
+  {
+    subject: 'Probability and Statistics(MS)',
+    subjectCode: 'PSS',
+    batch: 2023,
+    semester: 3,
+    exam: 'End',
+    url: 'question_papers/btech/3rd_sem/2023/end/PSS_END(MS).pdf',
+    
+  },
+  {
+    subject: 'Probability and Statistics(MS)',
+    subjectCode: 'PSS',
+    batch: 2023,
+    semester: 3,
+    exam: 'Mid',
+    url: 'question_papers/btech/3rd_sem/2023/mid/PSS_MID(MS).pdf',
+    
+  }
 ]
 
 export default questionPapers
