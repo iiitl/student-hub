@@ -7,8 +7,13 @@ const {
   CLOUDINARY_API_SECRET,
 } = process.env;
 
+// Allow build to pass without cloudinary config, but warn
 if(!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET) {
-  throw new Error("Missing Cloudinary configuration (CLOUDINARY_* env vars).");
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error("Missing Cloudinary configuration (CLOUDINARY_* env vars).");
+  } else {
+    console.warn("Warning: Missing Cloudinary configuration. Upload/delete operations will fail.");
+  }
 }
 
 cloudinary.config({

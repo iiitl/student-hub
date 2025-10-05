@@ -9,7 +9,7 @@ import { verifyJwt } from "@/lib/auth-utils";
 import Log from "@/model/logs"
 import { tmpdir } from "os";
 import { randomUUID } from "crypto";
-import { getPublicIdFromUrl } from "./[id]/route";
+import { getPublicIdFromUrl } from "@/lib/cloudinary-utils";
 
 export const config={
   api:{
