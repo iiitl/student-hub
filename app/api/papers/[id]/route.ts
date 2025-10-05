@@ -9,35 +9,14 @@ import fs from 'fs/promises'
 import path from 'path'
 import { tmpdir } from "os";
 import { randomUUID } from "crypto";
+import { getPublicIdFromUrl } from "@/lib/cloudinary-utils";
 
-//Copied from coderabbit because its just a helper
-export function getPublicIdFromUrl(url: string): string | null {
-  try {
-    const u = new URL(url);
-    const parts = u.pathname.split("/").filter(Boolean);
-    const uploadIdx = parts.findIndex((p) => p === "upload");
-    if (uploadIdx === -1) return null;
-    // parts: [..., "<resource_type>", "upload", "v123", "folder", "file.ext"]
-    const rest = parts.slice(uploadIdx + 1);
-    const withoutVersion = rest[0]?.match(/^v\d+$/) ? rest.slice(1) : rest;
-    if (!withoutVersion.length) return null;
-    const last = withoutVersion[withoutVersion.length - 1];
-    const nameNoExt = last.includes(".")
-      ? last.slice(0, last.lastIndexOf("."))
-      : last;
-    const folder = withoutVersion.slice(0, -1).join("/");
-    return folder ? `${folder}/${nameNoExt}` : nameNoExt;
-  } catch (e) {
-    console.error("Failed to extract public_id from URL:", e);
-    return null;
-  }
-}
-
-export async function DELETE(req:NextRequest,{params}:{params:{id:string}}){
+export async function DELETE(req:NextRequest,{params}:{params:Promise<{id:string}>}){
   try {
     await dbConnect();
+    const { id } = await params;
     
-    const paperForDeletion=await Paper.findById(params.id)
+    const paperForDeletion=await Paper.findById(id)
     if(!paperForDeletion){
       return NextResponse.json(
         {message:"Paper with given id doesn't exist"},
@@ -64,7 +43,7 @@ export async function DELETE(req:NextRequest,{params}:{params:{id:string}}){
       )
     }
 
-    const paper=await Paper.findByIdAndDelete(params.id);
+    const paper=await Paper.findByIdAndDelete(id);
 
     if(imageId){
     const public_id=getPublicIdFromUrl(imageId);
@@ -111,17 +90,18 @@ export async function DELETE(req:NextRequest,{params}:{params:{id:string}}){
   }
 }
 
-export async function GET(req:NextRequest,{params}:{params:{id:string}}){
+export async function GET(req:NextRequest,{params}:{params:Promise<{id:string}>}){
     try {
         await dbConnect();
-        if(!params.id){
+        const { id } = await params;
+        if(!id){
             return NextResponse.json(
                 {message:"Paper Id is not provided"},
                 {status:400}
             )
         }
 
-        const paper=await Paper.findById(params.id);
+        const paper=await Paper.findById(id);
         if(!paper){
             return NextResponse.json(
                 {message:"Paper with given id cannot be found "},
@@ -143,10 +123,11 @@ export async function GET(req:NextRequest,{params}:{params:{id:string}}){
     }
 }
 
-export async function PATCH(req:NextRequest,{params}:{params:{id:string}}){
+export async function PATCH(req:NextRequest,{params}:{params:Promise<{id:string}>}){
   try {
     await dbConnect();
-    const paper=await Paper.findById(params.id);
+    const { id } = await params;
+    const paper=await Paper.findById(id);
 
     if(!paper){
       return NextResponse.json(
@@ -251,7 +232,7 @@ export async function PATCH(req:NextRequest,{params}:{params:{id:string}}){
       } 
 
         const updPaper=await Paper.findByIdAndUpdate(
-        params.id,
+        id,
         {
             $set:updates,
             $push:{updated_by:{user:userId, updatedAt:Date.now()}}
