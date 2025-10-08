@@ -1,6 +1,5 @@
 import dbConnect from "@/lib/dbConnect";
 import { NextRequest,NextResponse } from "next/server";
-// import {upload} from "@/helpers/multer.middleware"
 import {deleteOnCloudinary, uploadOnCloudinary} from "@/helpers/cloudinary"
 import Paper from "@/model/paper";
 import { verifyJwt } from "@/lib/auth-utils";
@@ -57,8 +56,9 @@ export async function DELETE(req:NextRequest,{params}:{params:Promise<{id:string
       })
     }
     else{
+    //Double upload so if one time it doesn't work it will try one more tiem
     const deleteIm=await deleteOnCloudinary(public_id)||await deleteOnCloudinary(public_id);
-    //Currently not decided whether to throw error on not if image/pdf on cloudinary not deleted
+
     if(!deleteIm){
       const log=await Log.create({
         user:userId,

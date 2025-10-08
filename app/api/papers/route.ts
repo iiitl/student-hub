@@ -1,6 +1,5 @@
 import dbConnect from "@/lib/dbConnect";
 import { NextRequest,NextResponse } from "next/server";
-// import {upload} from "@/helpers/multer.middleware"
 import fs from 'fs/promises'
 import path from 'path'
 import {deleteOnCloudinary, uploadOnCloudinary} from "@/helpers/cloudinary"
@@ -185,7 +184,6 @@ export async function GET(req:NextRequest){
       match[search]={$regex:query,$options:"i"};
     }
     
-    // console.log("MATCH:", JSON.stringify(match, null, 2));
 
     //Pipeline with some user info to keep track of who uploaded what
     const pipeline:any[]=[
@@ -243,7 +241,6 @@ export async function GET(req:NextRequest){
     )
 
   } catch (error:any) {
-    console.error("Fetch posts error",error)
     return NextResponse.json(
       {message:error.message||"Internal Server Error"},
       {status:500}
