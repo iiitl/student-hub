@@ -1,6 +1,8 @@
 import {v2 as cloudinary,UploadApiResponse} from "cloudinary";
 import fs from "fs";
 
+// TODO : Fix all lints to proper types.
+
 const {
   CLOUDINARY_CLOUD_NAME,
   CLOUDINARY_API_KEY,
@@ -41,20 +43,22 @@ const uploadOnCloudinary=
           if(localFilePath && fs.existsSync(localFilePath)) {
             await fs.promises.unlink(localFilePath);
           }
-        } catch(e){
+        } catch{
           console.warn("Failed to remove temp file:", localFilePath);
         }
     }
 }
 
+
 const deleteOnCloudinary=async(publicId:string)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 :Promise<any> =>{
     if(!publicId){return null;}
     try {
         const delete_file=await cloudinary.uploader.destroy(publicId,{invalidate:true});
         return delete_file
-    } catch (error:any) {
-        console.log("Cloudinary Delete failed ",error?.message||error)
+    } catch (error: unknown) {
+        console.log("Cloudinary Delete failed ", error instanceof Error ? error.message : error)
         throw error;
     }
 }

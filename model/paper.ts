@@ -10,7 +10,7 @@ export interface IPaper extends Document{
     title:string,
     content:string,
     subject:string,
-    year:Number,
+    year:number,
     term:string,
     document_url:string,
     uploaded_by:Schema.Types.ObjectId,
