@@ -1,0 +1,35 @@
+export type BlogItem = {
+  title: string
+  source: string
+  url: string
+}
+
+export const blogs: BlogItem[] = [
+  {
+    title: 'Understanding JavaScript Closures',
+    source: 'Medium',
+    url: 'https://medium.com/some-article',
+  },
+  {
+    title: 'Building a REST API with Django Rest Framework',
+    source: 'GitHub',
+    url: 'https://github.com/some-repo',
+  },
+  {
+    title: 'CSS Grid vs Flexbox: When to Use What',
+    source: 'Other',
+    url: 'https://dev.to/some-article',
+  },
+  {
+    title: "Machine Learning Basics: A Beginner's Guide",
+    source: 'Medium',
+    url: 'https://medium.com/ml-basics',
+  },
+  {
+    title: 'Understanding OAuth 2.0 for Authentication',
+    source: 'GitHub',
+    url: 'https://github.com/oauth-guide',
+  },
+]
+
+export default blogs

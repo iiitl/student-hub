@@ -11,7 +11,7 @@ export const metadata = {
   description: 'Resources, community and more',
 }
 
-export default function RootLayout({ children }) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body

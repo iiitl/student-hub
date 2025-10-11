@@ -1,9 +1,9 @@
-import blogData from '../../data/blogs.json'
+import blogData, { BlogItem } from '../../data/blogs'
 import React from 'react'
 
-const blogCategories = ['Medium', 'Github', 'Other']
+const blogCategories: BlogItem['source'][] = ['Medium', 'GitHub', 'Other']
 
-const QuickReads = () => {
+const QuickReads: React.FC = () => {
   return (
     <div className="container mx-auto p-6 max-w-6xl">
       <h1 className="text-3xl font-bold text-center mb-8 text-gray-900 dark:text-gray-100">
@@ -16,10 +16,8 @@ const QuickReads = () => {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {blogData
-              .filter(
-                (blog) => blog.source.toLowerCase() === category.toLowerCase()
-              )
-              .map((blog, index) => (
+              .filter((blog: BlogItem) => blog.source.toLowerCase() === category.toLowerCase())
+              .map((blog: BlogItem, index: number) => (
                 <a
                   key={index}
                   href={blog.url}

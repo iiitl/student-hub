@@ -1,12 +1,25 @@
+
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { PlusCircle, ShoppingBag } from 'lucide-react'
-import marketplaceData from '../../data/marketplace_data.json'
+import marketplaceData, { MarketplaceListing } from '../../data/marketplace_data'
 
-const Marketplace = () => {
-  const [listings, setListings] = useState([])
-  const [formData, setFormData] = useState({
+type MarketplaceFormData = {
+  name: string
+  description: string
+  price: string
+  seller: string
+  contact: string
+  location: string
+}
+
+const Marketplace: React.FC = () => {
+  const [listings, setListings] = useState<MarketplaceListing[]>(
+    marketplaceData.listings
+  )
+
+  const [formData, setFormData] = useState<MarketplaceFormData>({
     name: '',
     description: '',
     price: '',
@@ -14,45 +27,48 @@ const Marketplace = () => {
     contact: '',
     location: '',
   })
-  const [errors, setErrors] = useState({})
 
-  useEffect(() => {
-    setListings(marketplaceData.listings)
-  }, [])
+  const [errors, setErrors] =
+    useState<Partial<Record<keyof MarketplaceFormData, string>>>({})
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setFormData({ ...formData, [name]: value })
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const target = e.target as HTMLInputElement & HTMLTextAreaElement
+    const { name, value } = target
+    setFormData({ ...formData, [name]: value } as MarketplaceFormData)
     // Clear error when user types
-    if (errors[name]) {
-      setErrors({ ...errors, [name]: '' })
+    if (errors[name as keyof MarketplaceFormData]) {
+      setErrors({ ...errors, [name as keyof MarketplaceFormData]: '' })
     }
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     // Validate all required fields
-    const newErrors = {}
+    const newErrors: Partial<Record<keyof MarketplaceFormData, string>> = {}
     if (!formData.name) newErrors.name = 'Name is required'
-    if (!formData.description) newErrors.description = 'Description is required'
+    if (!formData.description)
+      newErrors.description = 'Description is required'
     if (!formData.price) newErrors.price = 'Price is required'
     if (formData.price && parseFloat(formData.price) <= 0)
       newErrors.price = 'Price must be greater than zero'
-    // if (!formData.seller) newErrors.seller = "Seller name is required";
     if (!formData.contact) newErrors.contact = 'Contact number is required'
     if (formData.contact && !/^\d{10}$/.test(formData.contact))
       newErrors.contact = 'Please enter a valid 10-digit phone number'
-    // if (!formData.location) newErrors.location = "Location is required";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors)
       return
     }
+
     // Generate a new ID based on the largest existing ID
     const newId =
       listings.length > 0 ? Math.max(...listings.map((item) => item.id)) + 1 : 1
 
-    setListings([...listings, { ...formData, id: newId }])
+    const newListing: MarketplaceListing = { id: newId, ...formData }
+
+    setListings([...listings, newListing])
     setFormData({
       name: '',
       description: '',

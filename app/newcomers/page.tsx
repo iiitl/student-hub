@@ -1,12 +1,12 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useMemo } from 'react'
 import { Hotel, Utensils, ShoppingBag, Landmark, MapPin } from 'lucide-react'
-import locationData from '../../data/nearby_data.json'
+import nearbyData, { NearbyLocation } from '../../data/nearby_data'
 
 const categories = ['All', 'Restaurant', 'Hotel', 'Landmarks', 'Shop']
 
-const categoryIcons = {
+const categoryIcons: Record<string, React.ReactNode> = {
   Restaurant: <Utensils size={40} className="text-red-500" />,
   Hotel: <Hotel size={40} className="text-blue-500" />,
   Landmarks: <Landmark size={40} className="text-green-500" />,
@@ -14,29 +14,28 @@ const categoryIcons = {
   Default: <MapPin size={40} className="text-gray-500" />, // Fallback icon
 }
 
-const NewcomersPage = () => {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('All')
-  const [filteredLocations, setFilteredLocations] = useState([])
+const NewcomersPage: React.FC = () => {
+  const [searchQuery, setSearchQuery] = useState<string>('')
+  const [selectedCategory, setSelectedCategory] = useState<string>('All')
 
-  useEffect(() => {
-  const filtered = locationData.locations
-    .filter((location) => {
-      return (
-        (selectedCategory === 'All' ||
-          location.category.trim() === selectedCategory) &&
-        (location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          location.address.toLowerCase().includes(searchQuery.toLowerCase()))
-      )
-    })
-    .sort((a, b) => {
-      const distA = parseFloat(a.distance.replace('km', '').trim())
-      const distB = parseFloat(b.distance.replace('km', '').trim())
-      return distA - distB 
-    })
+  const filteredLocations = useMemo(() => {
+    const filtered = nearbyData.locations
+      .filter((location: NearbyLocation) => {
+        return (
+          (selectedCategory === 'All' ||
+            location.category.trim() === selectedCategory) &&
+          (location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            location.address.toLowerCase().includes(searchQuery.toLowerCase()))
+        )
+      })
+      .sort((a: NearbyLocation, b: NearbyLocation) => {
+        const distA = parseFloat(a.distance.replace('km', '').trim())
+        const distB = parseFloat(b.distance.replace('km', '').trim())
+        return distA - distB
+      })
 
-  setFilteredLocations(filtered)
-}, [searchQuery, selectedCategory])
+    return filtered
+  }, [searchQuery, selectedCategory])
 
   return (
     <div className="container mx-auto p-6 max-w-6xl">
@@ -73,7 +72,7 @@ const NewcomersPage = () => {
       {/* Locations List */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {filteredLocations.length > 0 ? (
-          filteredLocations.map((location, index) => (
+          filteredLocations.map((location: NearbyLocation, index: number) => (
             <div
               key={index}
               className="block p-5 border border-gray-300 dark:border-gray-600 rounded-lg shadow-md bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-all duration-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:scale-105 hover:shadow-lg"
