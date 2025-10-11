@@ -31,8 +31,12 @@ export default function useContributors() {
         }
         const data = await response.json()
         setContributors(data)
-      } catch (err: any) {
-        setError(err.message)
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message)
+        } else {
+          setError(String(err))
+        }
       } finally {
         setIsLoading(false)
       }
