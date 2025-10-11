@@ -24,7 +24,6 @@ export async function DELETE(req:NextRequest,{params}:{params:Promise<{id:string
     }
     const imageId=paperForDeletion?.document_url
     
-    let uploadedPublicId:string|null=null;
     let userId:string|null=null
     const authResponse=await verifyJwt(req)
     if (authResponse.status !== 200) {
@@ -42,13 +41,13 @@ export async function DELETE(req:NextRequest,{params}:{params:Promise<{id:string
       )
     }
 
-    const paper=await Paper.findByIdAndDelete(id);
+    await Paper.findByIdAndDelete(id);
 
     if(imageId){
     const public_id=getPublicIdFromUrl(imageId);
     
     if(public_id==null){
-       const log=await Log.create({
+       await Log.create({
         user:userId,
         action:"Paper object deleted",
         paper:null,
@@ -60,7 +59,7 @@ export async function DELETE(req:NextRequest,{params}:{params:Promise<{id:string
     const deleteIm=await deleteOnCloudinary(public_id)||await deleteOnCloudinary(public_id);
 
     if(!deleteIm){
-      const log=await Log.create({
+      await Log.create({
         user:userId,
         action:"Paper object deleted",
         paper:null,
@@ -81,10 +80,10 @@ export async function DELETE(req:NextRequest,{params}:{params:Promise<{id:string
       {status:200}
     )
     } 
-    catch (error:any) {
-    console.log(error.message)
+    catch (error: unknown) {
+    console.log(error instanceof Error ? error.message : 'Unknown error')
     return NextResponse.json(
-        {message:"Error in paper deletion ",error:error?.message},
+        {message:"Error in paper deletion ",error: error instanceof Error ? error.message : 'Unknown error'},
         {status:500}
     )
   }
@@ -115,9 +114,9 @@ export async function GET(req:NextRequest,{params}:{params:Promise<{id:string}>}
         )
 
     } 
-    catch(error:any){
+    catch(error: unknown){
         return NextResponse.json(
-            {message:"Error in fetching paper",error:error?.message},
+            {message:"Error in fetching paper",error: error instanceof Error ? error.message : 'Unknown error'},
             {status:400}
         )
     }
@@ -136,7 +135,6 @@ export async function PATCH(req:NextRequest,{params}:{params:Promise<{id:string}
       )
     }
 
-    let uploadedPublicId:string|null=null;
     let userId:string|null=null
     const authResponse=await verifyJwt(req)
     if (authResponse.status !== 200) {
@@ -158,6 +156,7 @@ export async function PATCH(req:NextRequest,{params}:{params:Promise<{id:string}
     const entries=Object.fromEntries(formData.entries());
     const allowed_fields=["title", "content", "subject", "year", "term","uploaded_file"]
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updates:Record<string,any>={};
 
     for (const key of allowed_fields) {
@@ -199,6 +198,7 @@ export async function PATCH(req:NextRequest,{params}:{params:Promise<{id:string}
             await fs.writeFile(tempFilePath, buffer);
           
             //Upload to cloudinary
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             let cloudinaryResult:any;
             try{
               cloudinaryResult = await uploadOnCloudinary(tempFilePath);
@@ -214,14 +214,22 @@ export async function PATCH(req:NextRequest,{params}:{params:Promise<{id:string}
               );
             }
             
-            uploadedPublicId=getPublicIdFromUrl(cloudinaryResult.secure_url)
 
-            updates.document_url=cloudinaryResult.secure_url
-            const public_id=paper.document_url;
-            const deleteImg=await deleteOnCloudinary(public_id)||await deleteOnCloudinary(public_id);
+            updates.document_url = cloudinaryResult.secure_url
+            const prevPublicId = getPublicIdFromUrl(paper.document_url);
+            let deleteImg = true;
+            if (prevPublicId) {
+              try {
+                await deleteOnCloudinary(prevPublicId);
+              } catch {
+                deleteImg = false;
+              }
+            } else {
+              deleteImg = false;
+            }
             
             if(!deleteImg){
-            const log=await Log.create({
+            await Log.create({
             user:userId,
             action:"Paper object updated vut previous paper deletion failed",
             paper:paper._id,
@@ -259,10 +267,10 @@ export async function PATCH(req:NextRequest,{params}:{params:Promise<{id:string}
         {status:200}
     )
 
-  } catch (error:any) {
+  } catch (error: unknown) {
 
     return NextResponse.json(
-        {message:"Error in updating paper",error:error?.message},
+        {message:"Error in updating paper",error: error instanceof Error ? error.message : 'Unknown error'},
         {status:500}
     )
 

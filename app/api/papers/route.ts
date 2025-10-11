@@ -2,13 +2,14 @@ import dbConnect from "@/lib/dbConnect";
 import { NextRequest,NextResponse } from "next/server";
 import fs from 'fs/promises'
 import path from 'path'
-import {deleteOnCloudinary, uploadOnCloudinary} from "@/helpers/cloudinary"
+import { uploadOnCloudinary} from "@/helpers/cloudinary"
 import Paper from "@/model/paper";
 import { verifyJwt } from "@/lib/auth-utils";
 import Log from "@/model/logs"
 import { tmpdir } from "os";
 import { randomUUID } from "crypto";
-import { getPublicIdFromUrl } from "@/lib/cloudinary-utils";
+
+//TODO: fix all Lints to proper types.
 
 export const config={
   api:{
@@ -19,7 +20,6 @@ export const config={
 export async function POST(req: NextRequest){
     try {
         await dbConnect();
-        let uploadedPublicId:string|null=null;
         let userId:string|null=null
         const authResponse=await verifyJwt(req)
         if (authResponse.status !== 200) {
@@ -84,6 +84,7 @@ export async function POST(req: NextRequest){
         await fs.writeFile(tempFilePath, buffer);
 
         //Upload to cloudinary
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let cloudinaryResult:any;
         try{
           cloudinaryResult = await uploadOnCloudinary(tempFilePath);
@@ -99,7 +100,6 @@ export async function POST(req: NextRequest){
           );
         }
 
-        uploadedPublicId=getPublicIdFromUrl(cloudinaryResult.secure_url)
         
         //Create paper object in database
         const paper=await Paper.create({
@@ -124,7 +124,7 @@ export async function POST(req: NextRequest){
           {status:201}
         )
         
-    } catch (error:any) {
+    } catch (error: unknown) {
         // console.error("Upload error:",error)
 
         //Create log for error
@@ -132,20 +132,21 @@ export async function POST(req: NextRequest){
         "user": null,
         "action": "Paper upload failed",
         "error": "Failed to upload file to Cloudinary",
-        "details":error.stack
+        "details": error instanceof Error ? error.stack : 'Unknown error'
         })
 
         //Validation error separate calling
-        if (error.name === "ValidationError") {
+        if (error instanceof Error && error.name === "ValidationError") {
         return NextResponse.json(
-          { message: "Validation failed", errors: error.errors },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          { message: "Validation failed", errors: (error as any).errors },
           { status: 400 }
         );
         }
 
         //Error calling
         return NextResponse.json(
-          {message:"Internal server error ",error:error.message},
+          {message:"Internal server error ",error: error instanceof Error ? error.message : 'Unknown error'},
           {status:500}
         )
     }
@@ -169,7 +170,8 @@ export async function GET(req:NextRequest){
     const yearFilter = searchParams.get("year");
 
     //For pipeline so we don't have to write params again and again
-    const match: any = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const match: any= {};
     if(subjectFilter){
       match.subject={$regex:`^${subjectFilter}$`,$options:"i"};
     }
@@ -186,7 +188,7 @@ export async function GET(req:NextRequest){
     
 
     //Pipeline with some user info to keep track of who uploaded what
-    const pipeline:any[]=[
+    const pipeline = [
       {
         $match:match
       },
@@ -221,6 +223,7 @@ export async function GET(req:NextRequest){
     }
 
     //Final to aggregate limited queries within a page
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const papers=await (Paper as any).aggregatePaginate(Paper.aggregate(pipeline),{
       page,
       limit,
@@ -240,9 +243,9 @@ export async function GET(req:NextRequest){
       {status:200}
     )
 
-  } catch (error:any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      {message:error.message||"Internal Server Error"},
+      {message: error instanceof Error ? error.message : "Internal Server Error"},
       {status:500}
     )
   }
