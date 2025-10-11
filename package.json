@@ -33,7 +33,7 @@
     "cloudinary": "^2.7.0",
     "clsx": "^2.1.1",
     "dompurify": "^3.2.6",
-    "dotenv": "^17.2.2",
+    "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "formidable": "^3.5.4",
     "jsdom": "^26.1.0",
