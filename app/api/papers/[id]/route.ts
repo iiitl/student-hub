@@ -215,9 +215,18 @@ export async function PATCH(req:NextRequest,{params}:{params:Promise<{id:string}
             }
             
 
-            updates.document_url=cloudinaryResult.secure_url
-            const public_id=paper.document_url;
-            const deleteImg=await deleteOnCloudinary(public_id)||await deleteOnCloudinary(public_id);
+            updates.document_url = cloudinaryResult.secure_url
+            const prevPublicId = getPublicIdFromUrl(paper.document_url);
+            let deleteImg = true;
+            if (prevPublicId) {
+              try {
+                await deleteOnCloudinary(prevPublicId);
+              } catch {
+                deleteImg = false;
+              }
+            } else {
+              deleteImg = false;
+            }
             
             if(!deleteImg){
             await Log.create({
