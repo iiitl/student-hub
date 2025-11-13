@@ -1,11 +1,13 @@
 'use client'
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Card } from '../ui/card'
 import { TypeQuestionPaper } from '@/types/question-paper'
-import { FaEye, FaDownload } from 'react-icons/fa'
+import { FaEye, FaDownload, FaTrash } from 'react-icons/fa'
+import { useSession } from 'next-auth/react'
 
 type QuestionPaperCardProps = {
   questionPaper: TypeQuestionPaper
+  onDelete?: () => void
 }
 
 // Path to question paper files, configurable via environment variable
@@ -13,7 +15,85 @@ const FILE_PATH = process.env.NEXT_PUBLIC_FILES_PATH || '/'
 
 const QuestionPaperCard: React.FC<QuestionPaperCardProps> = ({
   questionPaper,
+  onDelete,
 }) => {
+  const { data: session } = useSession()
+  const [canDelete, setCanDelete] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  
+  useEffect(() => {
+    // Check if user can delete this paper
+    if (session?.user) {
+      const userId = session.user.id
+      const userEmail = session.user.email
+      
+      const isUploader = questionPaper.uploadedBy === userId
+      const isTechnicalClub = userEmail === 'technicalclub@iiitl.ac.in'
+      
+      setCanDelete(isUploader || isTechnicalClub)
+    }
+  }, [session, questionPaper.uploadedBy])
+  
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(questionPaper.url)
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      
+      // Use the original filename if available, otherwise generate one
+      const filename = questionPaper.fileName || `${questionPaper.subject}_${questionPaper.batch}_Sem${questionPaper.semester}_${questionPaper.exam}.pdf`
+      link.download = filename
+      
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Download failed:', error)
+      // Fallback to direct download
+      window.open(questionPaper.url, '_blank')
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!questionPaper.id) {
+      alert('Paper ID not found')
+      return
+    }
+    
+    if (!confirm(`Are you sure you want to delete "${questionPaper.subject}"?`)) {
+      return
+    }
+    
+    setIsDeleting(true)
+    
+    try {
+      const response = await fetch(`/api/papers?id=${questionPaper.id}`, {
+        method: 'DELETE',
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to delete paper')
+      }
+      
+      alert('Paper deleted successfully')
+      
+      // Call the onDelete callback to refresh the list
+      if (onDelete) {
+        onDelete()
+      }
+    } catch (error) {
+      console.error('Delete failed:', error)
+      alert(error instanceof Error ? error.message : 'Failed to delete paper')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   return (
     <Card className="w-full flex flex-col md:flex-row p-4 justify-between items-start md:items-center bg-border/20 shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
       <h2 className="text-xl truncate w-full" title={questionPaper.subject}>
@@ -24,14 +104,13 @@ const QuestionPaperCard: React.FC<QuestionPaperCardProps> = ({
           {questionPaper.batch} - {questionPaper.exam} Semester{' '}
           {questionPaper.semester}
         </p>
-        <a
+        <button
+          onClick={handleDownload}
           className="cursor-pointer bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors duration-200"
-          href={`${FILE_PATH}${questionPaper.url}`}
           aria-label={`Download ${questionPaper.subject} question paper`}
-          download
         >
           <FaDownload />
-        </a>
+        </button>
         <a
           className="cursor-pointer bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors duration-200"
           href={`${questionPaper.viewUrl || questionPaper.url}`}
@@ -41,6 +120,16 @@ const QuestionPaperCard: React.FC<QuestionPaperCardProps> = ({
         >
           <FaEye />
         </a>
+        {canDelete && (
+          <button
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="cursor-pointer bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label={`Delete ${questionPaper.subject} question paper`}
+          >
+            {isDeleting ? '...' : <FaTrash />}
+          </button>
+        )}
       </div>
     </Card>
   )

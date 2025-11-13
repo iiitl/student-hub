@@ -69,8 +69,14 @@ export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname
   const userAgent = request.headers.get('user-agent') || ''
 
-  // Block known bots
-  if (isKnownBot(userAgent)) {
+  // Allow public API endpoints without bot checking
+  const publicApiEndpoints = ['/api/papers']
+  const isPublicEndpoint = publicApiEndpoints.some(endpoint => 
+    path.startsWith(endpoint) && request.method === 'GET'
+  )
+
+  // Block known bots (except for public endpoints)
+  if (!isPublicEndpoint && isKnownBot(userAgent)) {
     return NextResponse.json({ message: 'Access denied' }, { status: 403 })
   }
 
@@ -132,7 +138,13 @@ export async function middleware(request: NextRequest) {
   }
 
   // Check authentication for protected routes
-  if (path.startsWith('/api/') && !path.startsWith('/api/auth/')) {
+  // Exempt public GET endpoints from authentication
+  const publicGetEndpoints = ['/api/papers']
+  const isPublicGetRequest = publicGetEndpoints.some(endpoint => 
+    path.startsWith(endpoint) && request.method === 'GET'
+  )
+  
+  if (path.startsWith('/api/') && !path.startsWith('/api/auth/') && !isPublicGetRequest) {
     const token = await getToken({ req: request })
     if (!token) {
       return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), {

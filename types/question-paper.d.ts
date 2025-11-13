@@ -13,4 +13,12 @@ export type TypeQuestionPaper = {
   url: string
   /** The URL or path to view the question paper */
   viewUrl?: string
+  /** The original file name */
+  fileName?: string
+  /** The file type/extension */
+  fileType?: string
+  /** The paper ID */
+  id?: string
+  /** The ID of the user who uploaded the paper */
+  uploadedBy?: string
 }
