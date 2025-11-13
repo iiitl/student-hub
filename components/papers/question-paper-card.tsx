@@ -24,7 +24,7 @@ const QuestionPaperCard: React.FC<QuestionPaperCardProps> = ({
   useEffect(() => {
     // Check if user can delete this paper
     if (session?.user) {
-      const userId = (session.user as any).id
+      const userId = session.user.id
       const userEmail = session.user.email
       
       const isUploader = questionPaper.uploadedBy === userId

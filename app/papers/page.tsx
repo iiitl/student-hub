@@ -45,7 +45,18 @@ const QuestionPapers = () => {
         }
 
         // Transform backend data to match TypeQuestionPaper interface
-        const transformedPapers: TypeQuestionPaper[] = data.papers.papers.map((paper: any) => ({
+        const transformedPapers: TypeQuestionPaper[] = data.papers.papers.map((paper: {
+          subject?: string
+          title?: string
+          year: string
+          semester?: string
+          term: string
+          document_url: string
+          file_name: string
+          file_type: string
+          _id: string
+          uploaded_by: string
+        }) => ({
           subject: paper.subject || paper.title,
           subjectCode: paper.subject || paper.title,
           batch: paper.year,
