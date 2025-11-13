@@ -8,6 +8,7 @@ import { verifyJwt } from "@/lib/auth-utils";
 import Log from "@/model/logs"
 import { tmpdir } from "os";
 import { randomUUID } from "crypto";
+import User from "@/model/User";
 
 //TODO: fix all Lints to proper types.
 
@@ -40,15 +41,22 @@ export async function POST(req: NextRequest){
         return NextResponse.json({ message: "Invalid year" }, { status: 400 });
         }
 
+        const semesterRaw = formData.get("semester") as string;
+        const semester = parseInt(semesterRaw ?? "", 10);
+        if (Number.isNaN(semester)) {
+        return NextResponse.json({ message: "Invalid semester" }, { status: 400 });
+        }
+
         const term = formData.get("term") as string;
         const file = formData.get("uploaded_file") as File | null;
 
-        if(!title || !content || !subject || !year|| !term || !file){
+        if(!title || !content || !subject || !year || !semester || !term || !file){
             const missingFields = []
             if (!title?.trim()) missingFields.push('title')
             if (!content?.trim()) missingFields.push('content')
             if (!subject?.trim()) missingFields.push('subject')
             if (!year) missingFields.push('year')
+            if (!semester) missingFields.push('semester')
             if (!term?.trim()) missingFields.push('term')
             if (!file) missingFields.push('file')
         
@@ -106,9 +114,12 @@ export async function POST(req: NextRequest){
           title,
           content,
           subject,
+          semester,
           term,
           year,
           document_url:cloudinaryResult.secure_url,
+          file_name: file.name,
+          file_type: file.type,
           uploaded_by:userId
         })
 
@@ -152,7 +163,7 @@ export async function POST(req: NextRequest){
     }
 }
 
-//Get paper based on query and page limit
+//Get paper based on query and page limit (Public - no auth required)
 export async function GET(req:NextRequest){
   try {
     await dbConnect();
@@ -248,5 +259,93 @@ export async function GET(req:NextRequest){
       {message: error instanceof Error ? error.message : "Internal Server Error"},
       {status:500}
     )
+  }
+}
+
+//Delete paper (Only uploader or technical club admin)
+export async function DELETE(req: NextRequest){
+  try {
+    await dbConnect();
+    
+    // Verify authentication
+    const authResponse = await verifyJwt(req);
+    if (authResponse.status !== 200) {
+      return authResponse;
+    }
+    
+    const authData = await authResponse.json();
+    const userId = authData.userId as string;
+    
+    // Get paper ID from query params
+    const { searchParams } = new URL(req.url);
+    const paperId = searchParams.get("id");
+    
+    if (!paperId) {
+      return NextResponse.json(
+        { message: "Paper ID is required" },
+        { status: 400 }
+      );
+    }
+    
+    // Fetch the paper
+    const paper = await Paper.findById(paperId);
+    if (!paper) {
+      return NextResponse.json(
+        { message: "Paper not found" },
+        { status: 404 }
+      );
+    }
+    
+    // Fetch user details to check email
+    const user = await User.findById(userId);
+    if (!user) {
+      return NextResponse.json(
+        { message: "User not found" },
+        { status: 404 }
+      );
+    }
+    
+    // Check authorization: either the uploader or technicalclub@iiitl.ac.in
+    const isUploader = paper.uploaded_by.toString() === userId;
+    const isTechnicalClub = user.email === "technicalclub@iiitl.ac.in";
+    
+    if (!isUploader && !isTechnicalClub) {
+      return NextResponse.json(
+        { message: "You are not authorized to delete this paper" },
+        { status: 403 }
+      );
+    }
+    
+    // Delete the paper
+    await Paper.findByIdAndDelete(paperId);
+    
+    // Create log
+    await Log.create({
+      user: userId,
+      action: "Paper deleted",
+      paper: paperId,
+      details: `Paper "${paper.title}" deleted by ${user.email}`
+    });
+    
+    return NextResponse.json(
+      { message: "Paper deleted successfully" },
+      { status: 200 }
+    );
+    
+  } catch (error: unknown) {
+    console.error("Delete error:", error);
+    
+    // Create log for error
+    await Log.create({
+      user: null,
+      action: "Paper deletion failed",
+      error: "Failed to delete paper",
+      details: error instanceof Error ? error.stack : 'Unknown error'
+    });
+    
+    return NextResponse.json(
+      { message: error instanceof Error ? error.message : "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }

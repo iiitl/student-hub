@@ -1,23 +1,39 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Upload, FileText, Calendar, BookOpen, GraduationCap, FileUp } from 'lucide-react'
+import { Upload, FileText, Calendar, BookOpen, GraduationCap, FileUp, CheckCircle, AlertCircle } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 
 const UploadPaperPage = () => {
+  const router = useRouter()
+  const { data: session, status } = useSession()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [formData, setFormData] = useState({
     title: '',
     content: '',
     subject: '',
     year: '',
+    semester: '',
     term: '',
     uploaded_file: null as File | null
   })
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+
+  // Redirect to sign in if not authenticated
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin?callbackUrl=/upload-papers')
+    }
+  }, [status, router])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -39,12 +55,109 @@ const UploadPaperPage = () => {
       ...prev,
       uploaded_file: file
     }))
+    // Clear error when user selects a new file
+    if (error) setError(null)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Implement API call
-    console.log('Form data:', formData)
+    setIsLoading(true)
+    setError(null)
+    setSuccess(null)
+
+    try {
+      // Validate form data
+      if (!formData.title || !formData.content || !formData.subject || !formData.year || !formData.semester || !formData.term || !formData.uploaded_file) {
+        setError('Please fill in all required fields')
+        setIsLoading(false)
+        return
+      }
+
+      // Validate file size (25MB max)
+      const maxSize = 25 * 1024 * 1024 // 25MB in bytes
+      if (formData.uploaded_file.size > maxSize) {
+        setError('File size must be less than 25MB')
+        setIsLoading(false)
+        return
+      }
+
+      // Validate file type
+      const allowedTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp']
+      if (!allowedTypes.includes(formData.uploaded_file.type)) {
+        setError('Only PDF, PNG, JPG, JPEG, and WEBP files are allowed')
+        setIsLoading(false)
+        return
+      }
+
+      // Create FormData object
+      const submitFormData = new FormData()
+      submitFormData.append('title', formData.title)
+      submitFormData.append('content', formData.content)
+      submitFormData.append('subject', formData.subject)
+      submitFormData.append('year', formData.year)
+      submitFormData.append('semester', formData.semester)
+      submitFormData.append('term', formData.term)
+      submitFormData.append('uploaded_file', formData.uploaded_file)
+
+      // Make API call
+      const response = await fetch('/api/papers', {
+        method: 'POST',
+        body: submitFormData,
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to upload paper')
+      }
+
+      // Success
+      setSuccess('Paper uploaded successfully! Redirecting...')
+      
+      // Reset form
+      setFormData({
+        title: '',
+        content: '',
+        subject: '',
+        year: '',
+        semester: '',
+        term: '',
+        uploaded_file: null
+      })
+
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+
+      // Redirect to papers page after 2 seconds
+      setTimeout(() => {
+        router.push('/papers')
+      }, 2000)
+
+    } catch (err) {
+      console.error('Upload error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to upload paper. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Show loading state while checking authentication
+  if (status === 'loading') {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-lg">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Don't render the form if not authenticated (will redirect)
+  if (status === 'unauthenticated') {
+    return null
   }
 
   return (
@@ -59,6 +172,28 @@ const UploadPaperPage = () => {
           
           
           <CardContent>
+            {/* Error Message */}
+            {error && (
+              <div className="mb-6 p-4 bg-destructive/10 border border-destructive rounded-lg flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-destructive">Error</h4>
+                  <p className="text-sm text-destructive/90">{error}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Success Message */}
+            {success && (
+              <div className="mb-6 p-4 bg-green-500/10 border border-green-500 rounded-lg flex items-start gap-3">
+                <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-green-500">Success</h4>
+                  <p className="text-sm text-green-500/90">{success}</p>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Title Field */}
               <div className="space-y-2">
@@ -110,7 +245,7 @@ const UploadPaperPage = () => {
                 />
               </div>
 
-              {/* Year and Term Row */}
+              {/* Year and Semester Row */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Year Field */}
                 <div className="space-y-2">
@@ -135,29 +270,48 @@ const UploadPaperPage = () => {
                   </Select>
                 </div>
 
-                {/* Term Field */}
+                {/* Semester Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="term" className="flex items-center gap-2">
+                  <Label htmlFor="semester" className="flex items-center gap-2">
                     <GraduationCap className="h-4 w-4" />
                     Semester *
                   </Label>
-                  <Select onValueChange={(value: string) => handleSelectChange('term', value)}>
+                  <Select onValueChange={(value: string) => handleSelectChange('semester', value)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select term" />
+                      <SelectValue placeholder="Select semester" />
                     </SelectTrigger>
                     <SelectContent>
-                      
-                      <SelectItem value="semester-1">Semester 1</SelectItem>
-                      <SelectItem value="semester-2">Semester 2</SelectItem>
-                      <SelectItem value="semester-3">Semester 3</SelectItem>
-                      <SelectItem value="semester-4">Semester 4</SelectItem>
-                      <SelectItem value="semester-5">Semester 5</SelectItem>
-                      <SelectItem value="semester-6">Semester 6</SelectItem>
-                      <SelectItem value="semester-7">Semester 7</SelectItem>
-                      <SelectItem value="semester-8">Semester 8</SelectItem>
+                      <SelectItem value="1">Semester 1</SelectItem>
+                      <SelectItem value="2">Semester 2</SelectItem>
+                      <SelectItem value="3">Semester 3</SelectItem>
+                      <SelectItem value="4">Semester 4</SelectItem>
+                      <SelectItem value="5">Semester 5</SelectItem>
+                      <SelectItem value="6">Semester 6</SelectItem>
+                      <SelectItem value="7">Semester 7</SelectItem>
+                      <SelectItem value="8">Semester 8</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              {/* Exam Type Field */}
+              <div className="space-y-2">
+                <Label htmlFor="term" className="flex items-center gap-2">
+                  <GraduationCap className="h-4 w-4" />
+                  Exam Type *
+                </Label>
+                <Select onValueChange={(value: string) => handleSelectChange('term', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select exam type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Mid">Mid Semester</SelectItem>
+                    <SelectItem value="End">End Semester</SelectItem>
+                    <SelectItem value="Class_test_1">Class Test 1</SelectItem>
+                    <SelectItem value="Class_test_2">Class Test 2</SelectItem>
+                    <SelectItem value="Class_test_3">Class Test 3</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* File Upload Field */}
@@ -168,6 +322,7 @@ const UploadPaperPage = () => {
                 </Label>
                 <div className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
                   <input
+                    ref={fileInputRef}
                     id="file"
                     type="file"
                     accept=".pdf,.png,.jpg,.jpeg,.webp"
@@ -202,9 +357,19 @@ const UploadPaperPage = () => {
                   type="submit"
                   className="w-full"
                   size="lg"
+                  disabled={isLoading}
                 >
-                  <Upload className="h-4 w-4 mr-2" />
-                  Upload Question Paper
+                  {isLoading ? (
+                    <>
+                      <div className="h-4 w-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload Question Paper
+                    </>
+                  )}
                 </Button>
               </div>
             </form>

@@ -11,8 +11,11 @@ export interface IPaper extends Document{
     content:string,
     subject:string,
     year:number,
+    semester:number,
     term:string,
     document_url:string,
+    file_name:string,
+    file_type:string,
     uploaded_by:Schema.Types.ObjectId,
     updated_by:IPaperUpdate[]
 }
@@ -44,6 +47,15 @@ const PaperSchema: Schema<IPaper> = new Schema<IPaper>(
             message: "Year must be an integer between 2015 and the current year"
           }
         },
+        semester: {
+          type: Number,
+          required: [true, "Semester is required"],
+          validate: {
+            validator: (v: number) =>
+              Number.isInteger(v) && v >= 1 && v <= 8,
+            message: "Semester must be an integer between 1 and 8"
+          }
+        },
         term:{
             type:String,
             enum:["Mid","End","Class_test_1","Class_test_2","Class_test_3"],
@@ -53,6 +65,14 @@ const PaperSchema: Schema<IPaper> = new Schema<IPaper>(
         document_url:{
             type:String,
             required:[true,"Document url is required for paper"]
+        },
+        file_name:{
+            type:String,
+            required:[true,"File name is required"]
+        },
+        file_type:{
+            type:String,
+            required:[true,"File type is required"]
         },
         uploaded_by:{
             type:mongoose.Schema.Types.ObjectId,
