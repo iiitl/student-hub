@@ -99,6 +99,12 @@ const UploadPaperPage = () => {
       submitFormData.append('term', formData.term)
       submitFormData.append('uploaded_file', formData.uploaded_file)
 
+
+	if (session?.user?.email) {
+  submitFormData.append('user_email', session.user.email)
+}
+
+
       // Make API call
       const response = await fetch('/api/papers', {
         method: 'POST',
