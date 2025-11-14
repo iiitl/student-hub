@@ -105,7 +105,14 @@ const UploadPaperPage = () => {
         body: submitFormData,
       })
 
-      const data = await response.json()
+      // Try to parse JSON response
+      let data
+      try {
+        data = await response.json()
+      } catch {
+        // If response is not JSON, throw a generic error
+        throw new Error(`Server error: ${response.status} ${response.statusText}`)
+      }
 
       if (!response.ok) {
         throw new Error(data.message || 'Failed to upload paper')
