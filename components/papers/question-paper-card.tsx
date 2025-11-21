@@ -2,8 +2,9 @@
 import React, { useState, useEffect } from 'react'
 import { Card } from '../ui/card'
 import { TypeQuestionPaper } from '@/types/question-paper'
-import { FaEye, FaDownload, FaTrash } from 'react-icons/fa'
+import { FaEye, FaDownload, FaTrash, FaEdit } from 'react-icons/fa'
 import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 
 type QuestionPaperCardProps = {
   questionPaper: TypeQuestionPaper
@@ -18,11 +19,12 @@ const QuestionPaperCard: React.FC<QuestionPaperCardProps> = ({
   onDelete,
 }) => {
   const { data: session } = useSession()
-  const [canDelete, setCanDelete] = useState(false)
+  const router = useRouter()
+  const [canModify, setCanModify] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   
   useEffect(() => {
-    // Check if user can delete this paper
+    // Check if user can modify (edit/delete) this paper
     if (session?.user) {
       const userId = session.user.id
       const userEmail = session.user.email
@@ -30,7 +32,7 @@ const QuestionPaperCard: React.FC<QuestionPaperCardProps> = ({
       const isUploader = questionPaper.uploadedBy === userId
       const isTechnicalClub = userEmail === 'technicalclub@iiitl.ac.in'
       
-      setCanDelete(isUploader || isTechnicalClub)
+      setCanModify(isUploader || isTechnicalClub)
     }
   }, [session, questionPaper.uploadedBy])
   
@@ -55,6 +57,14 @@ const QuestionPaperCard: React.FC<QuestionPaperCardProps> = ({
       // Fallback to direct download
       window.open(questionPaper.url, '_blank')
     }
+  }
+
+  const handleEdit = () => {
+    if (!questionPaper.id) {
+      alert('Paper ID not found')
+      return
+    }
+    router.push(`/papers/edit/${questionPaper.id}`)
   }
 
   const handleDelete = async () => {
@@ -120,15 +130,24 @@ const QuestionPaperCard: React.FC<QuestionPaperCardProps> = ({
         >
           <FaEye />
         </a>
-        {canDelete && (
-          <button
-            onClick={handleDelete}
-            disabled={isDeleting}
-            className="cursor-pointer bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            aria-label={`Delete ${questionPaper.subject} question paper`}
-          >
-            {isDeleting ? '...' : <FaTrash />}
-          </button>
+        {canModify && (
+          <>
+            <button
+              onClick={handleEdit}
+              className="cursor-pointer bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition-colors duration-200"
+              aria-label={`Edit ${questionPaper.subject} question paper`}
+            >
+              <FaEdit />
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="cursor-pointer bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label={`Delete ${questionPaper.subject} question paper`}
+            >
+              {isDeleting ? '...' : <FaTrash />}
+            </button>
+          </>
         )}
       </div>
     </Card>

@@ -349,3 +349,161 @@ export async function DELETE(req: NextRequest){
     );
   }
 }
+
+//Update paper (Only uploader or technical club admin)
+export async function PATCH(req: NextRequest){
+  try {
+    await dbConnect();
+    
+    // Verify authentication
+    const authResponse = await verifyJwt(req);
+    if (authResponse.status !== 200) {
+      return authResponse;
+    }
+    
+    const authData = await authResponse.json();
+    const userId = authData.userId as string;
+    
+    // Get paper ID from query params
+    const { searchParams } = new URL(req.url);
+    const paperId = searchParams.get("id");
+    
+    if (!paperId) {
+      return NextResponse.json(
+        { message: "Paper ID is required" },
+        { status: 400 }
+      );
+    }
+    
+    // Get update data from request body
+    const body = await req.json();
+    const { title, content, subject, year, semester, term } = body;
+    
+    // Validate that at least one field is being updated
+    if (!title && !content && !subject && !year && !semester && !term) {
+      return NextResponse.json(
+        { message: "At least one field must be provided for update" },
+        { status: 400 }
+      );
+    }
+    
+    // Fetch the paper
+    const paper = await Paper.findById(paperId);
+    if (!paper) {
+      return NextResponse.json(
+        { message: "Paper not found" },
+        { status: 404 }
+      );
+    }
+    
+    // Fetch user details to check email
+    const user = await User.findById(userId);
+    if (!user) {
+      return NextResponse.json(
+        { message: "User not found" },
+        { status: 404 }
+      );
+    }
+    
+    // Check authorization: either the uploader or technicalclub@iiitl.ac.in
+    const isUploader = paper.uploaded_by.toString() === userId;
+    const isTechnicalClub = user.email === "technicalclub@iiitl.ac.in";
+    
+    if (!isUploader && !isTechnicalClub) {
+      return NextResponse.json(
+        { message: "You are not authorized to edit this paper" },
+        { status: 403 }
+      );
+    }
+    
+    // Prepare update object
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updateData: any = {};
+    if (title) updateData.title = title;
+    if (content) updateData.content = content;
+    if (subject) updateData.subject = subject;
+    if (year) {
+      const yearNum = parseInt(year, 10);
+      if (isNaN(yearNum)) {
+        return NextResponse.json(
+          { message: "Invalid year" },
+          { status: 400 }
+        );
+      }
+      updateData.year = yearNum;
+    }
+    if (semester) {
+      const semesterNum = parseInt(semester, 10);
+      if (isNaN(semesterNum) || semesterNum < 1 || semesterNum > 8) {
+        return NextResponse.json(
+          { message: "Invalid semester (must be 1-8)" },
+          { status: 400 }
+        );
+      }
+      updateData.semester = semesterNum;
+    }
+    if (term) {
+      const validTerms = ["Mid", "End", "Class_test_1", "Class_test_2", "Class_test_3"];
+      if (!validTerms.includes(term)) {
+        return NextResponse.json(
+          { message: "Invalid term" },
+          { status: 400 }
+        );
+      }
+      updateData.term = term;
+    }
+    
+    // Add to update history
+    updateData.$push = {
+      updated_by: {
+        user: userId,
+        updatedAt: new Date()
+      }
+    };
+    
+    // Update the paper
+    const updatedPaper = await Paper.findByIdAndUpdate(
+      paperId,
+      updateData,
+      { new: true, runValidators: true }
+    );
+    
+    // Create log
+    await Log.create({
+      user: userId,
+      action: "Paper updated",
+      paper: paperId,
+      details: `Paper "${paper.title}" updated by ${user.email}`
+    });
+    
+    return NextResponse.json(
+      { message: "Paper updated successfully", paper: updatedPaper },
+      { status: 200 }
+    );
+    
+  } catch (error: unknown) {
+    console.error("Update error:", error);
+    
+    // Create log for error
+    await Log.create({
+      user: null,
+      action: "Paper update failed",
+      error: "Failed to update paper",
+      details: error instanceof Error ? error.stack : 'Unknown error'
+    });
+    
+    // Validation error separate handling
+    if (error instanceof Error && error.name === "ValidationError") {
+      return NextResponse.json(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        { message: "Validation failed", errors: (error as any).errors },
+        { status: 400 }
+      );
+    }
+    
+    return NextResponse.json(
+      { message: error instanceof Error ? error.message : "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}
