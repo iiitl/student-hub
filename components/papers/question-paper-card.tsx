@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react'
 import { Card } from '../ui/card'
 import { TypeQuestionPaper } from '@/types/question-paper'
-it import { FaEye, FaDownload, FaTrash, FaEdit } from 'react-icons/fa'
+import { FaEye, FaDownload, FaTrash, FaEdit } from 'react-icons/fa'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 
