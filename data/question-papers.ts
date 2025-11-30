@@ -59,7 +59,7 @@ const questionPapers: TypeQuestionPaper[] = [
     exam: 'End',
     url: 'question_papers/btech/1st_sem/2024/end/ctp_end.pdf',
     // viewUrl:
-      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+    // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
   },
   {
     subject: 'Professional Communication',
@@ -69,7 +69,7 @@ const questionPapers: TypeQuestionPaper[] = [
     exam: 'End',
     url: 'question_papers/btech/1st_sem/2024/end/PC_1_end.pdf',
     // viewUrl:
-      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+    // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
   },
   {
     subject: 'System Programming and Scripting',
@@ -79,7 +79,7 @@ const questionPapers: TypeQuestionPaper[] = [
     exam: 'End',
     url: 'question_papers/btech/1st_sem/2024/end/sps_end.pdf',
     // viewUrl:
-      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+    // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
   },
   {
     subject: 'Web Development',
@@ -89,7 +89,7 @@ const questionPapers: TypeQuestionPaper[] = [
     exam: 'End',
     url: 'question_papers/btech/1st_sem/2024/end/wda1_end.pdf',
     // viewUrl:
-      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+    // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
   },
   {
     subject: 'Database Management System',
@@ -99,7 +99,7 @@ const questionPapers: TypeQuestionPaper[] = [
     exam: 'Mid',
     url: 'question_papers/btech/1st_sem/2024/mid/dbms_mid_sem.pdf',
     // viewUrl:
-      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+    // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
   },
   {
     subject: 'Professional Communication',
@@ -109,7 +109,7 @@ const questionPapers: TypeQuestionPaper[] = [
     exam: 'Mid',
     url: 'question_papers/btech/1st_sem/2024/mid/pc_1_mid.pdf',
     // viewUrl:
-      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+    // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
   },
   {
     subject: 'Web Development',
@@ -119,7 +119,7 @@ const questionPapers: TypeQuestionPaper[] = [
     exam: 'Mid',
     url: 'question_papers/btech/1st_sem/2024/mid/wda1_mid.pdf',
     // viewUrl:
-      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+    // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
   },
   {
     subject: 'Computer Org and Architecture',
@@ -129,7 +129,7 @@ const questionPapers: TypeQuestionPaper[] = [
     exam: 'End',
     url: 'question_papers/btech/2nd_sem/2024/end/Coa_end_sem.pdf',
     // viewUrl:
-      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+    // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
   },
   {
     subject: 'Data Structure',
@@ -139,7 +139,7 @@ const questionPapers: TypeQuestionPaper[] = [
     exam: 'End',
     url: 'question_papers/btech/2nd_sem/2024/end/DS_end_sem.pdf',
     // viewUrl:
-      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+    // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
   },
   {
     subject: 'Object-Oriented Programming System',
@@ -149,7 +149,7 @@ const questionPapers: TypeQuestionPaper[] = [
     exam: 'End',
     url: 'question_papers/btech/2nd_sem/2024/end/OOPS_end_sem.pdf',
     // viewUrl:
-      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+    // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
   },
   {
     subject: 'Professional Communication',
@@ -159,7 +159,7 @@ const questionPapers: TypeQuestionPaper[] = [
     exam: 'End',
     url: 'question_papers/btech/2nd_sem/2024/end/PC_end_sem.pdf',
     // viewUrl:
-      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+    // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
   },
   {
     subject: 'Computer Org and Architecture',
@@ -169,7 +169,7 @@ const questionPapers: TypeQuestionPaper[] = [
     exam: 'Mid',
     url: 'question_papers/btech/2nd_sem/2024/mid/coa_mid.pdf',
     // viewUrl:
-      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+    // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
   },
   {
     subject: 'Object-Oriented Programming System',
@@ -179,7 +179,7 @@ const questionPapers: TypeQuestionPaper[] = [
     exam: 'Mid',
     url: 'question_papers/btech/2nd_sem/2024/mid/oops_mid.pdf',
     // viewUrl:
-      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+    // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
   },
   {
     subject: 'Professional Communication',
@@ -189,7 +189,7 @@ const questionPapers: TypeQuestionPaper[] = [
     exam: 'Mid',
     url: 'question_papers/btech/2nd_sem/2024/mid/PC_2_mid.pdf',
     // viewUrl:
-      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+    // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
   },
   {
     subject: 'Web Development',
@@ -199,7 +199,7 @@ const questionPapers: TypeQuestionPaper[] = [
     exam: 'Mid',
     url: 'question_papers/btech/2nd_sem/2024/mid/wda_2_mid.pdf',
     // viewUrl:
-      // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
+    // 'https://drive.google.com/file/d/1maMsCx7-R2EQdjUo32iqshmbae5PSSdP/view?usp=drive_link',
   },
   {
     subject: 'Computer Networks',
@@ -311,7 +311,7 @@ const questionPapers: TypeQuestionPaper[] = [
     viewUrl:
       'https://drive.google.com/file/d/1dYjwsT34xYCPBgub2WEja-d85y_Gkr79/view?usp=drive_link',
   },
-    {
+  {
     subject: 'Probability & Statistics(MD)',
     subjectCode: 'PSS',
     batch: 2023,
@@ -408,7 +408,6 @@ const questionPapers: TypeQuestionPaper[] = [
     semester: 3,
     exam: 'End',
     url: 'question_papers/btech/3rd_sem/2023/end/PSS_END(MS).pdf',
-    
   },
   {
     subject: 'Probability and Statistics(MS)',
@@ -417,8 +416,7 @@ const questionPapers: TypeQuestionPaper[] = [
     semester: 3,
     exam: 'Mid',
     url: 'question_papers/btech/3rd_sem/2023/mid/PSS_MID(MS).pdf',
-    
-  }
+  },
 ]
 
 export default questionPapers

@@ -71,8 +71,8 @@ export async function middleware(request: NextRequest) {
 
   // Allow public API endpoints without bot checking
   const publicApiEndpoints = ['/api/papers']
-  const isPublicEndpoint = publicApiEndpoints.some(endpoint => 
-    path.startsWith(endpoint) && request.method === 'GET'
+  const isPublicEndpoint = publicApiEndpoints.some(
+    (endpoint) => path.startsWith(endpoint) && request.method === 'GET'
   )
 
   // Block known bots (except for public endpoints)
@@ -140,11 +140,15 @@ export async function middleware(request: NextRequest) {
   // Check authentication for protected routes
   // Exempt public GET endpoints from authentication
   const publicGetEndpoints = ['/api/papers']
-  const isPublicGetRequest = publicGetEndpoints.some(endpoint => 
-    path.startsWith(endpoint) && request.method === 'GET'
+  const isPublicGetRequest = publicGetEndpoints.some(
+    (endpoint) => path.startsWith(endpoint) && request.method === 'GET'
   )
-  
-  if (path.startsWith('/api/') && !path.startsWith('/api/auth/') && !isPublicGetRequest) {
+
+  if (
+    path.startsWith('/api/') &&
+    !path.startsWith('/api/auth/') &&
+    !isPublicGetRequest
+  ) {
     const token = await getToken({ req: request })
     if (!token) {
       return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), {

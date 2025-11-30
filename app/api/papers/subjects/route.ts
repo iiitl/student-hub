@@ -3,20 +3,20 @@ import dbConnect from '@/lib/dbConnect'
 import Paper from '@/model/paper'
 
 export async function GET() {
-    try {
-        await dbConnect()
+  try {
+    await dbConnect()
 
-        const subjects = await Paper.distinct('subject')
+    const subjects = await Paper.distinct('subject')
 
-        return NextResponse.json({
-            success: true,
-            subjects: subjects.sort()
-        })
-    } catch (error) {
-        console.error('Error fetching subjects:', error)
-        return NextResponse.json(
-            { success: false, message: 'Failed to fetch subjects' },
-            { status: 500 }
-        )
-    }
+    return NextResponse.json({
+      success: true,
+      subjects: subjects.sort(),
+    })
+  } catch (error) {
+    console.error('Error fetching subjects:', error)
+    return NextResponse.json(
+      { success: false, message: 'Failed to fetch subjects' },
+      { status: 500 }
+    )
+  }
 }

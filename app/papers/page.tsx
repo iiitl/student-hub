@@ -17,7 +17,9 @@ const QuestionPapers = () => {
   const [selectedSubject, setSelectedSubject] = useState<string>('All')
 
   const [allPapers, setAllPapers] = useState<TypeQuestionPaper[]>([])
-  const [userQuestionPapers, setUserQuestionPapers] = useState<TypeQuestionPaper[]>([])
+  const [userQuestionPapers, setUserQuestionPapers] = useState<
+    TypeQuestionPaper[]
+  >([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -25,7 +27,14 @@ const QuestionPapers = () => {
   const [batches, setBatches] = useState<string[]>(['All'])
   const [semesters, setSemesters] = useState<string[]>(['All'])
   const [subjects, setSubjects] = useState<string[]>(['All'])
-  const [exams, setExams] = useState<string[]>(['Mid', 'End', 'All', 'Class_test_1', 'Class_test_2', 'Class_test_3'])
+  const [exams, setExams] = useState<string[]>([
+    'Mid',
+    'End',
+    'All',
+    'Class_test_1',
+    'Class_test_2',
+    'Class_test_3',
+  ])
 
   // Fetch papers from backend
   useEffect(() => {
@@ -45,51 +54,55 @@ const QuestionPapers = () => {
       }
 
       // Transform backend data to match TypeQuestionPaper interface
-      const transformedPapers: TypeQuestionPaper[] = data.papers.papers.map((paper: {
-        subject?: string
-        facultyName?: string
-        title?: string // For backward compatibility
-        content?: string
-        year: string
-        semester?: string
-        term: string
-        document_url: string
-        file_name: string
-        file_type: string
-        _id: string
-        uploaded_by: string
-      }) => ({
-        subject: paper.subject || paper.facultyName || paper.title,
-        subjectCode: paper.subject || paper.facultyName || paper.title,
-        batch: paper.year,
-        semester: paper.semester || extractSemesterNumber(paper.term),
-        exam: normalizeExamType(paper.term),
-        url: paper.document_url,
-        viewUrl: paper.document_url,
-        fileName: paper.file_name,
-        fileType: paper.file_type,
-        id: paper._id.toString(),
-        uploadedBy: paper.uploaded_by,
-        description: paper.content,
-        facultyName: paper.facultyName || paper.title,
-      }))
+      const transformedPapers: TypeQuestionPaper[] = data.papers.papers.map(
+        (paper: {
+          subject?: string
+          facultyName?: string
+          title?: string // For backward compatibility
+          content?: string
+          year: string
+          semester?: string
+          term: string
+          document_url: string
+          file_name: string
+          file_type: string
+          _id: string
+          uploaded_by: string
+        }) => ({
+          subject: paper.subject || paper.facultyName || paper.title,
+          subjectCode: paper.subject || paper.facultyName || paper.title,
+          batch: paper.year,
+          semester: paper.semester || extractSemesterNumber(paper.term),
+          exam: normalizeExamType(paper.term),
+          url: paper.document_url,
+          viewUrl: paper.document_url,
+          fileName: paper.file_name,
+          fileType: paper.file_type,
+          id: paper._id.toString(),
+          uploadedBy: paper.uploaded_by,
+          description: paper.content,
+          facultyName: paper.facultyName || paper.title,
+        })
+      )
 
       setAllPapers(transformedPapers)
       setUserQuestionPapers(transformedPapers)
 
       // Generate filter options from fetched data
-      const uniqueBatches = [...new Set(transformedPapers.map((paper) => paper.batch.toString()))]
-        .sort((a, b) => Number(b) - Number(a))
+      const uniqueBatches = [
+        ...new Set(transformedPapers.map((paper) => paper.batch.toString())),
+      ].sort((a, b) => Number(b) - Number(a))
       setBatches([...uniqueBatches, 'All'])
 
-      const uniqueSubjects = [...new Set(transformedPapers.map((paper) => paper.subject))]
-        .sort()
+      const uniqueSubjects = [
+        ...new Set(transformedPapers.map((paper) => paper.subject)),
+      ].sort()
       setSubjects([...uniqueSubjects, 'All'])
 
-      const uniqueSemesters = [...new Set(transformedPapers.map((paper) => paper.semester.toString()))]
-        .sort((a, b) => Number(a) - Number(b))
+      const uniqueSemesters = [
+        ...new Set(transformedPapers.map((paper) => paper.semester.toString())),
+      ].sort((a, b) => Number(a) - Number(b))
       setSemesters([...uniqueSemesters, 'All'])
-
     } catch (err) {
       console.error('Error fetching papers:', err)
       setError(err instanceof Error ? err.message : 'Failed to load papers')
@@ -99,7 +112,9 @@ const QuestionPapers = () => {
   }
 
   // Helper function to extract semester number from term
-  const extractSemesterNumber = (term: string): 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 => {
+  const extractSemesterNumber = (
+    term: string
+  ): 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 => {
     // If term contains "semester-X", extract X
     const match = term.match(/semester[- ]?(\d)/i)
     if (match) {
@@ -110,13 +125,24 @@ const QuestionPapers = () => {
   }
 
   // Helper function to normalize exam type
-  const normalizeExamType = (term: string): 'Mid' | 'End' | 'Both' | 'Class_test_1' | 'Class_test_2' | 'Class_test_3' => {
+  const normalizeExamType = (
+    term: string
+  ):
+    | 'Mid'
+    | 'End'
+    | 'Both'
+    | 'Class_test_1'
+    | 'Class_test_2'
+    | 'Class_test_3' => {
     const lowerTerm = term.toLowerCase()
     if (lowerTerm.includes('mid')) return 'Mid'
     if (lowerTerm.includes('end')) return 'End'
-    if (lowerTerm.includes('class_test_1') || lowerTerm.includes('ct1')) return 'Class_test_1'
-    if (lowerTerm.includes('class_test_2') || lowerTerm.includes('ct2')) return 'Class_test_2'
-    if (lowerTerm.includes('class_test_3') || lowerTerm.includes('ct3')) return 'Class_test_3'
+    if (lowerTerm.includes('class_test_1') || lowerTerm.includes('ct1'))
+      return 'Class_test_1'
+    if (lowerTerm.includes('class_test_2') || lowerTerm.includes('ct2'))
+      return 'Class_test_2'
+    if (lowerTerm.includes('class_test_3') || lowerTerm.includes('ct3'))
+      return 'Class_test_3'
     return 'Mid' // Default fallback
   }
 
@@ -145,7 +171,13 @@ const QuestionPapers = () => {
       }
     )
     setUserQuestionPapers(filteredQuestionPapers)
-  }, [selectedBatch, selectedSemester, selectedSubject, selectedExam, allPapers])
+  }, [
+    selectedBatch,
+    selectedSemester,
+    selectedSubject,
+    selectedExam,
+    allPapers,
+  ])
 
   // Callback to refresh papers after deletion
   const handlePaperDeleted = () => {
@@ -243,7 +275,10 @@ const QuestionPapers = () => {
               key={`${questionPaper.subject}-${questionPaper.batch}-${questionPaper.exam}-${questionPaper.semester}-${index}`}
               className="w-full"
             >
-              <QuestionPaperCard questionPaper={questionPaper} onDelete={handlePaperDeleted} />
+              <QuestionPaperCard
+                questionPaper={questionPaper}
+                onDelete={handlePaperDeleted}
+              />
             </div>
           ))
         )}

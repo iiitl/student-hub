@@ -1,8 +1,17 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Download, Eye, FileText, Calendar, GraduationCap, Trash2, Edit, Info } from 'lucide-react'
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import {
+  Download,
+  Eye,
+  FileText,
+  Calendar,
+  GraduationCap,
+  Trash2,
+  Edit,
+  Info,
+} from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { TypeQuestionPaper } from '@/types/question-paper'
@@ -12,7 +21,10 @@ type QuestionPaperCardProps = {
   onDelete?: () => void
 }
 
-const QuestionPaperCard = ({ questionPaper, onDelete }: QuestionPaperCardProps) => {
+const QuestionPaperCard = ({
+  questionPaper,
+  onDelete,
+}: QuestionPaperCardProps) => {
   const { data: session } = useSession()
   const router = useRouter()
   const [canEdit, setCanEdit] = useState(false)
@@ -30,7 +42,9 @@ const QuestionPaperCard = ({ questionPaper, onDelete }: QuestionPaperCardProps) 
   const handleDownload = () => {
     const link = document.createElement('a')
     link.href = questionPaper.url
-    link.download = questionPaper.fileName || `${questionPaper.subject}_${questionPaper.exam}_${questionPaper.batch}.pdf`
+    link.download =
+      questionPaper.fileName ||
+      `${questionPaper.subject}_${questionPaper.exam}_${questionPaper.batch}.pdf`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -69,18 +83,19 @@ const QuestionPaperCard = ({ questionPaper, onDelete }: QuestionPaperCardProps) 
   }
 
   const getBadgeClasses = (examType: string) => {
-    const baseClasses = "uppercase text-xs font-bold px-2 py-0.5 rounded-full border";
+    const baseClasses =
+      'uppercase text-xs font-bold px-2 py-0.5 rounded-full border'
     switch (examType.toLowerCase()) {
       case 'midsem':
-        return `${baseClasses} bg-primary/10 text-primary border-primary/20`;
+        return `${baseClasses} bg-primary/10 text-primary border-primary/20`
       case 'endsem':
-        return `${baseClasses} bg-secondary text-secondary-foreground border-secondary`;
+        return `${baseClasses} bg-secondary text-secondary-foreground border-secondary`
       case 'quiz':
-        return `${baseClasses} bg-muted text-muted-foreground border-border`;
+        return `${baseClasses} bg-muted text-muted-foreground border-border`
       default:
-        return `${baseClasses} bg-primary/10 text-primary border-primary/20`;
+        return `${baseClasses} bg-primary/10 text-primary border-primary/20`
     }
-  };
+  }
 
   return (
     <Card className="w-full flex flex-col bg-card shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
@@ -94,16 +109,27 @@ const QuestionPaperCard = ({ questionPaper, onDelete }: QuestionPaperCardProps) 
 
               {/* Custom Tooltip Implementation */}
               <div className="relative group">
-                <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full hover:bg-muted p-0">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 rounded-full hover:bg-muted p-0"
+                >
                   <Info className="h-4 w-4 text-muted-foreground" />
                 </Button>
                 <div className="absolute left-full top-0 ml-2 w-64 p-3 bg-popover text-popover-foreground text-sm rounded-md shadow-md border z-50 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none">
-                  <div className="font-semibold mb-1">Faculty: {questionPaper.facultyName || 'N/A'}</div>
-                  <div className="text-muted-foreground text-xs">{questionPaper.description || 'No description available'}</div>
+                  <div className="font-semibold mb-1">
+                    Faculty: {questionPaper.facultyName || 'N/A'}
+                  </div>
+                  <div className="text-muted-foreground text-xs">
+                    {questionPaper.description || 'No description available'}
+                  </div>
                 </div>
               </div>
             </div>
-            <h3 className="font-bold text-lg line-clamp-2 leading-tight" title={questionPaper.subject}>
+            <h3
+              className="font-bold text-lg line-clamp-2 leading-tight"
+              title={questionPaper.subject}
+            >
               {questionPaper.subject}
             </h3>
           </div>

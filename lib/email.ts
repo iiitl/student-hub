@@ -27,9 +27,13 @@ function validateEmailEnvVars() {
 }
 
 function validateMailgunEnvVars(): boolean {
-  const requiredVars = ['MAILGUN_API_KEY', 'MAILGUN_DOMAIN', 'EMAIL_SERVER_FROM']
+  const requiredVars = [
+    'MAILGUN_API_KEY',
+    'MAILGUN_DOMAIN',
+    'EMAIL_SERVER_FROM',
+  ]
   const missingVars = requiredVars.filter((varName) => !process.env[varName])
-  
+
   if (missingVars.length > 0) {
     console.warn(
       `Missing Mailgun environment variables: ${missingVars.join(', ')}`
@@ -79,7 +83,7 @@ async function sendEmailWithMailgun({
   html,
 }: EmailOptions): Promise<boolean> {
   const mg = getMailgunClient()
-  
+
   if (!mg || !process.env.MAILGUN_DOMAIN) {
     console.log('Mailgun client not initialized or domain missing')
     return false
@@ -88,7 +92,7 @@ async function sendEmailWithMailgun({
   try {
     // Ensure from address is in proper format
     const fromAddress = process.env.EMAIL_SERVER_FROM || ''
-    
+
     console.log('Attempting to send email via Mailgun:', {
       domain: process.env.MAILGUN_DOMAIN,
       from: fromAddress,
@@ -106,7 +110,12 @@ async function sendEmailWithMailgun({
     console.log('Email sent successfully via Mailgun:', data.id)
     return true
   } catch (error: unknown) {
-    const err = error as { message?: string; status?: number; details?: string; body?: unknown }
+    const err = error as {
+      message?: string
+      status?: number
+      details?: string
+      body?: unknown
+    }
     console.error('Mailgun error details:', {
       message: err?.message,
       status: err?.status,
@@ -124,14 +133,14 @@ async function sendEmailWithSMTP({
   html,
 }: EmailOptions): Promise<void> {
   const transporter = getTransporter()
-  
+
   console.log('Attempting to send email via SMTP:', {
     host: process.env.EMAIL_SERVER_HOST,
     port: process.env.EMAIL_SERVER_PORT,
     from: process.env.EMAIL_SERVER_FROM,
     to: to,
   })
-  
+
   await transporter.sendMail({
     from: process.env.EMAIL_SERVER_FROM,
     to,
@@ -149,7 +158,7 @@ export async function sendEmail({
 }: EmailOptions): Promise<void> {
   // Try Mailgun first
   const mailgunSuccess = await sendEmailWithMailgun({ to, subject, text, html })
-  
+
   if (mailgunSuccess) {
     console.log('Email sent successfully via Mailgun')
     return

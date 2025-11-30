@@ -6,8 +6,23 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Save, FileText, Calendar, BookOpen, GraduationCap, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Save,
+  FileText,
+  Calendar,
+  BookOpen,
+  GraduationCap,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+} from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 
@@ -21,7 +36,7 @@ const EditPaperPage = ({ params }: { params: Promise<{ id: string }> }) => {
     subject: '',
     year: '',
     semester: '',
-    term: ''
+    term: '',
   })
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -55,7 +70,9 @@ const EditPaperPage = ({ params }: { params: Promise<{ id: string }> }) => {
       }
 
       // Find the specific paper
-      const paper = data.papers.papers.find((p: { _id: string }) => p._id === unwrappedParams.id)
+      const paper = data.papers.papers.find(
+        (p: { _id: string }) => p._id === unwrappedParams.id
+      )
 
       if (!paper) {
         throw new Error('Paper not found')
@@ -83,28 +100,29 @@ const EditPaperPage = ({ params }: { params: Promise<{ id: string }> }) => {
         subject: paper.subject || '',
         year: paper.year?.toString() || '',
         semester: paper.semester?.toString() || '',
-        term: paper.term || ''
+        term: paper.term || '',
       })
-
     } catch (err) {
       console.error('Fetch error:', err)
-      setError(err instanceof Error ? err.message : 'Failed to load paper details')
+      setError(
+        err instanceof Error ? err.message : 'Failed to load paper details'
+      )
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }))
   }
 
   const handleSelectChange = (field: string, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }))
   }
 
@@ -116,7 +134,13 @@ const EditPaperPage = ({ params }: { params: Promise<{ id: string }> }) => {
 
     try {
       // Validate form data
-      if (!formData.content || !formData.subject || !formData.year || !formData.semester || !formData.term) {
+      if (
+        !formData.content ||
+        !formData.subject ||
+        !formData.year ||
+        !formData.semester ||
+        !formData.term
+      ) {
         setError('Please fill in all required fields')
         setIsSaving(false)
         return
@@ -144,10 +168,13 @@ const EditPaperPage = ({ params }: { params: Promise<{ id: string }> }) => {
       setTimeout(() => {
         router.push('/papers')
       }, 2000)
-
     } catch (err) {
       console.error('Update error:', err)
-      setError(err instanceof Error ? err.message : 'Failed to update paper. Please try again.')
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to update paper. Please try again.'
+      )
     } finally {
       setIsSaving(false)
     }
@@ -179,7 +206,9 @@ const EditPaperPage = ({ params }: { params: Promise<{ id: string }> }) => {
             <div className="text-center">
               <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
               <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
-              <p className="text-muted-foreground mb-4">{error || 'You are not authorized to edit this paper'}</p>
+              <p className="text-muted-foreground mb-4">
+                {error || 'You are not authorized to edit this paper'}
+              </p>
               <Button onClick={() => router.push('/papers')}>
                 Go Back to Papers
               </Button>
@@ -194,8 +223,12 @@ const EditPaperPage = ({ params }: { params: Promise<{ id: string }> }) => {
     <div className="min-h-screen bg-background p-4">
       <div className="mx-auto max-w-2xl">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Edit Question Paper</h1>
-          <p className="text-muted-foreground">Update the question paper details</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            Edit Question Paper
+          </h1>
+          <p className="text-muted-foreground">
+            Update the question paper details
+          </p>
         </div>
 
         <Card className="shadow-lg">
@@ -225,7 +258,10 @@ const EditPaperPage = ({ params }: { params: Promise<{ id: string }> }) => {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Faculty Name Field */}
               <div className="space-y-2">
-                <Label htmlFor="facultyName" className="flex items-center gap-2">
+                <Label
+                  htmlFor="facultyName"
+                  className="flex items-center gap-2"
+                >
                   <FileText className="h-4 w-4" />
                   Teaching Faculty Name (Optional)
                 </Label>
@@ -234,7 +270,9 @@ const EditPaperPage = ({ params }: { params: Promise<{ id: string }> }) => {
                   type="text"
                   placeholder="Enter the teaching faculty name"
                   value={formData.facultyName}
-                  onChange={(e) => handleInputChange('facultyName', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange('facultyName', e.target.value)
+                  }
                   className="w-full"
                 />
               </div>
@@ -282,7 +320,9 @@ const EditPaperPage = ({ params }: { params: Promise<{ id: string }> }) => {
                   </Label>
                   <Select
                     value={formData.year}
-                    onValueChange={(value: string) => handleSelectChange('year', value)}
+                    onValueChange={(value: string) =>
+                      handleSelectChange('year', value)
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select year" />
@@ -308,7 +348,9 @@ const EditPaperPage = ({ params }: { params: Promise<{ id: string }> }) => {
                   </Label>
                   <Select
                     value={formData.semester}
-                    onValueChange={(value: string) => handleSelectChange('semester', value)}
+                    onValueChange={(value: string) =>
+                      handleSelectChange('semester', value)
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select semester" />
@@ -335,7 +377,9 @@ const EditPaperPage = ({ params }: { params: Promise<{ id: string }> }) => {
                 </Label>
                 <Select
                   value={formData.term}
-                  onValueChange={(value: string) => handleSelectChange('term', value)}
+                  onValueChange={(value: string) =>
+                    handleSelectChange('term', value)
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select exam type" />
@@ -361,11 +405,7 @@ const EditPaperPage = ({ params }: { params: Promise<{ id: string }> }) => {
                 >
                   Cancel
                 </Button>
-                <Button
-                  type="submit"
-                  className="flex-1"
-                  disabled={isSaving}
-                >
+                <Button type="submit" className="flex-1" disabled={isSaving}>
                   {isSaving ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
