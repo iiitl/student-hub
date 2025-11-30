@@ -152,15 +152,13 @@ const QuestionPapers = () => {
     <div className="w-full flex flex-col items-center justify-center">
       <div className="flex flex-col sm:flex-row sm:relative sm:justify-center items-center w-full max-w-7xl px-5 mt-6 mb-2 gap-3 sm:gap-0">
         <h1 className="text-3xl font-semibold text-center">Question Papers</h1>
-        {session && (
-          <Button
-            onClick={() => router.push('/upload-papers')}
-            className="sm:absolute sm:right-5 flex items-center gap-2"
-          >
-            <Upload className="h-4 w-4" />
-            Upload Paper
-          </Button>
-        )}
+        <Button
+          onClick={() => router.push('/upload-papers')}
+          className="sm:absolute sm:right-5 flex items-center gap-2"
+        >
+          <Upload className="h-4 w-4" />
+          Upload Paper
+        </Button>
       </div>
       <div className="flex justify-center items-center gap-5 flex-wrap w-full px-5 py-3">
         <div className="flex items-center gap-4">
