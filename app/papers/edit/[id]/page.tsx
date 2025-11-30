@@ -16,7 +16,7 @@ const EditPaperPage = ({ params }: { params: Promise<{ id: string }> }) => {
   const router = useRouter()
   const { data: session, status } = useSession()
   const [formData, setFormData] = useState({
-    title: '',
+    facultyName: '',
     content: '',
     subject: '',
     year: '',
@@ -78,7 +78,7 @@ const EditPaperPage = ({ params }: { params: Promise<{ id: string }> }) => {
 
       // Populate form with existing data
       setFormData({
-        title: paper.title || '',
+        facultyName: paper.facultyName || paper.title || '',
         content: paper.content || '',
         subject: paper.subject || '',
         year: paper.year?.toString() || '',
@@ -116,7 +116,7 @@ const EditPaperPage = ({ params }: { params: Promise<{ id: string }> }) => {
 
     try {
       // Validate form data
-      if (!formData.title || !formData.content || !formData.subject || !formData.year || !formData.semester || !formData.term) {
+      if (!formData.content || !formData.subject || !formData.year || !formData.semester || !formData.term) {
         setError('Please fill in all required fields')
         setIsSaving(false)
         return
@@ -223,20 +223,19 @@ const EditPaperPage = ({ params }: { params: Promise<{ id: string }> }) => {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Title Field */}
+              {/* Faculty Name Field */}
               <div className="space-y-2">
-                <Label htmlFor="title" className="flex items-center gap-2">
+                <Label htmlFor="facultyName" className="flex items-center gap-2">
                   <FileText className="h-4 w-4" />
-                  Paper Title *
+                  Teaching Faculty Name (Optional)
                 </Label>
                 <Input
-                  id="title"
+                  id="facultyName"
                   type="text"
-                  placeholder="Enter the paper title"
-                  value={formData.title}
-                  onChange={(e) => handleInputChange('title', e.target.value)}
+                  placeholder="Enter the teaching faculty name"
+                  value={formData.facultyName}
+                  onChange={(e) => handleInputChange('facultyName', e.target.value)}
                   className="w-full"
-                  required
                 />
               </div>
 
@@ -281,8 +280,8 @@ const EditPaperPage = ({ params }: { params: Promise<{ id: string }> }) => {
                     <Calendar className="h-4 w-4" />
                     Year *
                   </Label>
-                  <Select 
-                    value={formData.year} 
+                  <Select
+                    value={formData.year}
                     onValueChange={(value: string) => handleSelectChange('year', value)}
                   >
                     <SelectTrigger>
@@ -307,8 +306,8 @@ const EditPaperPage = ({ params }: { params: Promise<{ id: string }> }) => {
                     <GraduationCap className="h-4 w-4" />
                     Semester *
                   </Label>
-                  <Select 
-                    value={formData.semester} 
+                  <Select
+                    value={formData.semester}
                     onValueChange={(value: string) => handleSelectChange('semester', value)}
                   >
                     <SelectTrigger>
@@ -334,8 +333,8 @@ const EditPaperPage = ({ params }: { params: Promise<{ id: string }> }) => {
                   <GraduationCap className="h-4 w-4" />
                   Exam Type *
                 </Label>
-                <Select 
-                  value={formData.term} 
+                <Select
+                  value={formData.term}
                   onValueChange={(value: string) => handleSelectChange('term', value)}
                 >
                   <SelectTrigger>

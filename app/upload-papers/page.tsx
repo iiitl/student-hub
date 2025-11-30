@@ -16,7 +16,7 @@ const UploadPaperPage = () => {
   const { data: session, status } = useSession()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [formData, setFormData] = useState({
-    title: '',
+    facultyName: '',
     content: '',
     subject: '',
     year: '',
@@ -28,12 +28,38 @@ const UploadPaperPage = () => {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
+  // Subject related state
+  const [subjects, setSubjects] = useState<string[]>([])
+  const [isNewSubject, setIsNewSubject] = useState(false)
+  const [customSubject, setCustomSubject] = useState('')
+  const [isLoadingSubjects, setIsLoadingSubjects] = useState(false)
+
   // Redirect to sign in if not authenticated
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/signin?callbackUrl=/upload-papers')
     }
   }, [status, router])
+
+  // Fetch subjects
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      try {
+        setIsLoadingSubjects(true)
+        const response = await fetch('/api/papers/subjects')
+        const data = await response.json()
+        if (data.success) {
+          setSubjects(data.subjects)
+        }
+      } catch (error) {
+        console.error('Failed to fetch subjects:', error)
+      } finally {
+        setIsLoadingSubjects(false)
+      }
+    }
+
+    fetchSubjects()
+  }, [])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -43,10 +69,20 @@ const UploadPaperPage = () => {
   }
 
   const handleSelectChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }))
+    if (field === 'subject') {
+      if (value === 'new_subject') {
+        setIsNewSubject(true)
+        setFormData(prev => ({ ...prev, subject: '' }))
+      } else {
+        setIsNewSubject(false)
+        setFormData(prev => ({ ...prev, subject: value }))
+      }
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }))
+    }
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,7 +103,9 @@ const UploadPaperPage = () => {
 
     try {
       // Validate form data
-      if (!formData.title || !formData.content || !formData.subject || !formData.year || !formData.semester || !formData.term || !formData.uploaded_file) {
+      const finalSubject = isNewSubject ? customSubject : formData.subject
+
+      if (!formData.content || !finalSubject || !formData.year || !formData.semester || !formData.term || !formData.uploaded_file) {
         setError('Please fill in all required fields')
         setIsLoading(false)
         return
@@ -91,9 +129,9 @@ const UploadPaperPage = () => {
 
       // Create FormData object
       const submitFormData = new FormData()
-      submitFormData.append('title', formData.title)
+      submitFormData.append('facultyName', formData.facultyName)
       submitFormData.append('content', formData.content)
-      submitFormData.append('subject', formData.subject)
+      submitFormData.append('subject', finalSubject)
       submitFormData.append('year', formData.year)
       submitFormData.append('semester', formData.semester)
       submitFormData.append('term', formData.term)
@@ -120,10 +158,10 @@ const UploadPaperPage = () => {
 
       // Success
       setSuccess('Paper uploaded successfully! Redirecting...')
-      
+
       // Reset form
       setFormData({
-        title: '',
+        facultyName: '',
         content: '',
         subject: '',
         year: '',
@@ -131,6 +169,8 @@ const UploadPaperPage = () => {
         term: '',
         uploaded_file: null
       })
+      setCustomSubject('')
+      setIsNewSubject(false)
 
       // Reset file input
       if (fileInputRef.current) {
@@ -176,8 +216,8 @@ const UploadPaperPage = () => {
         </div>
 
         <Card className="shadow-lg">
-          
-          
+
+
           <CardContent>
             {/* Error Message */}
             {error && (
@@ -202,6 +242,50 @@ const UploadPaperPage = () => {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Subject Field */}
+              <div className="space-y-2">
+                <Label htmlFor="subject" className="flex items-center gap-2">
+                  <GraduationCap className="h-4 w-4" />
+                  Subject *
+                </Label>
+                {!isNewSubject ? (
+                  <Select onValueChange={(value) => handleSelectChange('subject', value)} value={formData.subject && !isNewSubject ? formData.subject : undefined}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select subject" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {subjects.map((subject) => (
+                        <SelectItem key={subject} value={subject}>
+                          {subject}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="new_subject" className="text-primary font-medium">
+                        + Add New Subject
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="flex gap-2">
+                    <Input
+                      id="subject"
+                      type="text"
+                      placeholder="Enter new subject name"
+                      value={customSubject}
+                      onChange={(e) => setCustomSubject(e.target.value)}
+                      className="w-full"
+                      required
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsNewSubject(false)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                )}
+              </div>
+
               {/* Title Field */}
               <div className="space-y-2">
                 <Label htmlFor="title" className="flex items-center gap-2">
@@ -212,8 +296,8 @@ const UploadPaperPage = () => {
                   id="title"
                   type="text"
                   placeholder="Enter the paper title (e.g.,Data Structure Final Exam 2024)"
-                  value={formData.title}
-                  onChange={(e) => handleInputChange('title', e.target.value)}
+                  value={formData.facultyName}
+                  onChange={(e) => handleInputChange('facultyName', e.target.value)}
                   className="w-full"
                   required
                 />
@@ -235,22 +319,7 @@ const UploadPaperPage = () => {
                 />
               </div>
 
-              {/* Subject Field */}
-              <div className="space-y-2">
-                <Label htmlFor="subject" className="flex items-center gap-2">
-                  <GraduationCap className="h-4 w-4" />
-                  Subject *
-                </Label>
-                <Input
-                  id="title"
-                  type="text"
-                  placeholder="Enter the subject name"
-                  value={formData.subject}
-                  onChange={(e) => handleInputChange('subject', e.target.value)}
-                  className="w-full"
-                  required
-                />
-              </div>
+
 
               {/* Year and Semester Row */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -265,7 +334,7 @@ const UploadPaperPage = () => {
                       <SelectValue placeholder="Select year" />
                     </SelectTrigger>
                     <SelectContent>
-                     <SelectItem value="2025">2025</SelectItem>
+                      <SelectItem value="2025">2025</SelectItem>
                       <SelectItem value="2024">2024</SelectItem>
                       <SelectItem value="2023">2023</SelectItem>
                       <SelectItem value="2022">2022</SelectItem>

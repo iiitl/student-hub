@@ -20,5 +20,7 @@ export type TypeQuestionPaper = {
   /** The paper ID */
   id?: string
   /** The ID of the user who uploaded the paper */
-  uploadedBy?: string
+  uploadedBy: string
+  description?: string
+  facultyName?: string
 }
