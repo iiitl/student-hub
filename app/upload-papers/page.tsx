@@ -192,8 +192,8 @@ const UploadPaperPage = () => {
       }
 
       // Success
-      setSuccess('Paper uploaded successfully! Redirecting...')
-
+      setSuccess('Paper uploaded successfully!')
+     
       // Reset form
       setFormData({
         facultyName: '',
@@ -212,10 +212,6 @@ const UploadPaperPage = () => {
         fileInputRef.current.value = ''
       }
 
-      // Redirect to papers page after 2 seconds
-      setTimeout(() => {
-        router.push('/papers')
-      }, 2000)
     } catch (err) {
       console.error('Upload error:', err)
       setError(
