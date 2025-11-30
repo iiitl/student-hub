@@ -1,107 +1,84 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import { Card } from '../ui/card'
-import { TypeQuestionPaper } from '@/types/question-paper'
-import { FaEye, FaDownload, FaTrash, FaEdit } from 'react-icons/fa'
+import { Card } from '@/components/ui/card'
+import {
+  Download,
+  Eye,
+  FileText,
+  Calendar,
+  GraduationCap,
+  Trash2,
+  Edit,
+  Info,
+} from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import { TypeQuestionPaper } from '@/types/question-paper'
 
 type QuestionPaperCardProps = {
   questionPaper: TypeQuestionPaper
   onDelete?: () => void
 }
 
-// Path to question paper files, configurable via environment variable
-const FILE_PATH = process.env.NEXT_PUBLIC_FILES_PATH || '/'
-
-const QuestionPaperCard: React.FC<QuestionPaperCardProps> = ({
+const QuestionPaperCard = ({
   questionPaper,
   onDelete,
-}) => {
+}: QuestionPaperCardProps) => {
   const { data: session } = useSession()
   const router = useRouter()
-  const [canModify, setCanModify] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
-  
+  const [canEdit, setCanEdit] = useState(false)
+
   useEffect(() => {
-    // Check if user can modify (edit/delete) this paper
     if (session?.user) {
       const userId = session.user.id
       const userEmail = session.user.email
-      
       const isUploader = questionPaper.uploadedBy === userId
       const isTechnicalClub = userEmail === 'technicalclub@iiitl.ac.in'
-      
-      setCanModify(isUploader || isTechnicalClub)
+      setCanEdit(isUploader || isTechnicalClub)
     }
   }, [session, questionPaper.uploadedBy])
-  
-  const handleDownload = async () => {
-    try {
-      const response = await fetch(questionPaper.url)
-      const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      
-      // Use the original filename if available, otherwise generate one
-      const filename = questionPaper.fileName || `${questionPaper.subject}_${questionPaper.batch}_Sem${questionPaper.semester}_${questionPaper.exam}.pdf`
-      link.download = filename
-      
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
-    } catch (error) {
-      console.error('Download failed:', error)
-      // Fallback to direct download
+
+  const handleDownload = () => {
+    const link = document.createElement('a')
+    link.href = questionPaper.url
+    link.download =
+      questionPaper.fileName ||
+      `${questionPaper.subject}_${questionPaper.exam}_${questionPaper.batch}.pdf`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  const handleView = () => {
+    if (questionPaper.viewUrl) {
+      window.open(questionPaper.viewUrl, '_blank')
+    } else {
       window.open(questionPaper.url, '_blank')
     }
   }
 
-  const handleEdit = () => {
-    if (!questionPaper.id) {
-      alert('Paper ID not found')
-      return
-    }
-    router.push(`/papers/edit/${questionPaper.id}`)
-  }
-
   const handleDelete = async () => {
-    if (!questionPaper.id) {
-      alert('Paper ID not found')
-      return
-    }
-    
-    if (!confirm(`Are you sure you want to delete "${questionPaper.subject}"?`)) {
-      return
-    }
-    
-    setIsDeleting(true)
-    
+    if (!confirm('Are you sure you want to delete this paper?')) return
+
     try {
       const response = await fetch(`/api/papers?id=${questionPaper.id}`, {
         method: 'DELETE',
       })
-      
-      const data = await response.json()
-      
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to delete paper')
-      }
-      
-      alert('Paper deleted successfully')
-      
-      // Call the onDelete callback to refresh the list
-      if (onDelete) {
-        onDelete()
+
+      if (response.ok) {
+        if (onDelete) onDelete()
+      } else {
+        const data = await response.json()
+        alert(data.message || 'Failed to delete paper')
       }
     } catch (error) {
-      console.error('Delete failed:', error)
-      alert(error instanceof Error ? error.message : 'Failed to delete paper')
-    } finally {
-      setIsDeleting(false)
+      console.error('Delete error:', error)
+      alert('Failed to delete paper')
     }
+  }
+
+  const handleEdit = () => {
+    router.push(`/papers/edit/${questionPaper.id}`)
   }
 
   return (
@@ -114,38 +91,54 @@ const QuestionPaperCard: React.FC<QuestionPaperCardProps> = ({
           {questionPaper.batch} - {questionPaper.exam} Semester{' '}
           {questionPaper.semester}
         </p>
+
+        {/* Info Button with Tooltip */}
+        <div className="relative group">
+          <button
+            className="cursor-pointer text-muted-foreground hover:text-foreground hover:bg-muted/50 p-2 rounded-full transition-colors duration-200 flex items-center justify-center"
+            aria-label="Info"
+          >
+            <Info className="h-5 w-5" />
+          </button>
+          <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-64 p-3 bg-popover text-popover-foreground text-sm rounded-md shadow-md border z-50 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none">
+            <div className="font-semibold mb-1">
+              Faculty: {questionPaper.facultyName || 'N/A'}
+            </div>
+            <div className="text-muted-foreground text-xs">
+              {questionPaper.description || 'No description available'}
+            </div>
+          </div>
+        </div>
+
         <button
           onClick={handleDownload}
-          className="cursor-pointer bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors duration-200"
+          className="cursor-pointer bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors duration-200 flex items-center justify-center"
           aria-label={`Download ${questionPaper.subject} question paper`}
         >
-          <FaDownload />
+          <Download className="h-4 w-4" />
         </button>
-        <a
-          className="cursor-pointer bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors duration-200"
-          href={`${questionPaper.viewUrl || questionPaper.url}`}
-          rel="noopener noreferrer"
-          target="_blank"
+        <button
+          onClick={handleView}
+          className="cursor-pointer bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors duration-200 flex items-center justify-center"
           aria-label={`View ${questionPaper.subject} question paper`}
         >
-          <FaEye />
-        </a>
-        {canModify && (
+          <Eye className="h-4 w-4" />
+        </button>
+        {canEdit && (
           <>
             <button
               onClick={handleEdit}
-              className="cursor-pointer bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition-colors duration-200"
+              className="cursor-pointer bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition-colors duration-200 flex items-center justify-center"
               aria-label={`Edit ${questionPaper.subject} question paper`}
             >
-              <FaEdit />
+              <Edit className="h-4 w-4" />
             </button>
             <button
               onClick={handleDelete}
-              disabled={isDeleting}
-              className="cursor-pointer bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors duration-200 flex items-center justify-center"
               aria-label={`Delete ${questionPaper.subject} question paper`}
             >
-              {isDeleting ? '...' : <FaTrash />}
+              <Trash2 className="h-4 w-4" />
             </button>
           </>
         )}

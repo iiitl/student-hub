@@ -17,15 +17,24 @@ const QuestionPapers = () => {
   const [selectedSubject, setSelectedSubject] = useState<string>('All')
 
   const [allPapers, setAllPapers] = useState<TypeQuestionPaper[]>([])
-  const [userQuestionPapers, setUserQuestionPapers] = useState<TypeQuestionPaper[]>([])
+  const [userQuestionPapers, setUserQuestionPapers] = useState<
+    TypeQuestionPaper[]
+  >([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  
+
   // Dynamic filter options
   const [batches, setBatches] = useState<string[]>(['All'])
   const [semesters, setSemesters] = useState<string[]>(['All'])
   const [subjects, setSubjects] = useState<string[]>(['All'])
-  const [exams, setExams] = useState<string[]>(['Mid', 'End', 'All', 'Class_test_1', 'Class_test_2', 'Class_test_3'])
+  const [exams, setExams] = useState<string[]>([
+    'Mid',
+    'End',
+    'All',
+    'Class_test_1',
+    'Class_test_2',
+    'Class_test_3',
+  ])
 
   // Fetch papers from backend
   useEffect(() => {
@@ -33,21 +42,24 @@ const QuestionPapers = () => {
   }, [])
 
   const fetchPapers = async () => {
-      try {
-        setIsLoading(true)
-        setError(null)
-        
-        const response = await fetch('/api/papers?limit=1000') // Fetch all papers
-        const data = await response.json()
-        
-        if (!response.ok) {
-          throw new Error(data.message || 'Failed to fetch papers')
-        }
+    try {
+      setIsLoading(true)
+      setError(null)
 
-        // Transform backend data to match TypeQuestionPaper interface
-        const transformedPapers: TypeQuestionPaper[] = data.papers.papers.map((paper: {
+      const response = await fetch('/api/papers?limit=1000') // Fetch all papers
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch papers')
+      }
+
+      // Transform backend data to match TypeQuestionPaper interface
+      const transformedPapers: TypeQuestionPaper[] = data.papers.papers.map(
+        (paper: {
           subject?: string
-          title?: string
+          facultyName?: string
+          title?: string // For backward compatibility
+          content?: string
           year: string
           semester?: string
           term: string
@@ -57,8 +69,8 @@ const QuestionPapers = () => {
           _id: string
           uploaded_by: string
         }) => ({
-          subject: paper.subject || paper.title,
-          subjectCode: paper.subject || paper.title,
+          subject: paper.subject || paper.facultyName || paper.title,
+          subjectCode: paper.subject || paper.facultyName || paper.title,
           batch: paper.year,
           semester: paper.semester || extractSemesterNumber(paper.term),
           exam: normalizeExamType(paper.term),
@@ -66,36 +78,43 @@ const QuestionPapers = () => {
           viewUrl: paper.document_url,
           fileName: paper.file_name,
           fileType: paper.file_type,
-          id: paper._id,
+          id: paper._id.toString(),
           uploadedBy: paper.uploaded_by,
-        }))
+          description: paper.content,
+          facultyName: paper.facultyName || paper.title,
+        })
+      )
 
-        setAllPapers(transformedPapers)
-        setUserQuestionPapers(transformedPapers)
+      setAllPapers(transformedPapers)
+      setUserQuestionPapers(transformedPapers)
 
-        // Generate filter options from fetched data
-        const uniqueBatches = [...new Set(transformedPapers.map((paper) => paper.batch.toString()))]
-          .sort((a, b) => Number(b) - Number(a))
-        setBatches([...uniqueBatches, 'All'])
+      // Generate filter options from fetched data
+      const uniqueBatches = [
+        ...new Set(transformedPapers.map((paper) => paper.batch.toString())),
+      ].sort((a, b) => Number(b) - Number(a))
+      setBatches([...uniqueBatches, 'All'])
 
-        const uniqueSubjects = [...new Set(transformedPapers.map((paper) => paper.subject))]
-          .sort()
-        setSubjects([...uniqueSubjects, 'All'])
+      const uniqueSubjects = [
+        ...new Set(transformedPapers.map((paper) => paper.subject)),
+      ].sort()
+      setSubjects([...uniqueSubjects, 'All'])
 
-        const uniqueSemesters = [...new Set(transformedPapers.map((paper) => paper.semester.toString()))]
-          .sort((a, b) => Number(a) - Number(b))
-        setSemesters([...uniqueSemesters, 'All'])
-
-      } catch (err) {
-        console.error('Error fetching papers:', err)
-        setError(err instanceof Error ? err.message : 'Failed to load papers')
-      } finally {
-        setIsLoading(false)
-      }
+      const uniqueSemesters = [
+        ...new Set(transformedPapers.map((paper) => paper.semester.toString())),
+      ].sort((a, b) => Number(a) - Number(b))
+      setSemesters([...uniqueSemesters, 'All'])
+    } catch (err) {
+      console.error('Error fetching papers:', err)
+      setError(err instanceof Error ? err.message : 'Failed to load papers')
+    } finally {
+      setIsLoading(false)
     }
+  }
 
   // Helper function to extract semester number from term
-  const extractSemesterNumber = (term: string): 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 => {
+  const extractSemesterNumber = (
+    term: string
+  ): 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 => {
     // If term contains "semester-X", extract X
     const match = term.match(/semester[- ]?(\d)/i)
     if (match) {
@@ -106,13 +125,24 @@ const QuestionPapers = () => {
   }
 
   // Helper function to normalize exam type
-  const normalizeExamType = (term: string): 'Mid' | 'End' | 'Both' | 'Class_test_1' | 'Class_test_2' | 'Class_test_3' => {
+  const normalizeExamType = (
+    term: string
+  ):
+    | 'Mid'
+    | 'End'
+    | 'Both'
+    | 'Class_test_1'
+    | 'Class_test_2'
+    | 'Class_test_3' => {
     const lowerTerm = term.toLowerCase()
     if (lowerTerm.includes('mid')) return 'Mid'
     if (lowerTerm.includes('end')) return 'End'
-    if (lowerTerm.includes('class_test_1') || lowerTerm.includes('ct1')) return 'Class_test_1'
-    if (lowerTerm.includes('class_test_2') || lowerTerm.includes('ct2')) return 'Class_test_2'
-    if (lowerTerm.includes('class_test_3') || lowerTerm.includes('ct3')) return 'Class_test_3'
+    if (lowerTerm.includes('class_test_1') || lowerTerm.includes('ct1'))
+      return 'Class_test_1'
+    if (lowerTerm.includes('class_test_2') || lowerTerm.includes('ct2'))
+      return 'Class_test_2'
+    if (lowerTerm.includes('class_test_3') || lowerTerm.includes('ct3'))
+      return 'Class_test_3'
     return 'Mid' // Default fallback
   }
 
@@ -141,7 +171,13 @@ const QuestionPapers = () => {
       }
     )
     setUserQuestionPapers(filteredQuestionPapers)
-  }, [selectedBatch, selectedSemester, selectedSubject, selectedExam, allPapers])
+  }, [
+    selectedBatch,
+    selectedSemester,
+    selectedSubject,
+    selectedExam,
+    allPapers,
+  ])
 
   // Callback to refresh papers after deletion
   const handlePaperDeleted = () => {
@@ -152,15 +188,13 @@ const QuestionPapers = () => {
     <div className="w-full flex flex-col items-center justify-center">
       <div className="flex flex-col sm:flex-row sm:relative sm:justify-center items-center w-full max-w-7xl px-5 mt-6 mb-2 gap-3 sm:gap-0">
         <h1 className="text-3xl font-semibold text-center">Question Papers</h1>
-        {session && (
-          <Button
-            onClick={() => router.push('/upload-papers')}
-            className="sm:absolute sm:right-5 flex items-center gap-2"
-          >
-            <Upload className="h-4 w-4" />
-            Upload Paper
-          </Button>
-        )}
+        <Button
+          onClick={() => router.push('/upload-papers')}
+          className="sm:absolute sm:right-5 flex items-center gap-2"
+        >
+          <Upload className="h-4 w-4" />
+          Upload Paper
+        </Button>
       </div>
       <div className="flex justify-center items-center gap-5 flex-wrap w-full px-5 py-3">
         <div className="flex items-center gap-4">
@@ -239,7 +273,10 @@ const QuestionPapers = () => {
               key={`${questionPaper.subject}-${questionPaper.batch}-${questionPaper.exam}-${questionPaper.semester}-${index}`}
               className="w-full"
             >
-              <QuestionPaperCard questionPaper={questionPaper} onDelete={handlePaperDeleted} />
+              <QuestionPaperCard
+                questionPaper={questionPaper}
+                onDelete={handlePaperDeleted}
+              />
             </div>
           ))
         )}
