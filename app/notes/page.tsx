@@ -9,7 +9,7 @@ export default function NotesPage() {
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null)
 
   const handleNoteClick = (id: string | null) => {
-    setSelectedNoteId(prevId => (prevId === id ? null : id))
+    setSelectedNoteId((prevId) => (prevId === id ? null : id))
   }
 
   const selectedNote = selectedNoteId ? notesContent[selectedNoteId] : null
@@ -18,9 +18,9 @@ export default function NotesPage() {
     <div className="flex h-screen">
       <aside className="w-64 border-r bg-background p-4 overflow-auto">
         <SidebarFolderTree
-  onNoteClick={handleNoteClick}
-  activeNoteId={selectedNoteId}/>
-
+          onNoteClick={handleNoteClick}
+          activeNoteId={selectedNoteId}
+        />
       </aside>
 
       <main className="flex-1 p-4 overflow-auto">

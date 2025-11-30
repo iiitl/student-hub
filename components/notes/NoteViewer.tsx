@@ -1,6 +1,6 @@
 'use client'
 
-import React, { FC, useState, useEffect} from 'react'
+import React, { FC, useState, useEffect } from 'react'
 
 interface NoteViewerProps {
   url: string
@@ -10,15 +10,15 @@ const NoteViewer: FC<NoteViewerProps> = ({ url }) => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   useEffect(() => {
-   const timer = setTimeout(() => {
-     if (loading) {
-       setError(true)
-       setLoading(false)
-     }
-   }, 30000) // 30 second timeout
+    const timer = setTimeout(() => {
+      if (loading) {
+        setError(true)
+        setLoading(false)
+      }
+    }, 30000) // 30 second timeout
 
-   return () => clearTimeout(timer)
- }, [loading])
+    return () => clearTimeout(timer)
+  }, [loading])
 
   if (error) {
     return (
@@ -42,7 +42,7 @@ const NoteViewer: FC<NoteViewerProps> = ({ url }) => {
         onLoad={() => setLoading(false)}
         onError={() => setError(true)}
         role="application"
-         aria-label={`PDF document viewer for ${url.split('/').pop()}`}
+        aria-label={`PDF document viewer for ${url.split('/').pop()}`}
       ></iframe>
     </div>
   )

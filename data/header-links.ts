@@ -30,7 +30,6 @@ export const headerLinks: HeaderLinkItem[] = [
       { name: 'Contributors', url: '/contributors' },
     ],
   },
- 
 ]
 
 // Utility function to check if a link is a group

@@ -20,23 +20,23 @@ const NewcomersPage = () => {
   const [filteredLocations, setFilteredLocations] = useState([])
 
   useEffect(() => {
-  const filtered = locationData.locations
-    .filter((location) => {
-      return (
-        (selectedCategory === 'All' ||
-          location.category.trim() === selectedCategory) &&
-        (location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          location.address.toLowerCase().includes(searchQuery.toLowerCase()))
-      )
-    })
-    .sort((a, b) => {
-      const distA = parseFloat(a.distance.replace('km', '').trim())
-      const distB = parseFloat(b.distance.replace('km', '').trim())
-      return distA - distB 
-    })
+    const filtered = locationData.locations
+      .filter((location) => {
+        return (
+          (selectedCategory === 'All' ||
+            location.category.trim() === selectedCategory) &&
+          (location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            location.address.toLowerCase().includes(searchQuery.toLowerCase()))
+        )
+      })
+      .sort((a, b) => {
+        const distA = parseFloat(a.distance.replace('km', '').trim())
+        const distB = parseFloat(b.distance.replace('km', '').trim())
+        return distA - distB
+      })
 
-  setFilteredLocations(filtered)
-}, [searchQuery, selectedCategory])
+    setFilteredLocations(filtered)
+  }, [searchQuery, selectedCategory])
 
   return (
     <div className="container mx-auto p-6 max-w-6xl">
