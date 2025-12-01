@@ -135,7 +135,6 @@ const EditPaperPage = ({ params }: { params: Promise<{ id: string }> }) => {
     try {
       // Validate form data
       if (
-        !formData.content ||
         !formData.subject ||
         !formData.year ||
         !formData.semester ||
@@ -281,7 +280,7 @@ const EditPaperPage = ({ params }: { params: Promise<{ id: string }> }) => {
               <div className="space-y-2">
                 <Label htmlFor="content" className="flex items-center gap-2">
                   <BookOpen className="h-4 w-4" />
-                  Description *
+                  Description (Optional)
                 </Label>
                 <Textarea
                   id="content"
@@ -289,7 +288,6 @@ const EditPaperPage = ({ params }: { params: Promise<{ id: string }> }) => {
                   value={formData.content}
                   onChange={(e) => handleInputChange('content', e.target.value)}
                   className="w-full min-h-[100px] resize-y"
-                  required
                 />
               </div>
 

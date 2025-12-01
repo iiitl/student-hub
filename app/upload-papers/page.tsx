@@ -127,7 +127,6 @@ const UploadPaperPage = () => {
       const finalSubject = isNewSubject ? customSubject : formData.subject
 
       if (
-        !formData.content ||
         !finalSubject ||
         !formData.year ||
         !formData.semester ||
@@ -193,7 +192,7 @@ const UploadPaperPage = () => {
 
       // Success
       setSuccess('Paper uploaded successfully!')
-      
+
       // Reset form
       setFormData({
         facultyName: '',
@@ -211,7 +210,6 @@ const UploadPaperPage = () => {
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
-
     } catch (err) {
       console.error('Upload error:', err)
       setError(
@@ -334,22 +332,24 @@ const UploadPaperPage = () => {
                 )}
               </div>
 
-              {/* Title Field */}
+              {/* Faculty Name Field */}
               <div className="space-y-2">
-                <Label htmlFor="title" className="flex items-center gap-2">
+                <Label
+                  htmlFor="facultyName"
+                  className="flex items-center gap-2"
+                >
                   <FileText className="h-4 w-4" />
-                  Paper Title *
+                  Teaching Faculty Name (Optional)
                 </Label>
                 <Input
-                  id="title"
+                  id="facultyName"
                   type="text"
-                  placeholder="Enter the paper title (e.g.,Data Structure Final Exam 2024)"
+                  placeholder="Enter the teaching faculty name"
                   value={formData.facultyName}
                   onChange={(e) =>
                     handleInputChange('facultyName', e.target.value)
                   }
                   className="w-full"
-                  required
                 />
               </div>
 
@@ -357,7 +357,7 @@ const UploadPaperPage = () => {
               <div className="space-y-2">
                 <Label htmlFor="content" className="flex items-center gap-2">
                   <BookOpen className="h-4 w-4" />
-                  Description *
+                  Description (Optional)
                 </Label>
                 <Textarea
                   id="content"
@@ -365,7 +365,6 @@ const UploadPaperPage = () => {
                   value={formData.content}
                   onChange={(e) => handleInputChange('content', e.target.value)}
                   className="w-full min-h-[100px] resize-y"
-                  required
                 />
               </div>
 
@@ -403,8 +402,8 @@ const UploadPaperPage = () => {
                       <SelectValue placeholder="Select year" />
                     </SelectTrigger>
                     <SelectContent>
-                    <SelectItem value="2026">2026</SelectItem>
-                     <SelectItem value="2025">2025</SelectItem>
+                      <SelectItem value="2026">2026</SelectItem>
+                      <SelectItem value="2025">2025</SelectItem>
                       <SelectItem value="2024">2024</SelectItem>
                       <SelectItem value="2023">2023</SelectItem>
                       <SelectItem value="2022">2022</SelectItem>

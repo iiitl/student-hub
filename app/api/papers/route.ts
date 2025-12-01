@@ -50,10 +50,10 @@ export async function POST(req: NextRequest) {
     const term = formData.get('term') as string
     const file = formData.get('uploaded_file') as File | null
 
-    if (!content || !subject || !year || !semester || !term || !file) {
+    if (!subject || !year || !semester || !term || !file) {
       const missingFields = []
       // if (!facultyName?.trim()) missingFields.push('facultyName') // Optional now
-      if (!content?.trim()) missingFields.push('content')
+      // if (!content?.trim()) missingFields.push('content') // Optional now
       if (!subject?.trim()) missingFields.push('subject')
       if (!year) missingFields.push('year')
       if (!semester) missingFields.push('semester')
@@ -389,14 +389,6 @@ export async function PATCH(req: NextRequest) {
     // Get update data from request body
     const body = await req.json()
     const { facultyName, content, subject, year, semester, term } = body
-
-    // Validate that at least one field is being updated
-    if (!facultyName && !content && !subject && !year && !semester && !term) {
-      return NextResponse.json(
-        { message: 'At least one field must be provided for update' },
-        { status: 400 }
-      )
-    }
 
     // Fetch the paper
     const paper = await Paper.findById(paperId)

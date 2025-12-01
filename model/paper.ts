@@ -36,10 +36,6 @@ const PaperSchema: Schema<IPaper> = new Schema<IPaper>(
     },
     content: {
       type: String,
-      required: [
-        true,
-        'A brief description of the paper you want to upload is necessary',
-      ],
       trim: true,
     },
     subject: {
