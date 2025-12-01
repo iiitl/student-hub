@@ -192,8 +192,8 @@ const UploadPaperPage = () => {
       }
 
       // Success
-      setSuccess('Paper uploaded successfully! Redirecting...')
-
+      setSuccess('Paper uploaded successfully!')
+      
       // Reset form
       setFormData({
         facultyName: '',
@@ -212,10 +212,6 @@ const UploadPaperPage = () => {
         fileInputRef.current.value = ''
       }
 
-      // Redirect to papers page after 2 seconds
-      setTimeout(() => {
-        router.push('/papers')
-      }, 2000)
     } catch (err) {
       console.error('Upload error:', err)
       setError(
@@ -373,6 +369,23 @@ const UploadPaperPage = () => {
                 />
               </div>
 
+              {/* Subject Field */}
+              <div className="space-y-2">
+                <Label htmlFor="subject" className="flex items-center gap-2">
+                  <GraduationCap className="h-4 w-4" />
+                  Subject *
+                </Label>
+                <Input
+                  id="title"
+                  type="text"
+                  placeholder="Enter the subject name(This gets displayed on the paper page)"
+                  value={formData.subject}
+                  onChange={(e) => handleInputChange('subject', e.target.value)}
+                  className="w-full"
+                  required
+                />
+              </div>
+
               {/* Year and Semester Row */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Year Field */}
@@ -390,14 +403,12 @@ const UploadPaperPage = () => {
                       <SelectValue placeholder="Select year" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="2025">2025</SelectItem>
+                    <SelectItem value="2026">2026</SelectItem>
+                     <SelectItem value="2025">2025</SelectItem>
                       <SelectItem value="2024">2024</SelectItem>
                       <SelectItem value="2023">2023</SelectItem>
                       <SelectItem value="2022">2022</SelectItem>
                       <SelectItem value="2021">2021</SelectItem>
-                      <SelectItem value="2020">2020</SelectItem>
-                      <SelectItem value="2019">2019</SelectItem>
-                      <SelectItem value="2018">2018</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

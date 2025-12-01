@@ -28,6 +28,7 @@
     "@types/jsdom": "^21.1.7",
     "@types/nodemailer": "^7.0.1",
     "@upstash/ratelimit": "^2.0.6",
+    "@vercel/analytics": "^1.6.0",
     "@vercel/kv": "^3.0.0",
     "bcrypt": "^6.0.0",
     "class-variance-authority": "^0.7.1",
