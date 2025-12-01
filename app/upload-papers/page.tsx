@@ -5,9 +5,6 @@ import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -25,7 +22,6 @@ import {
   Calendar,
   BookOpen,
   GraduationCap,
-  FileUp,
   CheckCircle,
   AlertCircle,
 } from 'lucide-react'
@@ -368,22 +364,7 @@ const UploadPaperPage = () => {
                 />
               </div>
 
-              {/* Subject Field */}
-              <div className="space-y-2">
-                <Label htmlFor="subject" className="flex items-center gap-2">
-                  <GraduationCap className="h-4 w-4" />
-                  Subject *
-                </Label>
-                <Input
-                  id="title"
-                  type="text"
-                  placeholder="Enter the subject name(This gets displayed on the paper page)"
-                  value={formData.subject}
-                  onChange={(e) => handleInputChange('subject', e.target.value)}
-                  className="w-full"
-                  required
-                />
-              </div>
+
 
               {/* Year and Semester Row */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
