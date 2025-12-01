@@ -50,9 +50,8 @@ const uploadOnCloudinary = async (
 }
 
 const deleteOnCloudinary = async (
-  publicId: string
-) // eslint-disable-next-line @typescript-eslint/no-explicit-any
-: Promise<any> => {
+  publicId: string // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<any> => {
   if (!publicId) {
     return null
   }
