@@ -2,10 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-} from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -363,8 +360,6 @@ const UploadPaperPage = () => {
                   className="w-full min-h-[100px] resize-y"
                 />
               </div>
-
-
 
               {/* Year and Semester Row */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

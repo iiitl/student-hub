@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "prepare": "simple-git-hooks"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",
@@ -69,6 +70,7 @@
     "eslint": "9.35.0",
     "eslint-config-next": "15.5.2",
     "prettier": "^3.6.2",
+    "simple-git-hooks": "^2.13.1",
     "tailwindcss": "^4.1.13",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.9.2"
@@ -78,5 +80,8 @@
     "bcrypt",
     "sharp",
     "unrs-resolver"
-  ]
+  ],
+  "simple-git-hooks": {
+    "pre-commit": "pnpm format"
+  }
 }

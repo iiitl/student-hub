@@ -3,8 +3,7 @@ import './globals.css'
 import Footer from '@/components/footer'
 import Header from '@/components/header'
 import AuthProvider from '@/context/session-provider'
-import { Analytics} from '@vercel/analytics/next'
-
+import { Analytics } from '@vercel/analytics/next'
 
 const inter = Inter({ subsets: ['latin'] })
 
