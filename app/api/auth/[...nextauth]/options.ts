@@ -144,10 +144,14 @@ export const authOptions: AuthOptions = {
         isNewUser = true
       }
 
-      // 🔑 NORMALIZE IDENTITY (THE FIX)
       if (dbUser && dbUser._id) {
-        ;(user as any).id = dbUser._id.toString()
-        ;(user as any).roles = dbUser.roles
+        const mutableUser = user as {
+          id?: string
+          roles?: string[]
+        }
+
+        mutableUser.id = dbUser._id.toString()
+        mutableUser.roles = dbUser.roles
       }
 
       if (isNewUser || (dbUser && !dbUser.passwordSet)) {
