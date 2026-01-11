@@ -367,7 +367,7 @@ const UploadPaperPage = () => {
                 <div className="space-y-2">
                   <Label htmlFor="year" className="flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
-                    Year *
+                    Batch(The Joining Year of the batch that gave the exam)*
                   </Label>
                   <Select
                     onValueChange={(value: string) =>
