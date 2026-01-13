@@ -121,7 +121,7 @@ export const authOptions: AuthOptions = {
         dbUser = existingUser
 
         if (!existingUser.googleId && user.id) {
-          dbUser = await User.findOneAndUpdate(
+          const updatedUser = await User.findOneAndUpdate(
             { email: existingUser.email },
             {
               $set: {
@@ -132,7 +132,12 @@ export const authOptions: AuthOptions = {
             },
             { new: true, runValidators: true }
           ).select('+passwordSet +roles')
+
+          if (updatedUser) {
+            dbUser = updatedUser
+          }
         }
+
       } else {
         dbUser = await User.create({
           name: user.name,
