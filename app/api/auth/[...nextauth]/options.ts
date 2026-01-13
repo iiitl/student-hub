@@ -131,7 +131,7 @@ export const authOptions: AuthOptions = {
               },
             },
             { new: true, runValidators: true }
-          )
+          ).select('+passwordSet +roles')
         }
       } else {
         dbUser = await User.create({
@@ -157,7 +157,7 @@ export const authOptions: AuthOptions = {
       }
 
       if (isNewUser || (dbUser && !dbUser.passwordSet)) {
-        return `/auth/set-password?email=${encodeURIComponent(user.email)}${
+        return `/auth/set-password?email=${encodeURIComponent(normalizedEmail)}${
           isNewUser ? '&new=true' : ''
         }`
       }
