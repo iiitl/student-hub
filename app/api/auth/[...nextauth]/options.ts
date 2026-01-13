@@ -87,10 +87,12 @@ export const authOptions: AuthOptions = {
       },
     }),
   ],
+
   pages: {
     signIn: '/auth/signin',
     error: '/auth/error',
   },
+
   callbacks: {
     async signIn({ user, account }) {
       // Skip if not Google sign in or if email is missing
@@ -105,18 +107,20 @@ export const authOptions: AuthOptions = {
 
       await dbConnect()
 
+      const normalizedEmail = user.email.toLowerCase()
+
       // Check if user already exists
       const existingUser = (await User.findOne({
-        email:
-          typeof user.email === 'string' ? user.email.toLowerCase() : undefined,
+        email: normalizedEmail,
       }).select('+passwordSet +roles')) as IUser | null
 
+      let dbUser: IUser | null = null
       let isNewUser = false
 
       if (existingUser) {
-        // Update Google ID if needed
+        dbUser = existingUser
+
         if (!existingUser.googleId && user.id) {
-          // Use findOneAndUpdate to ensure atomic update
           const updatedUser = await User.findOneAndUpdate(
             { email: existingUser.email },
             {
@@ -127,42 +131,45 @@ export const authOptions: AuthOptions = {
               },
             },
             { new: true, runValidators: true }
-          )
+          ).select('+passwordSet +roles')
 
-          // Ensure we have the latest user data with roles
           if (updatedUser) {
-            user.roles = updatedUser.roles
+            dbUser = updatedUser
           }
-        } else {
-          // If user already has Google ID, ensure roles are passed
-          user.roles = existingUser.roles
         }
-        // If user exists and has a password set, allow sign in
-        if (existingUser.passwordSet) {
-          return true
-        }
-      } else if (user.email) {
-        // Create new user from Google auth
-        await User.create({
+
+      } else {
+        dbUser = await User.create({
           name: user.name,
-          email: user.email,
-          image: user.image || undefined, // Convert null to undefined
+          email: normalizedEmail,
+          image: user.image || undefined,
           googleId: user.id,
           passwordSet: false,
-          emailVerified: true, // Google OAuth automatically verifies email
-          roles: ['user'], // Default role for new users
+          emailVerified: true,
+          roles: ['user'],
         })
         isNewUser = true
       }
 
-      // Only redirect to set-password for new users or existing users without a password
-      if (isNewUser || (existingUser && !existingUser.passwordSet)) {
-        const email = user.email || ''
-        return `/auth/set-password?email=${encodeURIComponent(email)}${isNewUser ? '&new=true' : ''}`
+      if (dbUser && dbUser._id) {
+        const mutableUser = user as {
+          id?: string
+          roles?: string[]
+        }
+
+        mutableUser.id = dbUser._id.toString()
+        mutableUser.roles = dbUser.roles
+      }
+
+      if (isNewUser || (dbUser && !dbUser.passwordSet)) {
+        return `/auth/set-password?email=${encodeURIComponent(normalizedEmail)}${
+          isNewUser ? '&new=true' : ''
+        }`
       }
 
       return true
     },
+
     async session({ session, token }) {
       if (token.sub && session.user) {
         session.user.id = token.sub
@@ -173,6 +180,7 @@ export const authOptions: AuthOptions = {
       }
       return session
     },
+
     async jwt({ token, user }) {
       if (user) {
         token.sub = user.id
@@ -182,13 +190,16 @@ export const authOptions: AuthOptions = {
       return token
     },
   },
+
   session: {
     strategy: 'jwt',
-    maxAge: 24 * 60 * 60, // 24 hours
-    updateAge: 60 * 60, // 1 hour
+    maxAge: 24 * 60 * 60,
+    updateAge: 60 * 60,
   },
+
   jwt: {
-    maxAge: 24 * 60 * 60, // 24 hours
+    maxAge: 24 * 60 * 60,
   },
+
   secret: process.env.NEXTAUTH_SECRET,
 }
