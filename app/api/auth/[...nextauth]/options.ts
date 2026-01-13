@@ -107,9 +107,11 @@ export const authOptions: AuthOptions = {
 
       await dbConnect()
 
+      const normalizedEmail = user.email.toLowerCase()
+
       // Check if user already exists
       const existingUser = (await User.findOne({
-        email: user.email.toLowerCase(),
+        email: normalizedEmail,
       }).select('+passwordSet +roles')) as IUser | null
 
       let dbUser: IUser | null = null
@@ -134,7 +136,7 @@ export const authOptions: AuthOptions = {
       } else {
         dbUser = await User.create({
           name: user.name,
-          email: user.email,
+          email: normalizedEmail,
           image: user.image || undefined,
           googleId: user.id,
           passwordSet: false,
