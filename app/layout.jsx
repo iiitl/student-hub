@@ -4,6 +4,7 @@ import Footer from '@/components/footer'
 import Header from '@/components/header'
 import AuthProvider from '@/context/session-provider'
 import { Analytics } from '@vercel/analytics/next'
+import Script from 'next/script'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -23,9 +24,23 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <Header />
           {children}
-          <Analytics />
           <Footer />
+          <Analytics />
         </AuthProvider>
+
+        {/* Google Analytics */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-FRS93SLW90"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-FRS93SLW90');
+          `}
+        </Script>
       </body>
     </html>
   )
