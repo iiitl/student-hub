@@ -30,7 +30,10 @@ export default function useContributors() {
           throw new Error('Failed to fetch contributors')
         }
         const data = await response.json()
-        setContributors(data)
+        const filteredContributors = data.filter(
+          (contributor: any) => contributor.type === 'User'
+        )
+        setContributors(filteredContributors)
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'Unknown error')
       } finally {
