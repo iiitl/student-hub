@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import dbConnect from '@/lib/dbConnect'
 import OTP from '@/model/OTP'
+import User from '@/model/User'
 import { generateSecureToken } from '@/lib/security'
 import { sendEmail } from '@/lib/email'
 import { validateEmail } from '@/lib/validation'
@@ -22,6 +23,15 @@ export async function POST(request: NextRequest) {
     const emailError = validateEmail(email)
     if (emailError) {
       return NextResponse.json({ message: emailError }, { status: 400 })
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email: email.toLowerCase() })
+    if (existingUser) {
+      return NextResponse.json(
+        { message: 'An account with this email already exists' },
+        { status: 409 }
+      )
     }
 
     // Get user agent and IP address from request headers
