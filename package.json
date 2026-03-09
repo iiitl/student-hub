@@ -37,7 +37,7 @@
     "clsx": "^2.1.1",
     "dompurify": "^3.2.6",
     "dotenv": "^17.2.2",
-    "express": "^5.1.0",
+    "express": "^5.2.1",
     "form-data": "^4.0.4",
     "formidable": "^3.5.4",
     "jsdom": "^26.1.0",
