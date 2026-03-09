@@ -1,4 +1,4 @@
-import mongoose, { Model } from "mongoose";
+import mongoose, { Model } from 'mongoose'
 
 interface ILocation {
   name: string
@@ -10,7 +10,6 @@ interface ILocation {
   added_at?: Date
 }
 
-
 const LocationSchema = new mongoose.Schema<ILocation>({
   name: { type: String, required: true },
   category: { type: String, required: true },
@@ -18,11 +17,11 @@ const LocationSchema = new mongoose.Schema<ILocation>({
   location: { type: String, required: true },
   contact: { type: String },
   website: { type: String },
-  added_at: { type: Date, default: Date.now }
-});
+  added_at: { type: Date, default: Date.now },
+})
 
 const Location: Model<ILocation> =
-  mongoose.models.Location || mongoose.model<ILocation>("Location", LocationSchema)
+  mongoose.models.Location ||
+  mongoose.model<ILocation>('Location', LocationSchema)
 
 export default Location
-

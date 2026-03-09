@@ -46,12 +46,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 })
     }
 
-   if (user.email !== "technicalclub@iiitl.ac.in") {
-  return NextResponse.json(
-    { message: "Admin access is needed" },
-    { status: 403 }
-  )
-}
+    if (user.email !== 'technicalclub@iiitl.ac.in') {
+      return NextResponse.json(
+        { message: 'Admin access is needed' },
+        { status: 403 }
+      )
+    }
     const { name, category, address, location, contact, website } =
       await request.json()
     // validating mandatory fields

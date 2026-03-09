@@ -64,8 +64,6 @@ export async function verifyJwt(request: NextRequest) {
         { status: 401 }
       )
     }
-    
-    
 
     return NextResponse.json({
       verified: true,
