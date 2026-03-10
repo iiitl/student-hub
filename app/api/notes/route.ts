@@ -2,7 +2,7 @@ import dbConnect from '@/lib/dbConnect'
 import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs/promises'
 import path from 'path'
-import { uploadOnCloudinary } from '@/helpers/cloudinary'
+import { uploadOnCloudinary, deleteOnCloudinary } from '@/helpers/cloudinary'
 import Note from '@/model/note'
 import { verifyJwt } from '@/lib/auth-utils'
 import Log from '@/model/logs'
@@ -46,6 +46,9 @@ export async function POST(req: NextRequest) {
     }
 
     const term = formData.get('term') as string
+    const categoryRaw = formData.get('category') as string | null
+    const category: 'academic' | 'axios' =
+      categoryRaw === 'axios' ? 'axios' : 'academic'
     const file = formData.get('uploaded_file') as File | null
 
     if (!subject || !facultyName || !year || !semester || !term || !file) {
@@ -96,13 +99,14 @@ export async function POST(req: NextRequest) {
     )
     await fs.writeFile(tempFilePath, buffer)
 
-    let cloudinaryResult: { secure_url: string } | null = null
+    let cloudinaryResult: { secure_url: string; public_id: string } | null = null
     try {
       cloudinaryResult = (await uploadOnCloudinary(tempFilePath)) as {
         secure_url: string
+        public_id: string
       } | null
     } finally {
-      await fs.unlink(tempFilePath).catch(() => {})
+      await fs.unlink(tempFilePath).catch(() => { })
     }
 
     if (!cloudinaryResult) {
@@ -119,7 +123,9 @@ export async function POST(req: NextRequest) {
       year,
       semester,
       term,
+      category,
       document_url: cloudinaryResult.secure_url,
+      storage_asset_id: cloudinaryResult.public_id,
       file_name: file.name,
       file_type: file.type,
       uploaded_by: userId,
@@ -178,6 +184,7 @@ export async function GET(req: NextRequest) {
     const subjectFilter = searchParams.get('subject')
     const termFilter = searchParams.get('term')
     const yearFilter = searchParams.get('year')
+    const categoryFilter = searchParams.get('category')
 
     const match: Record<string, unknown> = {}
     if (subjectFilter) {
@@ -189,6 +196,9 @@ export async function GET(req: NextRequest) {
     if (yearFilter) {
       const y = parseInt(yearFilter, 10)
       if (!Number.isNaN(y)) match.year = y
+    }
+    if (categoryFilter && (categoryFilter === 'academic' || categoryFilter === 'axios')) {
+      match.category = categoryFilter
     }
     if (search && query) {
       match[search] = { $regex: query, $options: 'i' }
@@ -296,6 +306,22 @@ export async function DELETE(req: NextRequest) {
       )
     }
 
+    // Remove the backing Cloudinary file first
+    if (note.storage_asset_id) {
+      try {
+        await deleteOnCloudinary(note.storage_asset_id)
+      } catch (cloudinaryErr) {
+        // Log but don't block deletion — DB row still gets removed
+        console.error('Cloudinary file deletion failed:', cloudinaryErr)
+        await Log.create({
+          user: userId,
+          action: 'Note Cloudinary file deletion failed',
+          note: noteId,
+          details: cloudinaryErr instanceof Error ? cloudinaryErr.message : 'Unknown error',
+        })
+      }
+    }
+
     await Note.findByIdAndDelete(noteId)
 
     await Log.create({
@@ -352,7 +378,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { facultyName, content, subject, year, semester, term } = body
+    const { facultyName, content, subject, year, semester, term, category } = body
 
     const note = await Note.findById(noteId)
     if (!note) {
@@ -401,6 +427,13 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ message: 'Invalid term' }, { status: 400 })
       }
       updateData.term = term
+    }
+    if (category) {
+      const validCategories = ['academic', 'axios']
+      if (!validCategories.includes(category)) {
+        return NextResponse.json({ message: 'Invalid category' }, { status: 400 })
+      }
+      updateData.category = category
     }
 
     updateData.$push = {

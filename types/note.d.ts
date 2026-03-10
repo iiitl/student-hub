@@ -1,3 +1,5 @@
+export type NoteCategory = 'academic' | 'axios'
+
 export type TypeNote = {
   subject: string
   subjectCode: string
@@ -8,8 +10,9 @@ export type TypeNote = {
   viewUrl?: string
   fileName?: string
   fileType?: string
-  id?: string
+  id: string
   uploadedBy: string
   description?: string
   facultyName: string
+  category?: NoteCategory
 }

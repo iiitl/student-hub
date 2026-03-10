@@ -13,7 +13,9 @@ export interface INote extends Document {
   year: number
   semester: number
   term: string
+  category: 'academic' | 'axios'
   document_url: string
+  storage_asset_id: string
   file_name: string
   file_type: string
   uploaded_by: Schema.Types.ObjectId
@@ -60,9 +62,19 @@ const NoteSchema: Schema<INote> = new Schema<INote>(
       required: [true, 'Exam type (term) is required'],
       set: (v: string) => v.charAt(0).toUpperCase() + v.slice(1).toLowerCase(),
     },
+    category: {
+      type: String,
+      enum: ['academic', 'axios'],
+      default: 'academic',
+    },
     document_url: {
       type: String,
       required: [true, 'Document url is required for note'],
+    },
+    storage_asset_id: {
+      type: String,
+      required: [true, 'Storage asset ID is required for file deletion'],
+      trim: true,
     },
     file_name: {
       type: String,
