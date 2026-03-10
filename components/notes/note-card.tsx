@@ -42,7 +42,9 @@ const NoteCard = ({ note, onDelete }: NoteCardProps) => {
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this note?')) return
     try {
-      const response = await fetch(`/api/notes?id=${note.id}`, { method: 'DELETE' })
+      const response = await fetch(`/api/notes?id=${note.id}`, {
+        method: 'DELETE',
+      })
       if (response.ok) {
         if (onDelete) onDelete()
       } else {
@@ -66,15 +68,23 @@ const NoteCard = ({ note, onDelete }: NoteCardProps) => {
       className={`w-full flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 rounded-lg border-l-4 border border-border bg-muted/50 hover:bg-muted transition-all duration-200 shadow-sm hover:shadow-md cursor-default
         ${isAxios ? 'border-l-violet-500' : 'border-l-primary'}`}
     >
-
       {/* Subject + Faculty */}
       <div className="flex-1 min-w-0">
-        <h3 className="font-semibold text-base sm:text-xl leading-tight truncate" title={note.subject}>
+        <h3
+          className="font-semibold text-base sm:text-xl leading-tight truncate"
+          title={note.subject}
+        >
           {note.subject}
         </h3>
         <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 truncate">
-          Faculty: <span className="text-foreground">{note.facultyName || 'N/A'}</span>
-          {note.description && <> · <span className="italic">{note.description}</span></>}
+          Faculty:{' '}
+          <span className="text-foreground">{note.facultyName || 'N/A'}</span>
+          {note.description && (
+            <>
+              {' '}
+              · <span className="italic">{note.description}</span>
+            </>
+          )}
         </p>
       </div>
 
@@ -102,12 +112,16 @@ const NoteCard = ({ note, onDelete }: NoteCardProps) => {
             <Info className="h-4 w-4" />
           </button>
           <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-64 p-3 bg-popover text-popover-foreground text-sm rounded-md shadow-md border z-50 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none">
-            <div className="font-semibold mb-1">Faculty: {note.facultyName || 'N/A'}</div>
+            <div className="font-semibold mb-1">
+              Faculty: {note.facultyName || 'N/A'}
+            </div>
             <div className="text-muted-foreground text-xs">
               {note.description || 'No description available'}
             </div>
             {note.fileName && (
-              <div className="text-muted-foreground text-xs mt-1">File: {note.fileName}</div>
+              <div className="text-muted-foreground text-xs mt-1">
+                File: {note.fileName}
+              </div>
             )}
           </div>
         </div>

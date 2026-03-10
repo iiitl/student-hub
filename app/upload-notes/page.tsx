@@ -11,7 +11,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Upload, FileText, Calendar, GraduationCap, CheckCircle, AlertCircle, BookOpen, Tag } from 'lucide-react'
+import {
+  Upload,
+  FileText,
+  Calendar,
+  GraduationCap,
+  CheckCircle,
+  AlertCircle,
+  BookOpen,
+  Tag,
+} from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { NoteCategory } from '@/types/note'
@@ -122,7 +131,12 @@ const UploadNotePage = () => {
         return
       }
 
-      const allowedTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp']
+      const allowedTypes = [
+        'application/pdf',
+        'image/png',
+        'image/jpeg',
+        'image/webp',
+      ]
       if (!allowedTypes.includes(formData.uploaded_file.type)) {
         setError('Only PDF, PNG, JPG, JPEG, and WEBP files are allowed')
         setIsLoading(false)
@@ -148,7 +162,9 @@ const UploadNotePage = () => {
       try {
         data = await response.json()
       } catch {
-        throw new Error(`Server error: ${response.status} ${response.statusText}`)
+        throw new Error(
+          `Server error: ${response.status} ${response.statusText}`
+        )
       }
 
       if (!response.ok) throw new Error(data.message || 'Failed to upload note')
@@ -169,7 +185,11 @@ const UploadNotePage = () => {
       if (fileInputRef.current) fileInputRef.current.value = ''
     } catch (err) {
       console.error('Upload error:', err)
-      setError(err instanceof Error ? err.message : 'Failed to upload note. Please try again.')
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to upload note. Please try again.'
+      )
     } finally {
       setIsLoading(false)
     }
@@ -188,7 +208,6 @@ const UploadNotePage = () => {
   return (
     <div className="w-full flex flex-col items-center justify-center">
       <div className="w-full max-w-2xl px-5 mt-6 mb-10 space-y-6">
-
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:relative sm:justify-center items-center gap-3">
           <h1 className="text-3xl font-semibold text-center">Upload a Note</h1>
@@ -202,20 +221,29 @@ const UploadNotePage = () => {
               <p className="font-medium">Upload failed</p>
               <p className="text-xs mt-0.5 opacity-80">{error}</p>
             </div>
-            <button onClick={() => setError(null)} className="ml-auto flex-shrink-0 opacity-70 hover:opacity-100">✕</button>
+            <button
+              onClick={() => setError(null)}
+              className="ml-auto flex-shrink-0 opacity-70 hover:opacity-100"
+            >
+              ✕
+            </button>
           </div>
         )}
         {success && (
           <div className="flex items-start gap-3 px-4 py-3 rounded-md border border-green-500/40 bg-green-500/10 text-green-600 dark:text-green-400 text-sm">
             <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
             <p className="font-medium">{success}</p>
-            <button onClick={() => setSuccess(null)} className="ml-auto flex-shrink-0 opacity-70 hover:opacity-100">✕</button>
+            <button
+              onClick={() => setSuccess(null)}
+              className="ml-auto flex-shrink-0 opacity-70 hover:opacity-100"
+            >
+              ✕
+            </button>
           </div>
         )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
-
           {/* Category */}
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-sm font-medium">
@@ -224,7 +252,12 @@ const UploadNotePage = () => {
             </label>
             <Select
               value={formData.category}
-              onValueChange={(v) => setFormData((prev) => ({ ...prev, category: v as NoteCategory }))}
+              onValueChange={(v) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  category: v as NoteCategory,
+                }))
+              }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select category" />
@@ -238,23 +271,39 @@ const UploadNotePage = () => {
 
           {/* Subject */}
           <div className="space-y-2">
-            <label htmlFor="subject" className="flex items-center gap-2 text-sm font-medium">
+            <label
+              htmlFor="subject"
+              className="flex items-center gap-2 text-sm font-medium"
+            >
               <GraduationCap className="w-4 h-4" />
               Subject *
             </label>
             {!isNewSubject ? (
               <Select
                 onValueChange={(value) => handleSelectChange('subject', value)}
-                value={formData.subject && !isNewSubject ? formData.subject : undefined}
+                value={
+                  formData.subject && !isNewSubject
+                    ? formData.subject
+                    : undefined
+                }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={isLoadingSubjects ? 'Loading subjects…' : 'Select subject'} />
+                  <SelectValue
+                    placeholder={
+                      isLoadingSubjects ? 'Loading subjects…' : 'Select subject'
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {subjects.map((subject) => (
-                    <SelectItem key={subject} value={subject}>{subject}</SelectItem>
+                    <SelectItem key={subject} value={subject}>
+                      {subject}
+                    </SelectItem>
                   ))}
-                  <SelectItem value="new_subject" className="text-primary font-medium">
+                  <SelectItem
+                    value="new_subject"
+                    className="text-primary font-medium"
+                  >
                     + Add New Subject
                   </SelectItem>
                 </SelectContent>
@@ -283,7 +332,10 @@ const UploadNotePage = () => {
 
           {/* Faculty Name */}
           <div className="space-y-2">
-            <label htmlFor="facultyName" className="flex items-center gap-2 text-sm font-medium">
+            <label
+              htmlFor="facultyName"
+              className="flex items-center gap-2 text-sm font-medium"
+            >
               <FileText className="w-4 h-4" />
               Teaching Faculty Name *
             </label>
@@ -299,10 +351,15 @@ const UploadNotePage = () => {
 
           {/* Description */}
           <div className="space-y-2">
-            <label htmlFor="content" className="flex items-center gap-2 text-sm font-medium">
+            <label
+              htmlFor="content"
+              className="flex items-center gap-2 text-sm font-medium"
+            >
               <BookOpen className="w-4 h-4" />
               Description
-              <span className="text-muted-foreground text-xs font-normal">(optional)</span>
+              <span className="text-muted-foreground text-xs font-normal">
+                (optional)
+              </span>
             </label>
             <Textarea
               id="content"
@@ -320,13 +377,15 @@ const UploadNotePage = () => {
                 <Calendar className="w-4 h-4" />
                 Batch (Joining Year) *
               </label>
-              <Select onValueChange={(v) => handleSelectChange('year', v)}>
+              <Select value={formData.year || ''} onValueChange={(v) => handleSelectChange('year', v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
                 <SelectContent>
                   {[2026, 2025, 2024, 2023, 2022, 2021].map((y) => (
-                    <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                    <SelectItem key={y} value={String(y)}>
+                      {y}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -337,13 +396,15 @@ const UploadNotePage = () => {
                 <GraduationCap className="w-4 h-4" />
                 Semester *
               </label>
-              <Select onValueChange={(v) => handleSelectChange('semester', v)}>
+              <Select value={formData.semester || ''} onValueChange={(v) => handleSelectChange('semester', v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select semester" />
                 </SelectTrigger>
                 <SelectContent>
                   {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
-                    <SelectItem key={s} value={String(s)}>Semester {s}</SelectItem>
+                    <SelectItem key={s} value={String(s)}>
+                      Semester {s}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -356,7 +417,7 @@ const UploadNotePage = () => {
               <GraduationCap className="w-4 h-4" />
               Exam Type *
             </label>
-            <Select onValueChange={(v) => handleSelectChange('term', v)}>
+            <Select value={formData.term || ''} onValueChange={(v) => handleSelectChange('term', v)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select exam type" />
               </SelectTrigger>
@@ -374,7 +435,10 @@ const UploadNotePage = () => {
               Upload File *
             </label>
             <div
-              onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+              onDragOver={(e) => {
+                e.preventDefault()
+                setDragOver(true)
+              }}
               onDragLeave={() => setDragOver(false)}
               onDrop={handleDrop}
               className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors duration-200 cursor-pointer
@@ -393,7 +457,10 @@ const UploadNotePage = () => {
                 onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
                 className="hidden"
               />
-              <label htmlFor="file" className="cursor-pointer flex flex-col items-center gap-2">
+              <label
+                htmlFor="file"
+                className="cursor-pointer flex flex-col items-center gap-2"
+              >
                 {formData.uploaded_file ? (
                   <>
                     <CheckCircle className="w-8 h-8 text-green-500" />
@@ -401,13 +468,15 @@ const UploadNotePage = () => {
                       {formData.uploaded_file.name}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {(formData.uploaded_file.size / 1024 / 1024).toFixed(2)} MB &nbsp;·&nbsp;
+                      {(formData.uploaded_file.size / 1024 / 1024).toFixed(2)}{' '}
+                      MB &nbsp;·&nbsp;
                       <button
                         type="button"
                         onClick={(e) => {
                           e.preventDefault()
                           handleFileChange(null)
-                          if (fileInputRef.current) fileInputRef.current.value = ''
+                          if (fileInputRef.current)
+                            fileInputRef.current.value = ''
                         }}
                         className="text-destructive hover:underline"
                       >
@@ -418,8 +487,12 @@ const UploadNotePage = () => {
                 ) : (
                   <>
                     <Upload className="w-8 h-8 text-muted-foreground" />
-                    <p className="text-sm font-medium">Click to upload or drag & drop</p>
-                    <p className="text-xs text-muted-foreground">PDF, PNG, JPG, JPEG, WEBP · Max 25 MB</p>
+                    <p className="text-sm font-medium">
+                      Click to upload or drag & drop
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      PDF, PNG, JPG, JPEG, WEBP · Max 25 MB
+                    </p>
                   </>
                 )}
               </label>
@@ -427,7 +500,11 @@ const UploadNotePage = () => {
           </div>
 
           {/* Submit */}
-          <Button type="submit" disabled={isLoading} className="w-full flex items-center gap-2">
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="w-full flex items-center gap-2"
+          >
             {isLoading ? (
               <>
                 <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
@@ -446,9 +523,17 @@ const UploadNotePage = () => {
         <div className="rounded-lg border border-border bg-muted/30 px-5 py-4">
           <h4 className="text-sm font-semibold mb-2">Upload Guidelines</h4>
           <ul className="space-y-1 text-xs text-muted-foreground list-disc list-inside">
-            <li>Select the correct category — Academic for university notes, Axios for Technical Club resources</li>
-            <li>Maximum file size: <span className="text-foreground">25 MB</span></li>
-            <li>Supported formats: <span className="text-foreground">PDF, PNG, JPG, JPEG, WEBP</span></li>
+            <li>
+              Select the correct category — Academic for university notes, Axios
+              for Technical Club resources
+            </li>
+            <li>
+              Maximum file size: <span className="text-foreground">25 MB</span>
+            </li>
+            <li>
+              Supported formats:{' '}
+              <span className="text-foreground">PDF, PNG, JPG, JPEG, WEBP</span>
+            </li>
             <li>All fields marked with * are required</li>
             <li>Ensure the note is clear and readable before uploading</li>
           </ul>

@@ -45,7 +45,12 @@ interface FilterDropdownProps {
   onChange: (v: string) => void
 }
 
-const FilterDropdown = ({ label, value, options, onChange }: FilterDropdownProps) => {
+const FilterDropdown = ({
+  label,
+  value,
+  options,
+  onChange,
+}: FilterDropdownProps) => {
   const [open, setOpen] = useState(false)
   const isSet = value !== 'All'
   return (
@@ -59,14 +64,19 @@ const FilterDropdown = ({ label, value, options, onChange }: FilterDropdownProps
           }`}
       >
         <span>{isSet ? value : label}</span>
-        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown
+          className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`}
+        />
       </button>
       {open && (
         <div className="absolute top-full mt-1 left-0 z-50 min-w-max rounded-md border border-border bg-popover text-popover-foreground shadow-md overflow-hidden">
           {options.map((opt) => (
             <button
               key={opt}
-              onClick={() => { onChange(opt); setOpen(false) }}
+              onClick={() => {
+                onChange(opt)
+                setOpen(false)
+              }}
               className={`flex w-full items-center px-4 py-2 text-sm text-left transition-colors
                 ${opt === value
                   ? 'bg-primary/10 text-primary font-medium'
@@ -98,7 +108,9 @@ const Notes = () => {
   const [showFilters, setShowFilters] = useState(false)
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchNotes() }, [])
+  useEffect(() => {
+    fetchNotes()
+  }, [])
 
   type RawNote = {
     subject?: string
@@ -131,7 +143,9 @@ const Notes = () => {
     uploadedBy: note.uploaded_by,
     description: note.content,
     facultyName: note.facultyName,
-    category: (note.category === 'axios' ? 'axios' : 'academic') as NoteCategory,
+    category: (note.category === 'axios'
+      ? 'axios'
+      : 'academic') as NoteCategory,
   })
 
   const fetchNotes = async () => {
@@ -146,11 +160,16 @@ const Notes = () => {
 
       // Loop through every page until the collection is exhausted
       while (hasNextPage) {
-        const response = await fetch(`/api/notes?limit=${PAGE_SIZE}&page=${page}`)
+        const response = await fetch(
+          `/api/notes?limit=${PAGE_SIZE}&page=${page}`
+        )
         const data = await response.json()
-        if (!response.ok) throw new Error(data.message || 'Failed to fetch notes')
+        if (!response.ok)
+          throw new Error(data.message || 'Failed to fetch notes')
 
-        const pageNotes: TypeNote[] = (data.notes.notes as RawNote[]).map(transformNote)
+        const pageNotes: TypeNote[] = (data.notes.notes as RawNote[]).map(
+          transformNote
+        )
         collected.push(...pageNotes)
 
         hasNextPage = data.notes.hasNextPage ?? false
@@ -165,8 +184,9 @@ const Notes = () => {
     }
   }
 
-
-  const extractSemesterNumber = (term: string): 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 => {
+  const extractSemesterNumber = (
+    term: string
+  ): 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 => {
     const match = term.match(/semester[- ]?(\d)/i)
     if (match) {
       const num = parseInt(match[1])
@@ -190,7 +210,6 @@ const Notes = () => {
     setSearchQuery('')
   }
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     clearFilters()
   }, [activeCategory])
@@ -200,33 +219,69 @@ const Notes = () => {
     [allNotes, activeCategory]
   )
 
-  const subjects = useMemo(() => ['All', ...[...new Set(categoryNotes.map((n) => n.subject))].sort()], [categoryNotes])
-  const batches = useMemo(() => ['All', ...[...new Set(categoryNotes.map((n) => n.batch.toString()))].sort((a, b) => Number(b) - Number(a))], [categoryNotes])
-  const semesters = useMemo(() => ['All', ...[...new Set(categoryNotes.map((n) => n.semester.toString()))].sort((a, b) => Number(a) - Number(b))], [categoryNotes])
+  const subjects = useMemo(
+    () => ['All', ...[...new Set(categoryNotes.map((n) => n.subject))].sort()],
+    [categoryNotes]
+  )
+  const batches = useMemo(
+    () => [
+      'All',
+      ...[...new Set(categoryNotes.map((n) => n.batch.toString()))].sort(
+        (a, b) => Number(b) - Number(a)
+      ),
+    ],
+    [categoryNotes]
+  )
+  const semesters = useMemo(
+    () => [
+      'All',
+      ...[...new Set(categoryNotes.map((n) => n.semester.toString()))].sort(
+        (a, b) => Number(a) - Number(b)
+      ),
+    ],
+    [categoryNotes]
+  )
   const exams = ['All', 'Mid', 'End']
 
   const filteredNotes = useMemo(() => {
     return categoryNotes.filter((note) => {
-      if (selectedBatch !== 'All' && note.batch.toString() !== selectedBatch) return false
-      if (selectedSemester !== 'All' && note.semester.toString() !== selectedSemester) return false
-      if (selectedSubject !== 'All' && note.subject !== selectedSubject) return false
+      if (selectedBatch !== 'All' && note.batch.toString() !== selectedBatch)
+        return false
+      if (
+        selectedSemester !== 'All' &&
+        note.semester.toString() !== selectedSemester
+      )
+        return false
+      if (selectedSubject !== 'All' && note.subject !== selectedSubject)
+        return false
       if (selectedExam !== 'All' && note.exam !== selectedExam) return false
-      if (searchQuery.trim() &&
+      if (
+        searchQuery.trim() &&
         !note.subject.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !note.facultyName.toLowerCase().includes(searchQuery.toLowerCase()))
+        !note.facultyName.toLowerCase().includes(searchQuery.toLowerCase())
+      )
         return false
       return true
     })
-  }, [categoryNotes, selectedBatch, selectedSemester, selectedSubject, selectedExam, searchQuery])
+  }, [
+    categoryNotes,
+    selectedBatch,
+    selectedSemester,
+    selectedSubject,
+    selectedExam,
+    searchQuery,
+  ])
 
   const hasActiveFilters =
-    selectedBatch !== 'All' || selectedSemester !== 'All' ||
-    selectedSubject !== 'All' || selectedExam !== 'All' || searchQuery.trim() !== ''
+    selectedBatch !== 'All' ||
+    selectedSemester !== 'All' ||
+    selectedSubject !== 'All' ||
+    selectedExam !== 'All' ||
+    searchQuery.trim() !== ''
 
   return (
     <div className="w-full flex flex-col items-center justify-center">
       <div className="w-full px-4 sm:px-6 py-6 space-y-5">
-
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
@@ -235,7 +290,10 @@ const Notes = () => {
               Browse and download notes by category
             </p>
           </div>
-          <Button onClick={() => router.push('/upload-notes')} className="flex items-center gap-2 self-start">
+          <Button
+            onClick={() => router.push('/upload-notes')}
+            className="flex items-center gap-2 self-start"
+          >
             <Upload className="h-4 w-4" />
             Upload Note
           </Button>
@@ -256,19 +314,24 @@ const Notes = () => {
                     : 'border-border bg-card hover:bg-muted text-foreground'
                   }`}
               >
-                <div className={`mt-0.5 flex-shrink-0 ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+                <div
+                  className={`mt-0.5 flex-shrink-0 ${isActive ? 'text-primary' : 'text-muted-foreground'}`}
+                >
                   {cat.icon}
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-sm">{cat.label}</span>
-                    <span className={`text-xs px-1.5 py-0.5 rounded font-medium
+                    <span
+                      className={`text-xs px-1.5 py-0.5 rounded font-medium
                       ${isActive ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'}`}
                     >
                       {count}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-0.5">{cat.subtitle}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {cat.subtitle}
+                  </p>
                 </div>
               </button>
             )
@@ -295,7 +358,9 @@ const Notes = () => {
             >
               <SlidersHorizontal className="w-4 h-4" />
               Filters
-              {hasActiveFilters && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
+              {hasActiveFilters && (
+                <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+              )}
             </button>
             {hasActiveFilters && (
               <button
@@ -310,10 +375,30 @@ const Notes = () => {
 
           {showFilters && (
             <div className="flex flex-wrap gap-2 p-3 rounded-md border border-border bg-muted/40">
-              <FilterDropdown label="Subject" value={selectedSubject} options={subjects} onChange={setSelectedSubject} />
-              <FilterDropdown label="Batch" value={selectedBatch} options={batches} onChange={setSelectedBatch} />
-              <FilterDropdown label="Semester" value={selectedSemester} options={semesters} onChange={setSelectedSemester} />
-              <FilterDropdown label="Exam Type" value={selectedExam} options={exams} onChange={setSelectedExam} />
+              <FilterDropdown
+                label="Subject"
+                value={selectedSubject}
+                options={subjects}
+                onChange={setSelectedSubject}
+              />
+              <FilterDropdown
+                label="Batch"
+                value={selectedBatch}
+                options={batches}
+                onChange={setSelectedBatch}
+              />
+              <FilterDropdown
+                label="Semester"
+                value={selectedSemester}
+                options={semesters}
+                onChange={setSelectedSemester}
+              />
+              <FilterDropdown
+                label="Exam Type"
+                value={selectedExam}
+                options={exams}
+                onChange={setSelectedExam}
+              />
             </div>
           )}
         </div>
@@ -321,7 +406,8 @@ const Notes = () => {
         {/* Result count */}
         {!isLoading && !error && (
           <p className="text-sm text-muted-foreground">
-            {filteredNotes.length} note{filteredNotes.length !== 1 ? 's' : ''} in{' '}
+            {filteredNotes.length} note{filteredNotes.length !== 1 ? 's' : ''}{' '}
+            in{' '}
             <span className="text-foreground font-medium">
               {CATEGORIES.find((c) => c.id === activeCategory)?.label}
             </span>
@@ -347,7 +433,9 @@ const Notes = () => {
         ) : filteredNotes.length === 0 ? (
           <div className="text-center py-12">
             <BookOpen className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground">No notes found matching your filters.</p>
+            <p className="text-muted-foreground">
+              No notes found matching your filters.
+            </p>
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
@@ -360,7 +448,11 @@ const Notes = () => {
         ) : (
           <div className="flex flex-col gap-2.5">
             {filteredNotes.map((note, index) => (
-              <NoteCard key={note.id ?? index} note={note} onDelete={fetchNotes} />
+              <NoteCard
+                key={note.id ?? index}
+                note={note}
+                onDelete={fetchNotes}
+              />
             ))}
           </div>
         )}
