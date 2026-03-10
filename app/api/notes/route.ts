@@ -98,9 +98,11 @@ export async function POST(req: NextRequest) {
 
     let cloudinaryResult: { secure_url: string } | null = null
     try {
-      cloudinaryResult = (await uploadOnCloudinary(tempFilePath)) as { secure_url: string } | null
+      cloudinaryResult = (await uploadOnCloudinary(tempFilePath)) as {
+        secure_url: string
+      } | null
     } finally {
-      await fs.unlink(tempFilePath).catch(() => { })
+      await fs.unlink(tempFilePath).catch(() => {})
     }
 
     if (!cloudinaryResult) {
@@ -143,7 +145,10 @@ export async function POST(req: NextRequest) {
 
     if (error instanceof Error && error.name === 'ValidationError') {
       return NextResponse.json(
-        { message: 'Validation failed', errors: (error as Error & { errors?: unknown }).errors },
+        {
+          message: 'Validation failed',
+          errors: (error as Error & { errors?: unknown }).errors,
+        },
         { status: 400 }
       )
     }
@@ -217,16 +222,15 @@ export async function GET(req: NextRequest) {
       },
     ]
 
-    const NoteModel = Note as unknown as { aggregatePaginate: (agg: unknown, opts: unknown) => Promise<unknown> }
-    const notes = await NoteModel.aggregatePaginate(
-      Note.aggregate(pipeline),
-      {
-        page,
-        limit,
-        sort: { [sortBy]: sortType },
-        customLabels: { docs: 'notes' },
-      }
-    )
+    const NoteModel = Note as unknown as {
+      aggregatePaginate: (agg: unknown, opts: unknown) => Promise<unknown>
+    }
+    const notes = await NoteModel.aggregatePaginate(Note.aggregate(pipeline), {
+      page,
+      limit,
+      sort: { [sortBy]: sortType },
+      customLabels: { docs: 'notes' },
+    })
 
     if (!notes) {
       return NextResponse.json(
@@ -392,10 +396,7 @@ export async function PATCH(req: NextRequest) {
       updateData.semester = semesterNum
     }
     if (term) {
-      const validTerms = [
-        'Mid',
-        'End',
-      ]
+      const validTerms = ['Mid', 'End']
       if (!validTerms.includes(term)) {
         return NextResponse.json({ message: 'Invalid term' }, { status: 400 })
       }
@@ -437,7 +438,10 @@ export async function PATCH(req: NextRequest) {
 
     if (error instanceof Error && error.name === 'ValidationError') {
       return NextResponse.json(
-        { message: 'Validation failed', errors: (error as Error & { errors?: unknown }).errors },
+        {
+          message: 'Validation failed',
+          errors: (error as Error & { errors?: unknown }).errors,
+        },
         { status: 400 }
       )
     }

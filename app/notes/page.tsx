@@ -24,11 +24,7 @@ const Notes = () => {
   const [batches, setBatches] = useState<string[]>(['All'])
   const [semesters, setSemesters] = useState<string[]>(['All'])
   const [subjects, setSubjects] = useState<string[]>(['All'])
-  const [exams, setExams] = useState<string[]>([
-    'Mid',
-    'End',
-    'All',
-  ])
+  const [exams, setExams] = useState<string[]>(['Mid', 'End', 'All'])
 
   useEffect(() => {
     fetchNotes()
@@ -85,7 +81,11 @@ const Notes = () => {
       setSubjects([...uniqueSubjects, 'All'])
 
       const uniqueBatches = [
-        ...new Set(transformedNotes.map((note) => (note.batch || new Date().getFullYear()).toString())),
+        ...new Set(
+          transformedNotes.map((note) =>
+            (note.batch || new Date().getFullYear()).toString()
+          )
+        ),
       ].sort((a, b) => Number(b) - Number(a))
       setBatches([...uniqueBatches, 'All'])
 
@@ -112,12 +112,7 @@ const Notes = () => {
     return 1 // Default fallback
   }
 
-  const normalizeExamType = (
-    term: string
-  ):
-    | 'Mid'
-    | 'End'
-    | 'Both' => {
+  const normalizeExamType = (term: string): 'Mid' | 'End' | 'Both' => {
     const lowerTerm = term.toLowerCase()
     if (lowerTerm.includes('mid')) return 'Mid'
     if (lowerTerm.includes('end')) return 'End'
@@ -125,36 +120,24 @@ const Notes = () => {
   }
 
   useEffect(() => {
-    const filteredNotes = allNotes.filter(
-      (note: TypeNote) => {
-        if (
-          selectedBatch !== 'All' &&
-          (note.batch || new Date().getFullYear()).toString() !== selectedBatch
-        )
-          return false
-        if (
-          selectedSemester !== 'All' &&
-          note.semester.toString() !== selectedSemester
-        )
-          return false
-        if (
-          selectedSubject !== 'All' &&
-          note.subject !== selectedSubject
-        )
-          return false
-        if (selectedExam !== 'All' && note.exam !== selectedExam)
-          return false
-        return true
-      }
-    )
+    const filteredNotes = allNotes.filter((note: TypeNote) => {
+      if (
+        selectedBatch !== 'All' &&
+        (note.batch || new Date().getFullYear()).toString() !== selectedBatch
+      )
+        return false
+      if (
+        selectedSemester !== 'All' &&
+        note.semester.toString() !== selectedSemester
+      )
+        return false
+      if (selectedSubject !== 'All' && note.subject !== selectedSubject)
+        return false
+      if (selectedExam !== 'All' && note.exam !== selectedExam) return false
+      return true
+    })
     setUserNotes(filteredNotes)
-  }, [
-    selectedBatch,
-    selectedSemester,
-    selectedSubject,
-    selectedExam,
-    allNotes,
-  ])
+  }, [selectedBatch, selectedSemester, selectedSubject, selectedExam, allNotes])
 
   const handleNoteDeleted = () => {
     fetchNotes()
@@ -228,9 +211,7 @@ const Notes = () => {
           </div>
         ) : userNotes.length === 0 ? (
           <div className="text-center py-10">
-            <p className="text-lg">
-              No notes found matching your filters.
-            </p>
+            <p className="text-lg">No notes found matching your filters.</p>
             <button
               className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md"
               onClick={() => {
@@ -249,10 +230,7 @@ const Notes = () => {
               key={`${note.subject}-${note.batch}-${note.exam}-${note.semester}-${index}`}
               className="w-full"
             >
-              <NoteCard
-                note={note}
-                onDelete={handleNoteDeleted}
-              />
+              <NoteCard note={note} onDelete={handleNoteDeleted} />
             </div>
           ))
         )}

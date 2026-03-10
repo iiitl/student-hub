@@ -1,13 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
-import {
-  Download,
-  Eye,
-  Trash2,
-  Edit,
-  Info,
-} from 'lucide-react'
+import { Download, Eye, Trash2, Edit, Info } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { TypeNote } from '@/types/note'
@@ -36,8 +30,7 @@ const NoteCard = ({ note, onDelete }: NoteCardProps) => {
     const link = document.createElement('a')
     link.href = note.url
     link.download =
-      note.fileName ||
-      `${note.subject}_${note.exam}_${note.batch}.pdf`
+      note.fileName || `${note.subject}_${note.exam}_${note.batch}.pdf`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)

@@ -501,4 +501,3 @@ const UploadNotePage = () => {
 }
 
 export default UploadNotePage
- 

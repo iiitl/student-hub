@@ -222,12 +222,8 @@ const EditNotePage = ({ params }: { params: Promise<{ id: string }> }) => {
     <div className="min-h-screen bg-background p-4">
       <div className="mx-auto max-w-2xl">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Edit Note
-          </h1>
-          <p className="text-muted-foreground">
-            Update the note details
-          </p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Edit Note</h1>
+          <p className="text-muted-foreground">Update the note details</p>
         </div>
 
         <Card className="shadow-lg">
