@@ -377,7 +377,10 @@ const UploadNotePage = () => {
                 <Calendar className="w-4 h-4" />
                 Batch (Joining Year) *
               </label>
-              <Select value={formData.year || ''} onValueChange={(v) => handleSelectChange('year', v)}>
+              <Select
+                value={formData.year || ''}
+                onValueChange={(v) => handleSelectChange('year', v)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
@@ -396,7 +399,10 @@ const UploadNotePage = () => {
                 <GraduationCap className="w-4 h-4" />
                 Semester *
               </label>
-              <Select value={formData.semester || ''} onValueChange={(v) => handleSelectChange('semester', v)}>
+              <Select
+                value={formData.semester || ''}
+                onValueChange={(v) => handleSelectChange('semester', v)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select semester" />
                 </SelectTrigger>
@@ -417,7 +423,10 @@ const UploadNotePage = () => {
               <GraduationCap className="w-4 h-4" />
               Exam Type *
             </label>
-            <Select value={formData.term || ''} onValueChange={(v) => handleSelectChange('term', v)}>
+            <Select
+              value={formData.term || ''}
+              onValueChange={(v) => handleSelectChange('term', v)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select exam type" />
               </SelectTrigger>
@@ -442,11 +451,12 @@ const UploadNotePage = () => {
               onDragLeave={() => setDragOver(false)}
               onDrop={handleDrop}
               className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors duration-200 cursor-pointer
-                ${dragOver
-                  ? 'border-primary bg-primary/5'
-                  : formData.uploaded_file
-                    ? 'border-green-500/50 bg-green-500/5'
-                    : 'border-border hover:border-primary/50 hover:bg-muted/40'
+                ${
+                  dragOver
+                    ? 'border-primary bg-primary/5'
+                    : formData.uploaded_file
+                      ? 'border-green-500/50 bg-green-500/5'
+                      : 'border-border hover:border-primary/50 hover:bg-muted/40'
                 }`}
             >
               <input

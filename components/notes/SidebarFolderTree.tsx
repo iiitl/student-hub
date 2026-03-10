@@ -30,7 +30,9 @@ const SidebarFolderTree = ({
 
   const renderTree = (nodes: TreeNode[], depth = 0, parentKey = '') => {
     return (
-      <ul className={`space-y-0.5 ${depth > 0 ? 'ml-3 border-l border-border pl-2' : ''}`}>
+      <ul
+        className={`space-y-0.5 ${depth > 0 ? 'ml-3 border-l border-border pl-2' : ''}`}
+      >
         {nodes.map((node) => {
           const nodeKey = `${parentKey}/${node.type}-${node.name}-${node.type === 'note' ? node.id : ''}`
           return (
@@ -46,13 +48,21 @@ const SidebarFolderTree = ({
                       className={`text-muted-foreground transition-transform duration-150 flex-shrink-0 ${expanded.has(nodeKey) ? 'rotate-90' : ''}`}
                     />
                     {expanded.has(nodeKey) ? (
-                      <FolderOpen size={15} className="text-muted-foreground flex-shrink-0" />
+                      <FolderOpen
+                        size={15}
+                        className="text-muted-foreground flex-shrink-0"
+                      />
                     ) : (
-                      <Folder size={15} className="text-muted-foreground flex-shrink-0" />
+                      <Folder
+                        size={15}
+                        className="text-muted-foreground flex-shrink-0"
+                      />
                     )}
                     <span className="truncate font-medium">{node.name}</span>
                   </button>
-                  {expanded.has(nodeKey) && node.children && renderTree(node.children, depth + 1, nodeKey)}
+                  {expanded.has(nodeKey) &&
+                    node.children &&
+                    renderTree(node.children, depth + 1, nodeKey)}
                 </div>
               ) : (
                 <button
@@ -61,9 +71,10 @@ const SidebarFolderTree = ({
                     onNoteClick(activeNoteId === node.id ? null : node.id)
                   }
                   className={`flex items-center gap-2 px-2 py-1.5 w-full rounded-md text-sm transition-colors duration-150
-                    ${activeNoteId === node.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                    ${
+                      activeNoteId === node.id
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                     }`}
                 >
                   <FileText size={14} className="flex-shrink-0" />

@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
         public_id: string
       } | null
     } finally {
-      await fs.unlink(tempFilePath).catch(() => { })
+      await fs.unlink(tempFilePath).catch(() => {})
     }
 
     if (!cloudinaryResult) {
@@ -135,7 +135,7 @@ export async function POST(req: NextRequest) {
       })
     } catch (dbError) {
       // DB write failed — clean up the already-uploaded Cloudinary asset
-      await deleteOnCloudinary(cloudinaryResult.public_id).catch(() => { })
+      await deleteOnCloudinary(cloudinaryResult.public_id).catch(() => {})
       throw dbError
     }
 

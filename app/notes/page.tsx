@@ -23,19 +23,19 @@ const CATEGORIES: {
   subtitle: string
   icon: React.ReactNode
 }[] = [
-    {
-      id: 'academic',
-      label: 'Academic Notes',
-      subtitle: 'University study material, lecture notes & past papers',
-      icon: <GraduationCap className="w-5 h-5" />,
-    },
-    {
-      id: 'axios',
-      label: 'Axios — Technical Club',
-      subtitle: 'Resources, workshops & materials by the Tech Club',
-      icon: <Code2 className="w-5 h-5" />,
-    },
-  ]
+  {
+    id: 'academic',
+    label: 'Academic Notes',
+    subtitle: 'University study material, lecture notes & past papers',
+    icon: <GraduationCap className="w-5 h-5" />,
+  },
+  {
+    id: 'axios',
+    label: 'Axios — Technical Club',
+    subtitle: 'Resources, workshops & materials by the Tech Club',
+    icon: <Code2 className="w-5 h-5" />,
+  },
+]
 
 /* ─── Simple filter dropdown using theme tokens ── */
 interface FilterDropdownProps {
@@ -58,9 +58,10 @@ const FilterDropdown = ({
       <button
         onClick={() => setOpen((p) => !p)}
         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm border transition-colors duration-150
-          ${isSet
-            ? 'border-primary bg-primary/10 text-primary'
-            : 'border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground'
+          ${
+            isSet
+              ? 'border-primary bg-primary/10 text-primary'
+              : 'border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground'
           }`}
       >
         <span>{isSet ? value : label}</span>
@@ -78,9 +79,10 @@ const FilterDropdown = ({
                 setOpen(false)
               }}
               className={`flex w-full items-center px-4 py-2 text-sm text-left transition-colors
-                ${opt === value
-                  ? 'bg-primary/10 text-primary font-medium'
-                  : 'hover:bg-muted'
+                ${
+                  opt === value
+                    ? 'bg-primary/10 text-primary font-medium'
+                    : 'hover:bg-muted'
                 }`}
             >
               {opt}
@@ -309,9 +311,10 @@ const Notes = () => {
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
                 className={`flex items-start gap-3 p-4 rounded-lg border text-left transition-colors duration-150
-                  ${isActive
-                    ? 'border-primary bg-primary/5 text-foreground'
-                    : 'border-border bg-card hover:bg-muted text-foreground'
+                  ${
+                    isActive
+                      ? 'border-primary bg-primary/5 text-foreground'
+                      : 'border-border bg-card hover:bg-muted text-foreground'
                   }`}
               >
                 <div
