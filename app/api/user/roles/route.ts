@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     await dbConnect()
 
     const user = await User.findById(userId).select('roles email')
-    
+
     if (!user) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 })
     }

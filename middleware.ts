@@ -161,9 +161,7 @@ export async function middleware(request: NextRequest) {
   if (path.startsWith('/api/admin/') || path.startsWith('/admin/')) {
     const token = await getToken({ req: request })
     const hasAdminRole =
-      token &&
-      Array.isArray(token.roles) &&
-      token.roles.includes('admin')
+      token && Array.isArray(token.roles) && token.roles.includes('admin')
     const isSuperAdmin = token?.email === 'technicalclub@iiitl.ac.in'
 
     if (!token || (!hasAdminRole && !isSuperAdmin)) {

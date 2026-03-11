@@ -18,10 +18,9 @@ export async function GET(request: NextRequest) {
     await dbConnect()
 
     // Find all users who have the admin role
-    const admins = await User.find(
-      { roles: 'admin' },
-      'name email roles'
-    ).sort({ name: 1 })
+    const admins = await User.find({ roles: 'admin' }, 'name email roles').sort(
+      { name: 1 }
+    )
 
     return NextResponse.json({
       admins: admins.map((admin) => ({
