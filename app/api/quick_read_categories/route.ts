@@ -1,38 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import dbConnect from '@/lib/dbConnect'
 import Category from '@/model/quick_read_category'
-import QuickRead from '@/model/QuickRead'
 import User from '@/model/User'
 import { verifyJwt } from '@/lib/auth-utils'
 
 export const dynamic = 'force-dynamic'
 
-// Public: Get all categories
+// Public: Get all categories (with content)
 export async function GET() {
   try {
     await dbConnect()
 
-    let categories = await Category.find()
+    const categories = await Category.find()
       .sort({ order: 1, createdAt: 1 })
       .lean()
-
-    // Seed initial categories if DB is empty
-    if (categories.length === 0) {
-      const initial = [
-        'App',
-        'Web',
-        'FOSS',
-        'Competitive Programming',
-        'ML',
-        'Blockchain',
-        'Information Security',
-        'Design',
-        'GSOC Proposals',
-      ].map((name, index) => ({ name, order: index }))
-
-      await Category.insertMany(initial)
-      categories = await Category.find().sort({ order: 1, createdAt: 1 }).lean()
-    }
 
     return NextResponse.json({ success: true, categories }, { status: 200 })
   } catch (error) {
@@ -73,7 +54,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { name } = await request.json()
+    const { name, content } = await request.json()
 
     if (!name || name.trim() === '') {
       return NextResponse.json(
@@ -94,6 +75,7 @@ export async function POST(request: NextRequest) {
 
     const category = await Category.create({
       name: name.trim(),
+      content: content || '',
       createdBy: userId,
     })
 
@@ -155,12 +137,10 @@ export async function DELETE(request: NextRequest) {
         { status: 404 }
       )
 
-    // Delete associated quick reads
-    await QuickRead.deleteMany({ category: category.name })
     await Category.findByIdAndDelete(id)
 
     return NextResponse.json(
-      { success: true, message: 'Category and its resources deleted' },
+      { success: true, message: 'Category deleted' },
       { status: 200 }
     )
   } catch (error) {
@@ -172,7 +152,7 @@ export async function DELETE(request: NextRequest) {
   }
 }
 
-// Admins only: Edit category name
+// Admins only: Update category name and/or content
 export async function PATCH(request: NextRequest) {
   try {
     await dbConnect()
@@ -201,11 +181,11 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    const { id, newName } = await request.json()
+    const { id, newName, content } = await request.json()
 
-    if (!id || !newName) {
+    if (!id) {
       return NextResponse.json(
-        { success: false, message: 'ID and new name are required' },
+        { success: false, message: 'Category ID is required' },
         { status: 400 }
       )
     }
@@ -217,26 +197,24 @@ export async function PATCH(request: NextRequest) {
         { status: 404 }
       )
 
-    const oldName = category.name
-
-    const existing = await Category.findOne({
-      name: { $regex: new RegExp(`^${newName}$`, 'i') },
-    })
-    if (existing && String(existing._id) !== id) {
-      return NextResponse.json(
-        { success: false, message: 'Category name already exists' },
-        { status: 400 }
-      )
+    if (newName) {
+      const existing = await Category.findOne({
+        name: { $regex: new RegExp(`^${newName}$`, 'i') },
+      })
+      if (existing && String(existing._id) !== id) {
+        return NextResponse.json(
+          { success: false, message: 'Category name already exists' },
+          { status: 400 }
+        )
+      }
+      category.name = newName.trim()
     }
 
-    category.name = newName.trim()
-    await category.save()
+    if (content !== undefined) {
+      category.content = content
+    }
 
-    // Update all existing quick reads that had the old category name
-    await QuickRead.updateMany(
-      { category: oldName },
-      { $set: { category: newName.trim() } }
-    )
+    await category.save()
 
     return NextResponse.json(
       { success: true, message: 'Category updated', category },

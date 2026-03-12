@@ -2,79 +2,260 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
+import Link from 'next/link'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import {
   Plus,
   Trash2,
-  ExternalLink,
   Loader2,
   AlertCircle,
   Edit,
+  ClipboardList,
+  Send,
+  X,
+  Eye,
+  FileEdit,
+  Save,
 } from 'lucide-react'
 
-// Types
-type QuickRead = {
-  _id: string
-  title: string
-  description?: string
-  url: string
-  category: string
-  source?: string
-  uploadedBy?: { name: string; email: string }
+// Custom markdown renderers for proper styling (GitHub-like)
+const markdownComponents = {
+  code({ node, inline, className, children, ...props }: any) {
+    if (inline) {
+      return (
+        <code
+          style={{
+            backgroundColor: '#f0f0f0',
+            color: '#24292e',
+            padding: '0.2em 0.4em',
+            margin: '0 0.2em',
+            borderRadius: '3px',
+            fontFamily: 'monospace',
+            fontSize: '0.85em',
+            whiteSpace: 'normal',
+            fontStyle: 'normal',
+          }}
+          {...props}
+        >
+          {children}
+        </code>
+      )
+    }
+    return (
+      <code
+        style={{
+          fontFamily: 'monospace',
+          fontSize: '0.85em',
+          color: '#24292e',
+        }}
+        {...props}
+      >
+        {children}
+      </code>
+    )
+  },
+  pre({ node, children, ...props }: any) {
+    return (
+      <pre
+        style={{
+          backgroundColor: '#f6f8fa',
+          padding: '16px',
+          overflow: 'auto',
+          borderRadius: '6px',
+          border: '1px solid #d0d7de',
+          marginBottom: '16px',
+        }}
+        {...props}
+      >
+        {children}
+      </pre>
+    )
+  },
+  p({ node, children, ...props }: any) {
+    return (
+      <p style={{ marginBottom: '0.5em', lineHeight: '1.6' }} {...props}>
+        {children}
+      </p>
+    )
+  },
+  a({ node, href, children, ...props }: any) {
+    return (
+      <a
+        href={href}
+        style={{
+          color: '#0969da',
+          textDecoration: 'none',
+          cursor: 'pointer',
+          borderBottom: '1px solid #0969da',
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
+        onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
+        {...props}
+      >
+        {children}
+      </a>
+    )
+  },
+  h1({ node, children, ...props }: any) {
+    return (
+      <h1
+        style={{
+          fontSize: '2em',
+          fontWeight: 'bold',
+          marginBottom: '0.5em',
+          marginTop: '1em',
+        }}
+        {...props}
+      >
+        {children}
+      </h1>
+    )
+  },
+  h2({ node, children, ...props }: any) {
+    return (
+      <h2
+        style={{
+          fontSize: '1.5em',
+          fontWeight: 'bold',
+          marginBottom: '0.4em',
+          marginTop: '0.8em',
+        }}
+        {...props}
+      >
+        {children}
+      </h2>
+    )
+  },
+  h3({ node, children, ...props }: any) {
+    return (
+      <h3
+        style={{
+          fontSize: '1.25em',
+          fontWeight: 'bold',
+          marginBottom: '0.3em',
+          marginTop: '0.6em',
+        }}
+        {...props}
+      >
+        {children}
+      </h3>
+    )
+  },
+  blockquote({ node, children, ...props }: any) {
+    return (
+      <blockquote
+        style={{
+          borderLeft: '4px solid #d1d9e0',
+          color: '#57606a',
+          paddingLeft: '16px',
+          marginLeft: '0',
+          marginRight: '0',
+          marginTop: '0',
+          marginBottom: '16px',
+        }}
+        {...props}
+      >
+        {children}
+      </blockquote>
+    )
+  },
 }
 
 type CategoryType = {
   _id: string
   name: string
+  content: string
   order: number
 }
+
+type PendingChange = {
+  id: string
+  changeType: 'add' | 'edit' | 'delete'
+  targetType: 'category'
+  targetCategoryId?: string
+  proposedData: {
+    categoryName?: string
+    oldContent?: string
+    newContent?: string
+  }
+}
+
+let localIdCounter = 0
+const nextLocalId = () => `local_${Date.now()}_${++localIdCounter}`
 
 export default function QuickReads() {
   const { data: session } = useSession()
 
-  // States
+  // Data
   const [categories, setCategories] = useState<CategoryType[]>([])
   const [activeCategory, setActiveCategory] = useState<string>('')
-  const [cache, setCache] = useState<Record<string, QuickRead[]>>({})
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
-  // Authorization checking
+  // Auth
   const [canManage, setCanManage] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
-  // Fetch categories on load
+  // Editor
+  const [isEditing, setIsEditing] = useState(false)
+  const [editContent, setEditContent] = useState('')
+  const [showPreview, setShowPreview] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+
+  // Staging (non-admin)
+  const [pendingChanges, setPendingChanges] = useState<PendingChange[]>([])
+  const [localCategories, setLocalCategories] = useState<
+    { id: string; name: string; content: string }[]
+  >([])
+  const [localContentEdits, setLocalContentEdits] = useState<
+    Record<string, string>
+  >({})
+  const [deletedCategoryIds, setDeletedCategoryIds] = useState<Set<string>>(
+    new Set()
+  )
+
+  // Toast
+  const [toast, setToast] = useState<string | null>(null)
+  const [isSubmittingBatch, setIsSubmittingBatch] = useState(false)
+  const [isStagingOpen, setIsStagingOpen] = useState(false)
+
+  // Category modal
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false)
+  const [catNameInput, setCatNameInput] = useState('')
+
+  const showToast = (message: string) => {
+    setToast(message)
+    setTimeout(() => setToast(null), 5000)
+  }
+
+  // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
+      setIsLoading(true)
       try {
         const res = await fetch('/api/quick_read_categories')
         const data = await res.json()
         if (data.success && data.categories.length > 0) {
           setCategories(data.categories)
-
-          const savedCategory = localStorage.getItem('quickReadsCategory')
-          const isValidSaved =
-            savedCategory &&
-            data.categories.some((c: CategoryType) => c.name === savedCategory)
-
-          setActiveCategory(
-            isValidSaved ? savedCategory : data.categories[0].name
-          )
+          const saved = localStorage.getItem('quickReadsCategory')
+          const valid =
+            saved &&
+            data.categories.some((c: CategoryType) => c.name === saved)
+          setActiveCategory(valid ? saved : data.categories[0].name)
         }
       } catch (err) {
         console.error('Failed to load categories', err)
+      } finally {
+        setIsLoading(false)
       }
     }
     fetchCategories()
   }, [])
 
-  const handleCategoryChange = (category: string) => {
-    setActiveCategory(category)
-    localStorage.setItem('quickReadsCategory', category)
-  }
-
-  // Fetch live roles to guarantee admins have access without relogging
+  // Auth check
   useEffect(() => {
     let isMounted = true
-    const checkLiveRoles = async () => {
+    const checkRoles = async () => {
       try {
         const res = await fetch('/api/user/roles')
         if (res.ok) {
@@ -84,270 +265,346 @@ export default function QuickReads() {
             Array.isArray(data.roles) && data.roles.includes('admin')
           if (isMounted) {
             setCanManage(isSuperAdmin || hasAdminRole)
+            setIsLoggedIn(true)
           }
-        } else {
-          fallbackAuth()
+        } else if (isMounted && session?.user) {
+          const isSuperSession =
+            session.user.email === 'technicalclub@iiitl.ac.in'
+          const hasAdminSession =
+            Array.isArray(session.user.roles) &&
+            session.user.roles.includes('admin')
+          setCanManage(isSuperSession || hasAdminSession)
+          setIsLoggedIn(true)
         }
-      } catch (e) {
-        fallbackAuth()
+      } catch {
+        if (isMounted && session?.user) {
+          setIsLoggedIn(true)
+        }
       }
     }
-
-    const fallbackAuth = () => {
-      if (isMounted && session?.user) {
-        const isSuperSession =
-          session.user.email === 'technicalclub@iiitl.ac.in'
-        const hasAdminSession =
-          Array.isArray(session.user.roles) &&
-          session.user.roles.includes('admin')
-        setCanManage(isSuperSession || hasAdminSession)
-      }
-    }
-
-    if (session?.user) {
-      checkLiveRoles()
-    } else {
+    if (session?.user) checkRoles()
+    else {
       setCanManage(false)
+      setIsLoggedIn(false)
     }
-
     return () => {
       isMounted = false
     }
   }, [session])
 
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isEditMode, setIsEditMode] = useState(false)
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    url: '',
-    source: 'StudentHub',
-  })
+  const handleCategoryChange = useCallback((name: string) => {
+    setActiveCategory(name)
+    localStorage.setItem('quickReadsCategory', name)
+    setIsEditing(false)
+    setShowPreview(false)
+  }, [])
 
-  // Category Management states
-  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false)
-  const [isCatEditMode, setIsCatEditMode] = useState(false)
-  const [editingCatId, setEditingCatId] = useState<string | null>(null)
-  const [catNameInput, setCatNameInput] = useState('')
-  const [isCatSubmitting, setIsCatSubmitting] = useState(false)
+  // Computed
+  const allCategories = [
+    ...categories.filter((c) => !deletedCategoryIds.has(c._id)),
+    ...localCategories.map((lc) => ({
+      _id: lc.id,
+      name: lc.name,
+      content: lc.content,
+      order: 999,
+    })),
+  ]
 
-  const currentData = cache[activeCategory]
+  const activeData = allCategories.find((c) => c.name === activeCategory)
+  const isLocalCategory = (name: string) =>
+    localCategories.some((lc) => lc.name === name)
 
-  const fetchCategoryData = useCallback(
-    async (category: string) => {
-      if (!category) return
-      if (cache[category]) return
-
-      setIsLoading(true)
-      setError(null)
-
-      try {
-        const res = await fetch(
-          `/api/quick-reads?category=${encodeURIComponent(category)}`
-        )
-        const data = await res.json()
-
-        if (!res.ok) {
-          throw new Error(data.message || 'Failed to fetch quick reads')
-        }
-
-        setCache((prev) => ({ ...prev, [category]: data.quickReads || [] }))
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : 'An unknown error occurred'
-        )
-      } finally {
-        setIsLoading(false)
-      }
-    },
-    [cache]
-  )
-
-  useEffect(() => {
-    fetchCategoryData(activeCategory)
-  }, [activeCategory, fetchCategoryData])
-
-  const handleDelete = async (id: string, e: React.MouseEvent) => {
-    e.preventDefault() // prevent navigating to external link
-    if (!confirm('Are you sure you want to delete this Quick Read?')) return
-
-    try {
-      const res = await fetch(`/api/quick-reads?id=${id}`, {
-        method: 'DELETE',
-      })
-
-      if (!res.ok) {
-        throw new Error('Failed to delete')
-      }
-
-      setCache((prev) => {
-        const newCache = { ...prev }
-        newCache[activeCategory] = newCache[activeCategory].filter(
-          (item) => item._id !== id
-        )
-        return newCache
-      })
-    } catch (err) {
-      alert('Error deleting item')
-      console.error(err)
+  // Get the effective content (local edits take priority)
+  const getContent = () => {
+    if (localContentEdits[activeCategory] !== undefined) {
+      return localContentEdits[activeCategory]
     }
+    return activeData?.content || ''
   }
 
-  const handleEdit = (item: QuickRead, e: React.MouseEvent) => {
-    e.preventDefault()
-    setIsEditMode(true)
-    setEditingId(item._id)
-    setFormData({
-      title: item.title,
-      description: item.description || '',
-      url: item.url,
-      source: item.source || 'StudentHub',
-    })
-    setIsModalOpen(true)
+  // ---- Editor actions ----
+  const startEditing = () => {
+    setEditContent(getContent())
+    setIsEditing(true)
+    setShowPreview(false)
   }
 
-  const openAddModal = () => {
-    setIsEditMode(false)
-    setEditingId(null)
-    setFormData({ title: '', description: '', url: '', source: 'StudentHub' })
-    setIsModalOpen(true)
+  const cancelEditing = () => {
+    setIsEditing(false)
+    setShowPreview(false)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-    setError(null)
-
+  // Admin: save directly
+  const adminSaveContent = async () => {
+    if (!activeData) return
+    setIsSaving(true)
     try {
-      const method = isEditMode ? 'PATCH' : 'POST'
-      const bodyPayload = isEditMode
-        ? { id: editingId, ...formData, category: activeCategory }
-        : { ...formData, category: activeCategory }
-
-      const res = await fetch('/api/quick-reads', {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bodyPayload),
-      })
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.message || 'Failed to save quick read')
-      }
-
-      setCache((prev) => {
-        const newCache = { ...prev }
-        if (isEditMode && editingId) {
-          const index = newCache[activeCategory].findIndex(
-            (item) => item._id === editingId
-          )
-          if (index !== -1) {
-            const updatedList = [...newCache[activeCategory]]
-            updatedList[index] = data.quickRead
-            newCache[activeCategory] = updatedList
-          }
-        } else {
-          newCache[activeCategory] = [
-            data.quickRead,
-            ...(newCache[activeCategory] || []),
-          ]
-        }
-        return newCache
-      })
-
-      setIsModalOpen(false)
-      setIsEditMode(false)
-      setEditingId(null)
-      setFormData({ title: '', description: '', url: '', source: 'StudentHub' })
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Error saving quick read')
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  // Category Handlers
-  const handleCatSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsCatSubmitting(true)
-
-    try {
-      const method = isCatEditMode ? 'PATCH' : 'POST'
-      const payload = isCatEditMode
-        ? { id: editingCatId, newName: catNameInput }
-        : { name: catNameInput }
-
       const res = await fetch('/api/quick_read_categories', {
-        method,
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ id: activeData._id, content: editContent }),
       })
       const data = await res.json()
+      if (!res.ok) throw new Error(data.message || 'Failed to save')
 
+      setCategories((prev) =>
+        prev.map((c) =>
+          c._id === activeData._id ? { ...c, content: editContent } : c
+        )
+      )
+      setIsEditing(false)
+      showToast('Content saved successfully!')
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Error saving')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // Non-admin: stage content edit
+  const stageContentEdit = () => {
+    if (!activeData) return
+    const oldContent = activeData.content || ''
+    const isLocal = isLocalCategory(activeCategory)
+
+    if (isLocal) {
+      // Update local category content directly
+      setLocalCategories((prev) =>
+        prev.map((lc) =>
+          lc.name === activeCategory ? { ...lc, content: editContent } : lc
+        )
+      )
+      // Update the pending add change
+      setPendingChanges((prev) =>
+        prev.map((pc) =>
+          pc.proposedData?.categoryName === activeCategory &&
+          pc.changeType === 'add'
+            ? {
+                ...pc,
+                proposedData: {
+                  ...pc.proposedData,
+                  newContent: editContent,
+                },
+              }
+            : pc
+        )
+      )
+    } else {
+      // Stage an edit for an existing category
+      setLocalContentEdits((prev) => ({
+        ...prev,
+        [activeCategory]: editContent,
+      }))
+
+      // Remove existing edit for this category if any
+      setPendingChanges((prev) =>
+        prev.filter(
+          (pc) =>
+            !(
+              pc.targetCategoryId === activeData._id &&
+              pc.changeType === 'edit'
+            )
+        )
+      )
+
+      const changeId = nextLocalId()
+      setPendingChanges((prev) => [
+        ...prev,
+        {
+          id: changeId,
+          changeType: 'edit',
+          targetType: 'category',
+          targetCategoryId: activeData._id,
+          proposedData: {
+            categoryName: activeCategory,
+            oldContent,
+            newContent: editContent,
+          },
+        },
+      ])
+    }
+
+    setIsEditing(false)
+    showToast('Content edit staged. Click "Propose Changes" to submit.')
+  }
+
+  const handleSaveContent = canManage ? adminSaveContent : stageContentEdit
+
+  // ---- Category actions ----
+  const handleAddCategory = (e: React.FormEvent) => {
+    e.preventDefault()
+    const name = catNameInput.trim()
+    if (!name) return
+
+    if (canManage) {
+      // Admin: create immediately
+      const createCategory = async () => {
+        try {
+          const res = await fetch('/api/quick_read_categories', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name }),
+          })
+          const data = await res.json()
+          if (!res.ok) throw new Error(data.message || 'Failed')
+          setCategories((prev) => [...prev, data.category])
+          handleCategoryChange(data.category.name)
+          setIsCategoryModalOpen(false)
+        } catch (err) {
+          alert(err instanceof Error ? err.message : 'Error')
+        }
+      }
+      createCategory()
+    } else {
+      // Non-admin: stage
+      const localId = nextLocalId()
+      setLocalCategories((prev) => [...prev, { id: localId, name, content: '' }])
+      setPendingChanges((prev) => [
+        ...prev,
+        {
+          id: localId,
+          changeType: 'add',
+          targetType: 'category',
+          proposedData: { categoryName: name, newContent: '' },
+        },
+      ])
+      handleCategoryChange(name)
+      setIsCategoryModalOpen(false)
+      showToast('Category staged. You can now edit its content.')
+    }
+  }
+
+  const handleDeleteCategory = (id: string, name: string) => {
+    if (!confirm(`Delete category "${name}"?`)) return
+
+    if (canManage) {
+      const doDelete = async () => {
+        try {
+          const res = await fetch(`/api/quick_read_categories?id=${id}`, {
+            method: 'DELETE',
+          })
+          if (!res.ok) throw new Error('Failed')
+          const newCats = categories.filter((c) => c._id !== id)
+          setCategories(newCats)
+          if (activeCategory === name) {
+            handleCategoryChange(newCats.length > 0 ? newCats[0].name : '')
+          }
+        } catch {
+          alert('Error deleting category')
+        }
+      }
+      doDelete()
+    } else {
+      const isLocal = id.startsWith('local_')
+      if (isLocal) {
+        setLocalCategories((prev) => prev.filter((lc) => lc.id !== id))
+        setPendingChanges((prev) => prev.filter((pc) => pc.id !== id))
+        if (activeCategory === name) {
+          const remaining = allCategories.filter((c) => c._id !== id)
+          handleCategoryChange(remaining.length > 0 ? remaining[0].name : '')
+        }
+        showToast('Staged category removed.')
+      } else {
+        setDeletedCategoryIds((prev) => new Set(prev).add(id))
+        const changeId = nextLocalId()
+        setPendingChanges((prev) => [
+          ...prev,
+          {
+            id: changeId,
+            changeType: 'delete',
+            targetType: 'category',
+            targetCategoryId: id,
+            proposedData: { categoryName: name },
+          },
+        ])
+        if (activeCategory === name) {
+          const remaining = allCategories.filter((c) => c._id !== id)
+          handleCategoryChange(remaining.length > 0 ? remaining[0].name : '')
+        }
+        showToast('Category delete staged.')
+      }
+    }
+  }
+
+  // ---- Batch submit ----
+  const submitBatch = async () => {
+    if (pendingChanges.length === 0) return
+    setIsSubmittingBatch(true)
+    try {
+      const changes = pendingChanges.map((pc) => ({
+        changeType: pc.changeType,
+        targetType: pc.targetType,
+        targetCategoryId: pc.targetCategoryId,
+        proposedData: pc.proposedData,
+      }))
+
+      const res = await fetch('/api/proposed-changes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ changes }),
+      })
+      const data = await res.json()
       if (!res.ok) throw new Error(data.message || 'Failed')
 
-      if (isCatEditMode) {
-        setCategories((prev) =>
-          prev.map((c) => (c._id === data.category._id ? data.category : c))
-        )
-        // If we edited the active category name, switch to new name
-        if (
-          activeCategory ===
-          categories.find((c) => c._id === editingCatId)?.name
-        ) {
-          handleCategoryChange(data.category.name)
-          setCache((prev) => {
-            const newC = { ...prev }
-            if (newC[activeCategory]) {
-              newC[data.category.name] = newC[activeCategory].map((item) => ({
-                ...item,
-                category: data.category.name,
-              }))
-            }
-            return newC
-          })
+      // Clear staging
+      setPendingChanges([])
+      setLocalCategories([])
+      setLocalContentEdits({})
+      setDeletedCategoryIds(new Set())
+      setIsStagingOpen(false)
+
+      // Re-fetch
+      const catRes = await fetch('/api/quick_read_categories')
+      const catData = await catRes.json()
+      if (catData.success) {
+        setCategories(catData.categories)
+        if (catData.categories.length > 0) {
+          const saved = localStorage.getItem('quickReadsCategory')
+          const valid =
+            saved &&
+            catData.categories.some((c: CategoryType) => c.name === saved)
+          setActiveCategory(valid ? saved : catData.categories[0].name)
         }
-      } else {
-        setCategories((prev) => [...prev, data.category])
-        if (categories.length === 0) handleCategoryChange(data.category.name)
       }
 
-      setIsCategoryModalOpen(false)
+      showToast(data.message)
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Error')
+      alert(err instanceof Error ? err.message : 'Failed')
     } finally {
-      setIsCatSubmitting(false)
+      setIsSubmittingBatch(false)
     }
   }
 
-  const handleDeleteCategory = async (id: string, name: string) => {
-    if (
-      !confirm(
-        `Are you sure you want to delete the category "${name}"? This will delete ALL resources inside it.`
-      )
-    )
-      return
-    try {
-      const res = await fetch(`/api/quick_read_categories?id=${id}`, {
-        method: 'DELETE',
-      })
-      if (!res.ok) throw new Error('Failed to delete')
-
-      const newCats = categories.filter((c) => c._id !== id)
-      setCategories(newCats)
-      if (activeCategory === name) {
-        handleCategoryChange(newCats.length > 0 ? newCats[0].name : '')
-      }
-    } catch (err) {
-      alert('Error deleting category')
-    }
+  const clearStaging = () => {
+    if (!confirm('Discard all staged changes?')) return
+    setPendingChanges([])
+    setLocalCategories([])
+    setLocalContentEdits({})
+    setDeletedCategoryIds(new Set())
+    showToast('All staged changes discarded.')
   }
+
+  const content = getContent()
 
   return (
     <div className="container mx-auto p-4 md:p-8 max-w-7xl">
+      {/* Toast */}
+      {toast && (
+        <div className="fixed top-4 right-4 z-[60] max-w-sm animate-in slide-in-from-top-2 fade-in duration-300">
+          <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 text-yellow-800 dark:text-yellow-200 px-4 py-3 rounded-lg shadow-lg flex items-start gap-3">
+            <ClipboardList className="h-5 w-5 mt-0.5 shrink-0" />
+            <p className="text-sm font-medium">{toast}</p>
+            <button
+              onClick={() => setToast(null)}
+              className="ml-auto text-yellow-600 hover:text-yellow-800"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
@@ -357,22 +614,25 @@ export default function QuickReads() {
             Curated resources for various domains.
           </p>
         </div>
-
-        {canManage && (
-          <button
-            onClick={openAddModal}
-            className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
-          >
-            <Plus className="h-4 w-4" />
-            Add Resource to {activeCategory}
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {canManage && (
+            <Link
+              href="/proposed-changes"
+              className="flex items-center gap-2 bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition-colors"
+            >
+              <ClipboardList className="h-4 w-4" /> Proposed Changes
+            </Link>
+          )}
+        </div>
       </div>
 
-      {/* Categories / Tabs */}
-      <div className="flex flex-wrap items-center gap-2 mb-8 border-b border-border pb-4">
-        {categories.map((category) => (
-          <div key={category._id} className="group relative flex items-center">
+      {/* Category Tabs */}
+      <div className="flex flex-wrap items-center gap-2 mb-6 border-b border-border pb-4">
+        {allCategories.map((category) => (
+          <div
+            key={category._id}
+            className="group relative flex items-center"
+          >
             <button
               onClick={() => handleCategoryChange(category.name)}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
@@ -382,21 +642,14 @@ export default function QuickReads() {
               }`}
             >
               {category.name}
+              {isLocalCategory(category.name) && (
+                <span className="ml-1.5 text-[10px] bg-yellow-400 text-yellow-900 px-1.5 py-0.5 rounded-full font-bold">
+                  STAGED
+                </span>
+              )}
             </button>
-            {canManage && (
+            {isLoggedIn && (
               <div className="absolute -top-2 -right-2 hidden group-hover:flex bg-background border rounded shadow-sm z-10 p-0.5">
-                <button
-                  onClick={() => {
-                    setIsCatEditMode(true)
-                    setEditingCatId(category._id)
-                    setCatNameInput(category.name)
-                    setIsCategoryModalOpen(true)
-                  }}
-                  className="p-1 hover:text-yellow-600 dark:hover:text-yellow-400"
-                  title="Rename Category"
-                >
-                  <Edit className="h-3 w-3" />
-                </button>
                 <button
                   onClick={() =>
                     handleDeleteCategory(category._id, category.name)
@@ -411,10 +664,9 @@ export default function QuickReads() {
           </div>
         ))}
 
-        {canManage && (
+        {isLoggedIn && (
           <button
             onClick={() => {
-              setIsCatEditMode(false)
               setCatNameInput('')
               setIsCategoryModalOpen(true)
             }}
@@ -426,206 +678,231 @@ export default function QuickReads() {
       </div>
 
       {/* Content Area */}
-      <div className="min-h-[400px]">
-        {isLoading && !currentData ? (
-          <div className="flex justify-center items-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : error ? (
-          <div className="flex flex-col justify-center items-center h-64 text-red-500 bg-red-500/10 rounded-lg p-6 text-center">
-            <AlertCircle className="h-12 w-12 mb-4" />
-            <h3 className="text-lg font-bold">Failed to load content</h3>
-            <p>{error}</p>
-          </div>
-        ) : !currentData || currentData.length === 0 ? (
-          <div className="flex flex-col justify-center items-center h-64 text-gray-500 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-dashed border-gray-300 dark:border-gray-700">
-            <div className="text-4xl mb-4">📚</div>
-            <h3 className="text-xl font-medium text-gray-700 dark:text-gray-300">
-              No content available
-            </h3>
-            <p className="text-sm mt-2">
-              Check back later for new resources in the {activeCategory}{' '}
-              category.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {currentData.map((item) => (
-              <a
-                key={item._id}
-                href={item.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group relative flex flex-col justify-between p-6 rounded-xl border border-border bg-card text-card-foreground shadow-sm hover:shadow-md hover:border-primary/50 transition-all duration-300"
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      ) : !activeCategory || allCategories.length === 0 ? (
+        <div className="flex flex-col justify-center items-center h-64 text-gray-500 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-dashed border-gray-300 dark:border-gray-700">
+          <div className="text-4xl mb-4">📚</div>
+          <h3 className="text-xl font-medium text-gray-700 dark:text-gray-300">
+            No categories yet
+          </h3>
+          <p className="text-sm mt-2">Create a category to get started.</p>
+        </div>
+      ) : isEditing ? (
+        /* Markdown Editor */
+        <div className="border rounded-xl overflow-hidden bg-card">
+          {/* Editor toolbar */}
+          <div className="flex items-center justify-between px-4 py-2 bg-muted border-b">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowPreview(false)}
+                className={`px-3 py-1.5 text-sm rounded-md flex items-center gap-1.5 ${
+                  !showPreview
+                    ? 'bg-background shadow-sm font-medium'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
               >
-                <div>
-                  <div className="flex justify-between items-start mb-4">
-                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-                      {item.source || 'Resource'}
-                    </span>
-                    <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                  </div>
-                  <h3 className="text-lg font-bold mb-2 group-hover:text-primary transition-colors line-clamp-2">
-                    {item.title}
-                  </h3>
-                  {item.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
-                      {item.description}
-                    </p>
-                  )}
-                </div>
-
-                <div className="mt-4 pt-4 border-t border-border/50 flex justify-between items-center">
-                  <p className="text-xs text-muted-foreground">
-                    {item.uploadedBy
-                      ? `Added by ${item.uploadedBy.name}`
-                      : 'Community Shared'}
-                  </p>
-
-                  {canManage && (
-                    <div className="flex items-center gap-1 z-10">
-                      <button
-                        onClick={(e) => handleEdit(item, e)}
-                        className="text-yellow-600 hover:text-yellow-700 hover:bg-yellow-500/10 p-2 rounded-full transition-colors"
-                        aria-label="Edit resource"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={(e) => handleDelete(item._id, e)}
-                        className="text-red-500 hover:text-red-700 hover:bg-red-500/10 p-2 rounded-full transition-colors"
-                        aria-label="Delete resource"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </a>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Add / Edit Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-background rounded-lg shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="p-6">
-              <h2 className="text-2xl font-bold mb-4">
-                {isEditMode ? 'Edit Quick Read' : 'Add Quick Read'}
-              </h2>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Category (Target)
-                  </label>
-                  <input
-                    type="text"
-                    disabled
-                    value={activeCategory}
-                    className="w-full bg-muted text-muted-foreground p-2 rounded-md border"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Title *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.title}
-                    onChange={(e) =>
-                      setFormData({ ...formData, title: e.target.value })
-                    }
-                    className="w-full p-2 rounded-md border bg-background"
-                    placeholder="e.g. Master Next.js API Routes"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    URL *
-                  </label>
-                  <input
-                    type="url"
-                    required
-                    value={formData.url}
-                    onChange={(e) =>
-                      setFormData({ ...formData, url: e.target.value })
-                    }
-                    className="w-full p-2 rounded-md border bg-background"
-                    placeholder="https://..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Description (Optional)
-                  </label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
-                    className="w-full p-2 rounded-md border bg-background h-24 resize-none"
-                    placeholder="Briefly describe what this resource is about..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Source/Platform
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.source}
-                    onChange={(e) =>
-                      setFormData({ ...formData, source: e.target.value })
-                    }
-                    className="w-full p-2 rounded-md border bg-background"
-                    placeholder="e.g. Medium, GitHub, YouTube"
-                  />
-                </div>
-
-                <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="px-4 py-2 rounded-md border hover:bg-muted"
-                    disabled={isSubmitting}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-                  >
-                    {isSubmitting ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : isEditMode ? (
-                      'Save Changes'
-                    ) : (
-                      'Save Resource'
-                    )}
-                  </button>
-                </div>
-              </form>
+                <FileEdit className="h-4 w-4" /> Edit
+              </button>
+              <button
+                onClick={() => setShowPreview(true)}
+                className={`px-3 py-1.5 text-sm rounded-md flex items-center gap-1.5 ${
+                  showPreview
+                    ? 'bg-background shadow-sm font-medium'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Eye className="h-4 w-4" /> Preview
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={cancelEditing}
+                className="px-3 py-1.5 text-sm border rounded-md hover:bg-muted"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveContent}
+                disabled={isSaving}
+                className="px-4 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {isSaving ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}
+                {canManage ? 'Save' : 'Stage Changes'}
+              </button>
             </div>
           </div>
+
+          {/* Editor / Preview pane */}
+          {showPreview ? (
+            <div className="max-w-none min-h-[400px]" style={{ padding: '24px', backgroundColor: '#ffffff', color: '#24292e' }}>
+              {editContent ? (
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={markdownComponents}
+                >
+                  {editContent}
+                </ReactMarkdown>
+              ) : (
+                <p style={{ fontStyle: 'italic', color: '#6a737d' }}>
+                  Nothing to preview.
+                </p>
+              )}
+            </div>
+          ) : (
+            <textarea
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              className="w-full min-h-[400px] p-6 font-mono text-sm bg-background resize-y focus:outline-none"
+              placeholder="Write your markdown content here...&#10;&#10;# Heading&#10;## Subheading&#10;- List item&#10;- Another item&#10;&#10;```code block```&#10;&#10;[Link text](https://example.com)"
+            />
+          )}
+
+          {!canManage && (
+            <div className="px-4 py-2 bg-yellow-50 dark:bg-yellow-900/20 border-t border-yellow-200 dark:border-yellow-700 text-xs text-yellow-700 dark:text-yellow-300">
+              Your changes will be staged locally. Click &quot;Propose
+              Changes&quot; when ready to submit for review.
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Markdown Viewer */
+        <div className="border rounded-xl bg-card overflow-hidden">
+          {/* Viewer toolbar */}
+          <div className="flex items-center justify-between px-4 py-2 bg-muted border-b">
+            <span className="text-sm font-medium text-muted-foreground">
+              {activeCategory} / README.md
+            </span>
+            {isLoggedIn && (
+              <button
+                onClick={startEditing}
+                className="px-3 py-1.5 text-sm border rounded-md hover:bg-background flex items-center gap-1.5 transition-colors"
+              >
+                <Edit className="h-4 w-4" />{' '}
+                {canManage ? 'Edit' : 'Edit (propose)'}
+              </button>
+            )}
+          </div>
+
+          {/* Rendered content */}
+          <div className="max-w-none min-h-[300px]" style={{ padding: '24px', backgroundColor: '#ffffff', color: '#24292e' }}>
+            {content ? (
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={markdownComponents}
+              >
+                {content}
+              </ReactMarkdown>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '192px', color: '#a0aec0' }}>
+                <AlertCircle style={{ height: '32px', width: '32px', marginBottom: '8px' }} />
+                <p style={{ fontSize: '0.875rem' }}>
+                  This file is empty.{' '}
+                  {isLoggedIn && 'Click Edit to add content.'}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {localContentEdits[activeCategory] !== undefined && (
+            <div className="px-4 py-2 bg-yellow-50 dark:bg-yellow-900/20 border-t border-yellow-200 dark:border-yellow-700 text-xs text-yellow-700 dark:text-yellow-300 flex items-center gap-2">
+              <ClipboardList className="h-3 w-3" />
+              You have staged edits for this file.
+            </div>
+          )}
         </div>
       )}
-      {/* Admin Category Modal */}
+
+      {/* Floating Propose Changes button (non-admin) */}
+      {!canManage && isLoggedIn && pendingChanges.length > 0 && (
+        <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
+          {isStagingOpen && (
+            <div className="bg-background border rounded-xl shadow-2xl p-4 w-80 max-h-96 overflow-y-auto animate-in slide-in-from-bottom-2 fade-in duration-200">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-bold text-sm">
+                  Staged Changes ({pendingChanges.length})
+                </h3>
+                <button
+                  onClick={() => setIsStagingOpen(false)}
+                  className="p-1 hover:bg-muted rounded"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="space-y-2 mb-4">
+                {pendingChanges.map((pc) => (
+                  <div
+                    key={pc.id}
+                    className="flex items-center gap-2 text-xs p-2 bg-muted rounded-md"
+                  >
+                    <span
+                      className={`px-1.5 py-0.5 rounded font-bold ${
+                        pc.changeType === 'add'
+                          ? 'bg-green-100 text-green-700'
+                          : pc.changeType === 'edit'
+                          ? 'bg-yellow-100 text-yellow-700'
+                          : 'bg-red-100 text-red-700'
+                      }`}
+                    >
+                      {pc.changeType.toUpperCase()}
+                    </span>
+                    <span className="truncate flex-1 text-muted-foreground">
+                      {pc.proposedData?.categoryName || 'category'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={clearStaging}
+                  className="flex-1 px-3 py-2 text-xs border rounded-md hover:bg-muted text-red-600"
+                >
+                  Discard All
+                </button>
+                <button
+                  onClick={submitBatch}
+                  disabled={isSubmittingBatch}
+                  className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-xs bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+                >
+                  {isSubmittingBatch ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Send className="h-3 w-3" />
+                  )}
+                  Submit
+                </button>
+              </div>
+            </div>
+          )}
+          <button
+            onClick={() => setIsStagingOpen(!isStagingOpen)}
+            className="flex items-center gap-2 bg-green-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-green-700 transition-all hover:scale-105"
+          >
+            <Send className="h-5 w-5" />
+            Propose Changes ({pendingChanges.length})
+          </button>
+        </div>
+      )}
+
+      {/* Category Modal */}
       {isCategoryModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-background rounded-lg shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="p-6">
-              <h2 className="text-xl font-bold mb-4">
-                {isCatEditMode ? 'Rename Category' : 'Create Category'}
-              </h2>
-              <form onSubmit={handleCatSubmit} className="space-y-4">
+              <h2 className="text-xl font-bold mb-4">Create Category</h2>
+              {!canManage && (
+                <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-md text-sm text-yellow-700 dark:text-yellow-300">
+                  This category will be staged locally. You can edit its
+                  content before submitting.
+                </div>
+              )}
+              <form onSubmit={handleAddCategory} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">
                     Category Name *
@@ -633,11 +910,11 @@ export default function QuickReads() {
                   <input
                     type="text"
                     required
-                    maxLength={30}
+                    maxLength={50}
                     value={catNameInput}
                     onChange={(e) => setCatNameInput(e.target.value)}
                     className="w-full p-2 rounded-md border bg-background"
-                    placeholder="e.g. Artificial Intelligence"
+                    placeholder="e.g. Machine Learning"
                   />
                 </div>
                 <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
@@ -645,20 +922,14 @@ export default function QuickReads() {
                     type="button"
                     onClick={() => setIsCategoryModalOpen(false)}
                     className="px-4 py-2 rounded-md border hover:bg-muted"
-                    disabled={isCatSubmitting}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    disabled={isCatSubmitting}
-                    className="flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                    className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
                   >
-                    {isCatSubmitting ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      'Save Category'
-                    )}
+                    {canManage ? 'Create' : 'Stage Category'}
                   </button>
                 </div>
               </form>
