@@ -246,6 +246,7 @@ export async function PATCH(request: NextRequest) {
           await Category.create({
             name: catName,
             content: proposal.proposedData?.newContent || '',
+            visibility: proposal.proposedData?.visibility || 'public',
             createdBy: proposal.proposedBy,
           })
         }
@@ -261,6 +262,9 @@ export async function PATCH(request: NextRequest) {
         }
         if (proposal.proposedData?.newContent !== undefined) {
           category.content = proposal.proposedData.newContent
+        }
+        if (proposal.proposedData?.visibility !== undefined) {
+          category.visibility = proposal.proposedData.visibility as 'public' | 'college_only'
         }
         await category.save()
       }

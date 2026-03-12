@@ -20,8 +20,14 @@ import {
 } from 'lucide-react'
 
 // Custom markdown renderers for proper styling (GitHub-like)
+type MarkdownComponentProps = React.HTMLAttributes<HTMLElement> & {
+  node?: unknown
+  inline?: boolean
+  href?: string
+}
+
 const markdownComponents = {
-  code({ node, inline, className, children, ...props }: any) {
+  code({ node, inline, className, children, ...props }: MarkdownComponentProps) {
     if (inline) {
       return (
         <code
@@ -55,7 +61,7 @@ const markdownComponents = {
       </code>
     )
   },
-  pre({ node, children, ...props }: any) {
+  pre({ node, children, ...props }: MarkdownComponentProps) {
     return (
       <pre
         style={{
@@ -72,14 +78,14 @@ const markdownComponents = {
       </pre>
     )
   },
-  p({ node, children, ...props }: any) {
+  p({ node, children, ...props }: MarkdownComponentProps) {
     return (
       <p style={{ marginBottom: '0.5em', lineHeight: '1.6' }} {...props}>
         {children}
       </p>
     )
   },
-  a({ node, href, children, ...props }: any) {
+  a({ node, href, children, ...props }: MarkdownComponentProps) {
     return (
       <a
         href={href}
@@ -99,7 +105,7 @@ const markdownComponents = {
       </a>
     )
   },
-  h1({ node, children, ...props }: any) {
+  h1({ node, children, ...props }: MarkdownComponentProps) {
     return (
       <h1
         style={{
@@ -114,7 +120,7 @@ const markdownComponents = {
       </h1>
     )
   },
-  h2({ node, children, ...props }: any) {
+  h2({ node, children, ...props }: MarkdownComponentProps) {
     return (
       <h2
         style={{
@@ -129,7 +135,7 @@ const markdownComponents = {
       </h2>
     )
   },
-  h3({ node, children, ...props }: any) {
+  h3({ node, children, ...props }: MarkdownComponentProps) {
     return (
       <h3
         style={{
@@ -144,7 +150,7 @@ const markdownComponents = {
       </h3>
     )
   },
-  blockquote({ node, children, ...props }: any) {
+  blockquote({ node, children, ...props }: MarkdownComponentProps) {
     return (
       <blockquote
         style={{
@@ -168,6 +174,7 @@ type CategoryType = {
   _id: string
   name: string
   content: string
+  visibility: 'public' | 'college_only'
   order: number
 }
 
@@ -180,6 +187,7 @@ type PendingChange = {
     categoryName?: string
     oldContent?: string
     newContent?: string
+    visibility?: 'public' | 'college_only'
   }
 }
 
@@ -201,16 +209,17 @@ export default function QuickReads() {
   // Editor
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState('')
+  const [editVisibility, setEditVisibility] = useState<'public' | 'college_only'>('public')
   const [showPreview, setShowPreview] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
   // Staging (non-admin)
   const [pendingChanges, setPendingChanges] = useState<PendingChange[]>([])
   const [localCategories, setLocalCategories] = useState<
-    { id: string; name: string; content: string }[]
+    { id: string; name: string; content: string; visibility: 'public' | 'college_only' }[]
   >([])
   const [localContentEdits, setLocalContentEdits] = useState<
-    Record<string, string>
+    Record<string, { content: string; visibility: 'public' | 'college_only' }>
   >({})
   const [deletedCategoryIds, setDeletedCategoryIds] = useState<Set<string>>(
     new Set()
@@ -224,6 +233,7 @@ export default function QuickReads() {
   // Category modal
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false)
   const [catNameInput, setCatNameInput] = useState('')
+  const [catVisibilityInput, setCatVisibilityInput] = useState<'public' | 'college_only'>('public')
 
   const showToast = (message: string) => {
     setToast(message)
@@ -307,6 +317,7 @@ export default function QuickReads() {
       _id: lc.id,
       name: lc.name,
       content: lc.content,
+      visibility: lc.visibility,
       order: 999,
     })),
   ]
@@ -318,14 +329,22 @@ export default function QuickReads() {
   // Get the effective content (local edits take priority)
   const getContent = () => {
     if (localContentEdits[activeCategory] !== undefined) {
-      return localContentEdits[activeCategory]
+      return localContentEdits[activeCategory].content
     }
     return activeData?.content || ''
+  }
+
+  const getVisibility = () => {
+    if (localContentEdits[activeCategory] !== undefined) {
+      return localContentEdits[activeCategory].visibility
+    }
+    return activeData?.visibility || 'public'
   }
 
   // ---- Editor actions ----
   const startEditing = () => {
     setEditContent(getContent())
+    setEditVisibility(getVisibility())
     setIsEditing(true)
     setShowPreview(false)
   }
@@ -343,14 +362,14 @@ export default function QuickReads() {
       const res = await fetch('/api/quick_read_categories', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: activeData._id, content: editContent }),
+        body: JSON.stringify({ id: activeData._id, content: editContent, visibility: editVisibility }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || 'Failed to save')
 
       setCategories((prev) =>
         prev.map((c) =>
-          c._id === activeData._id ? { ...c, content: editContent } : c
+          c._id === activeData._id ? { ...c, content: editContent, visibility: editVisibility } : c
         )
       )
       setIsEditing(false)
@@ -366,13 +385,14 @@ export default function QuickReads() {
   const stageContentEdit = () => {
     if (!activeData) return
     const oldContent = activeData.content || ''
+    const oldVisibility = activeData.visibility || 'public'
     const isLocal = isLocalCategory(activeCategory)
 
     if (isLocal) {
       // Update local category content directly
       setLocalCategories((prev) =>
         prev.map((lc) =>
-          lc.name === activeCategory ? { ...lc, content: editContent } : lc
+          lc.name === activeCategory ? { ...lc, content: editContent, visibility: editVisibility } : lc
         )
       )
       // Update the pending add change
@@ -385,6 +405,7 @@ export default function QuickReads() {
                 proposedData: {
                   ...pc.proposedData,
                   newContent: editContent,
+                  visibility: editVisibility,
                 },
               }
             : pc
@@ -394,7 +415,7 @@ export default function QuickReads() {
       // Stage an edit for an existing category
       setLocalContentEdits((prev) => ({
         ...prev,
-        [activeCategory]: editContent,
+        [activeCategory]: { content: editContent, visibility: editVisibility },
       }))
 
       // Remove existing edit for this category if any
@@ -419,6 +440,7 @@ export default function QuickReads() {
             categoryName: activeCategory,
             oldContent,
             newContent: editContent,
+            visibility: editVisibility,
           },
         },
       ])
@@ -443,7 +465,7 @@ export default function QuickReads() {
           const res = await fetch('/api/quick_read_categories', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name }),
+            body: JSON.stringify({ name, visibility: catVisibilityInput }),
           })
           const data = await res.json()
           if (!res.ok) throw new Error(data.message || 'Failed')
@@ -460,7 +482,7 @@ export default function QuickReads() {
       const localId = nextLocalId()
       setLocalCategories((prev) => [
         ...prev,
-        { id: localId, name, content: '' },
+        { id: localId, name, content: '', visibility: catVisibilityInput },
       ])
       setPendingChanges((prev) => [
         ...prev,
@@ -468,7 +490,7 @@ export default function QuickReads() {
           id: localId,
           changeType: 'add',
           targetType: 'category',
-          proposedData: { categoryName: name, newContent: '' },
+          proposedData: { categoryName: name, newContent: '', visibility: catVisibilityInput },
         },
       ])
       handleCategoryChange(name)
@@ -668,6 +690,7 @@ export default function QuickReads() {
           <button
             onClick={() => {
               setCatNameInput('')
+              setCatVisibilityInput('public')
               setIsCategoryModalOpen(true)
             }}
             className="px-4 py-2 flex items-center gap-1 rounded-full text-sm font-medium border border-dashed border-gray-400 text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -717,25 +740,38 @@ export default function QuickReads() {
                 <Eye className="h-4 w-4" /> Preview
               </button>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={cancelEditing}
-                className="px-3 py-1.5 text-sm border rounded-md hover:bg-muted"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveContent}
-                disabled={isSaving}
-                className="px-4 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 flex items-center gap-1.5"
-              >
-                {isSaving ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4" />
-                )}
-                {canManage ? 'Save' : 'Stage Changes'}
-              </button>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 border-r pr-4">
+                <label className="text-sm font-medium text-muted-foreground">Visibility:</label>
+                <select
+                  value={editVisibility}
+                  onChange={(e) => setEditVisibility(e.target.value as 'public' | 'college_only')}
+                  className="text-sm bg-background border border-input rounded-md px-2 py-1"
+                >
+                  <option value="public">Public</option>
+                  <option value="college_only">College Only</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={cancelEditing}
+                  className="px-3 py-1.5 text-sm border rounded-md hover:bg-muted"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveContent}
+                  disabled={isSaving}
+                  className="px-4 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  {isSaving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
+                  {canManage ? 'Save' : 'Stage Changes'}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -783,9 +819,18 @@ export default function QuickReads() {
         <div className="border rounded-xl bg-card overflow-hidden">
           {/* Viewer toolbar */}
           <div className="flex items-center justify-between px-4 py-2 bg-muted border-b">
-            <span className="text-sm font-medium text-muted-foreground">
-              {activeCategory} / README.md
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-muted-foreground">
+                {activeCategory} / README.md
+              </span>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${
+                getVisibility() === 'college_only' 
+                  ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:border-blue-800' 
+                  : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:border-emerald-800'
+              }`}>
+                {getVisibility() === 'college_only' ? 'College Only' : 'Public'}
+              </span>
+            </div>
             {isLoggedIn && (
               <button
                 onClick={startEditing}
@@ -806,7 +851,38 @@ export default function QuickReads() {
               color: '#24292e',
             }}
           >
-            {content ? (
+            {getVisibility() === 'college_only' && (!session?.user?.email?.endsWith('@iiitl.ac.in') && !canManage) ? (
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '250px',
+                  color: '#b45309', // amber-700
+                  backgroundColor: '#fffbeb', // amber-50
+                  border: '1px solid #fde68a', // amber-200
+                  borderRadius: '0.5rem',
+                  margin: '1rem',
+                }}
+              >
+                <div style={{
+                  backgroundColor: '#fcd34d',
+                  padding: '16px',
+                  borderRadius: '50%',
+                  marginBottom: '16px'
+                }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                </div>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '8px' }}>Restricted Access</h3>
+                <p style={{ fontSize: '0.875rem', maxWidth: '300px', textAlign: 'center' }}>
+                  This file is marked as <strong>College Only</strong>. You must be logged in with a valid @iiitl.ac.in email address to view its contents.
+                </p>
+              </div>
+            ) : content ? (
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={markdownComponents}
@@ -928,19 +1004,34 @@ export default function QuickReads() {
                 </div>
               )}
               <form onSubmit={handleAddCategory} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Category Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    maxLength={50}
-                    value={catNameInput}
-                    onChange={(e) => setCatNameInput(e.target.value)}
-                    className="w-full p-2 rounded-md border bg-background"
-                    placeholder="e.g. Machine Learning"
-                  />
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Category Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      maxLength={50}
+                      value={catNameInput}
+                      onChange={(e) => setCatNameInput(e.target.value)}
+                      className="w-full p-2 rounded-md border bg-background"
+                      placeholder="e.g. Machine Learning"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Visibility
+                    </label>
+                    <select
+                      value={catVisibilityInput}
+                      onChange={(e) => setCatVisibilityInput(e.target.value as 'public' | 'college_only')}
+                      className="w-full p-2 rounded-md border bg-background"
+                    >
+                      <option value="public">Public (Anyone can view)</option>
+                      <option value="college_only">College Only (@iiitl.ac.in required)</option>
+                    </select>
+                  </div>
                 </div>
                 <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
                   <button

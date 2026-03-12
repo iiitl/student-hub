@@ -31,7 +31,7 @@ export default function useContributors() {
         }
         const data = await response.json()
         const filteredContributors = data.filter(
-          (contributor: any) => contributor.type === 'User'
+          (contributor: TypeContributors & { type: string }) => contributor.type === 'User'
         )
         setContributors(filteredContributors)
       } catch (err: unknown) {

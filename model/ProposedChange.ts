@@ -11,6 +11,7 @@ export interface IProposedChange extends Document {
     categoryName?: string
     oldContent?: string
     newContent?: string
+    visibility?: 'public' | 'college_only'
   }
   reviewedBy?: mongoose.Types.ObjectId
   reviewNote?: string
@@ -55,6 +56,10 @@ const ProposedChangeSchema = new Schema<IProposedChange>(
       categoryName: String,
       oldContent: String,
       newContent: String,
+      visibility: {
+        type: String,
+        enum: ['public', 'college_only'],
+      },
     },
     reviewedBy: {
       type: mongoose.Schema.Types.ObjectId,

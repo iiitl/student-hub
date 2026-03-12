@@ -3,6 +3,7 @@ import mongoose, { Document, Model, Schema } from 'mongoose'
 export interface ICategory extends Document {
   name: string
   content: string
+  visibility: 'public' | 'college_only'
   order: number
   createdBy?: mongoose.Types.ObjectId
   createdAt: Date
@@ -21,6 +22,11 @@ const CategorySchema = new Schema<ICategory>(
     content: {
       type: String,
       default: '',
+    },
+    visibility: {
+      type: String,
+      enum: ['public', 'college_only'],
+      default: 'public',
     },
     order: {
       type: Number,

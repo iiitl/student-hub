@@ -54,11 +54,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { name, content } = await request.json()
+    const { name, content, visibility } = await request.json()
 
     if (!name || name.trim() === '') {
       return NextResponse.json(
         { success: false, message: 'Category name is required' },
+        { status: 400 }
+      )
+    }
+
+    if (visibility && !['public', 'college_only'].includes(visibility)) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid visibility value' },
         { status: 400 }
       )
     }
@@ -76,6 +83,7 @@ export async function POST(request: NextRequest) {
     const category = await Category.create({
       name: name.trim(),
       content: content || '',
+      visibility: visibility || 'public',
       createdBy: userId,
     })
 
@@ -181,11 +189,18 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    const { id, newName, content } = await request.json()
+    const { id, newName, content, visibility } = await request.json()
 
     if (!id) {
       return NextResponse.json(
         { success: false, message: 'Category ID is required' },
+        { status: 400 }
+      )
+    }
+
+    if (visibility && !['public', 'college_only'].includes(visibility)) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid visibility value' },
         { status: 400 }
       )
     }
@@ -212,6 +227,10 @@ export async function PATCH(request: NextRequest) {
 
     if (content !== undefined) {
       category.content = content
+    }
+
+    if (visibility !== undefined) {
+      category.visibility = visibility
     }
 
     await category.save()
