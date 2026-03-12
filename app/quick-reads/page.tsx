@@ -2,7 +2,14 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
-import { Plus, Trash2, ExternalLink, Loader2, AlertCircle, Edit } from 'lucide-react'
+import {
+  Plus,
+  Trash2,
+  ExternalLink,
+  Loader2,
+  AlertCircle,
+  Edit,
+} from 'lucide-react'
 
 // Types
 type QuickRead = {
@@ -30,7 +37,7 @@ export default function QuickReads() {
   const [cache, setCache] = useState<Record<string, QuickRead[]>>({})
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  
+
   // Authorization checking
   const [canManage, setCanManage] = useState(false)
 
@@ -42,11 +49,15 @@ export default function QuickReads() {
         const data = await res.json()
         if (data.success && data.categories.length > 0) {
           setCategories(data.categories)
-          
+
           const savedCategory = localStorage.getItem('quickReadsCategory')
-          const isValidSaved = savedCategory && data.categories.some((c: CategoryType) => c.name === savedCategory)
-          
-          setActiveCategory(isValidSaved ? savedCategory : data.categories[0].name)
+          const isValidSaved =
+            savedCategory &&
+            data.categories.some((c: CategoryType) => c.name === savedCategory)
+
+          setActiveCategory(
+            isValidSaved ? savedCategory : data.categories[0].name
+          )
         }
       } catch (err) {
         console.error('Failed to load categories', err)
@@ -60,7 +71,6 @@ export default function QuickReads() {
     localStorage.setItem('quickReadsCategory', category)
   }
 
-
   // Fetch live roles to guarantee admins have access without relogging
   useEffect(() => {
     let isMounted = true
@@ -70,12 +80,13 @@ export default function QuickReads() {
         if (res.ok) {
           const data = await res.json()
           const isSuperAdmin = data.email === 'technicalclub@iiitl.ac.in'
-          const hasAdminRole = Array.isArray(data.roles) && data.roles.includes('admin')
+          const hasAdminRole =
+            Array.isArray(data.roles) && data.roles.includes('admin')
           if (isMounted) {
             setCanManage(isSuperAdmin || hasAdminRole)
           }
         } else {
-           fallbackAuth()
+          fallbackAuth()
         }
       } catch (e) {
         fallbackAuth()
@@ -83,21 +94,25 @@ export default function QuickReads() {
     }
 
     const fallbackAuth = () => {
-       if (isMounted && session?.user) {
-          const isSuperSession = session.user.email === 'technicalclub@iiitl.ac.in'
-          const hasAdminSession =
-            Array.isArray(session.user.roles) && session.user.roles.includes('admin')
-          setCanManage(isSuperSession || hasAdminSession)
-       }
+      if (isMounted && session?.user) {
+        const isSuperSession =
+          session.user.email === 'technicalclub@iiitl.ac.in'
+        const hasAdminSession =
+          Array.isArray(session.user.roles) &&
+          session.user.roles.includes('admin')
+        setCanManage(isSuperSession || hasAdminSession)
+      }
     }
-    
+
     if (session?.user) {
       checkLiveRoles()
     } else {
       setCanManage(false)
     }
-    
-    return () => { isMounted = false }
+
+    return () => {
+      isMounted = false
+    }
   }, [session])
 
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -120,32 +135,35 @@ export default function QuickReads() {
 
   const currentData = cache[activeCategory]
 
-  const fetchCategoryData = useCallback(async (category: string) => {
-    if (!category) return
-    if (cache[category]) return
+  const fetchCategoryData = useCallback(
+    async (category: string) => {
+      if (!category) return
+      if (cache[category]) return
 
-    setIsLoading(true)
-    setError(null)
+      setIsLoading(true)
+      setError(null)
 
-    try {
-      const res = await fetch(
-        `/api/quick-reads?category=${encodeURIComponent(category)}`
-      )
-      const data = await res.json()
+      try {
+        const res = await fetch(
+          `/api/quick-reads?category=${encodeURIComponent(category)}`
+        )
+        const data = await res.json()
 
-      if (!res.ok) {
-        throw new Error(data.message || 'Failed to fetch quick reads')
+        if (!res.ok) {
+          throw new Error(data.message || 'Failed to fetch quick reads')
+        }
+
+        setCache((prev) => ({ ...prev, [category]: data.quickReads || [] }))
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : 'An unknown error occurred'
+        )
+      } finally {
+        setIsLoading(false)
       }
-
-      setCache((prev) => ({ ...prev, [category]: data.quickReads || [] }))
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'An unknown error occurred'
-      )
-    } finally {
-      setIsLoading(false)
-    }
-  }, [cache])
+    },
+    [cache]
+  )
 
   useEffect(() => {
     fetchCategoryData(activeCategory)
@@ -204,7 +222,7 @@ export default function QuickReads() {
 
     try {
       const method = isEditMode ? 'PATCH' : 'POST'
-      const bodyPayload = isEditMode 
+      const bodyPayload = isEditMode
         ? { id: editingId, ...formData, category: activeCategory }
         : { ...formData, category: activeCategory }
 
@@ -223,11 +241,13 @@ export default function QuickReads() {
       setCache((prev) => {
         const newCache = { ...prev }
         if (isEditMode && editingId) {
-          const index = newCache[activeCategory].findIndex((item) => item._id === editingId)
+          const index = newCache[activeCategory].findIndex(
+            (item) => item._id === editingId
+          )
           if (index !== -1) {
-             const updatedList = [...newCache[activeCategory]]
-             updatedList[index] = data.quickRead
-             newCache[activeCategory] = updatedList
+            const updatedList = [...newCache[activeCategory]]
+            updatedList[index] = data.quickRead
+            newCache[activeCategory] = updatedList
           }
         } else {
           newCache[activeCategory] = [
@@ -256,37 +276,47 @@ export default function QuickReads() {
 
     try {
       const method = isCatEditMode ? 'PATCH' : 'POST'
-      const payload = isCatEditMode ? { id: editingCatId, newName: catNameInput } : { name: catNameInput }
-      
+      const payload = isCatEditMode
+        ? { id: editingCatId, newName: catNameInput }
+        : { name: catNameInput }
+
       const res = await fetch('/api/quick_read_categories', {
-         method,
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify(payload)
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       })
       const data = await res.json()
 
       if (!res.ok) throw new Error(data.message || 'Failed')
 
       if (isCatEditMode) {
-         setCategories(prev => prev.map(c => c._id === data.category._id ? data.category : c))
-         // If we edited the active category name, switch to new name
-         if (activeCategory === categories.find(c => c._id === editingCatId)?.name) {
-             handleCategoryChange(data.category.name)
-             setCache(prev => { 
-                const newC = {...prev}
-                if(newC[activeCategory]) {
-                  newC[data.category.name] = newC[activeCategory].map(item => ({...item, category: data.category.name}))
-                }
-                return newC
-             })
-         }
+        setCategories((prev) =>
+          prev.map((c) => (c._id === data.category._id ? data.category : c))
+        )
+        // If we edited the active category name, switch to new name
+        if (
+          activeCategory ===
+          categories.find((c) => c._id === editingCatId)?.name
+        ) {
+          handleCategoryChange(data.category.name)
+          setCache((prev) => {
+            const newC = { ...prev }
+            if (newC[activeCategory]) {
+              newC[data.category.name] = newC[activeCategory].map((item) => ({
+                ...item,
+                category: data.category.name,
+              }))
+            }
+            return newC
+          })
+        }
       } else {
-         setCategories(prev => [...prev, data.category])
-         if (categories.length === 0) handleCategoryChange(data.category.name)
+        setCategories((prev) => [...prev, data.category])
+        if (categories.length === 0) handleCategoryChange(data.category.name)
       }
 
       setIsCategoryModalOpen(false)
-    } catch(err) {
+    } catch (err) {
       alert(err instanceof Error ? err.message : 'Error')
     } finally {
       setIsCatSubmitting(false)
@@ -294,17 +324,24 @@ export default function QuickReads() {
   }
 
   const handleDeleteCategory = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete the category "${name}"? This will delete ALL resources inside it.`)) return
+    if (
+      !confirm(
+        `Are you sure you want to delete the category "${name}"? This will delete ALL resources inside it.`
+      )
+    )
+      return
     try {
-      const res = await fetch(`/api/quick_read_categories?id=${id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/quick_read_categories?id=${id}`, {
+        method: 'DELETE',
+      })
       if (!res.ok) throw new Error('Failed to delete')
-      
-      const newCats = categories.filter(c => c._id !== id)
+
+      const newCats = categories.filter((c) => c._id !== id)
       setCategories(newCats)
       if (activeCategory === name) {
-         handleCategoryChange(newCats.length > 0 ? newCats[0].name : '')
+        handleCategoryChange(newCats.length > 0 ? newCats[0].name : '')
       }
-    } catch(err) {
+    } catch (err) {
       alert('Error deleting category')
     }
   }
@@ -336,40 +373,55 @@ export default function QuickReads() {
       <div className="flex flex-wrap items-center gap-2 mb-8 border-b border-border pb-4">
         {categories.map((category) => (
           <div key={category._id} className="group relative flex items-center">
-             <button
-               onClick={() => handleCategoryChange(category.name)}
-               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                 activeCategory === category.name
-                   ? 'bg-primary text-primary-foreground shadow-md'
-                   : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-               }`}
-             >
-               {category.name}
-             </button>
-             {canManage && (
-                <div className="absolute -top-2 -right-2 hidden group-hover:flex bg-background border rounded shadow-sm z-10 p-0.5">
-                   <button 
-                     onClick={() => { setIsCatEditMode(true); setEditingCatId(category._id); setCatNameInput(category.name); setIsCategoryModalOpen(true); }}
-                     className="p-1 hover:text-yellow-600 dark:hover:text-yellow-400" title="Rename Category">
-                     <Edit className="h-3 w-3" />
-                   </button>
-                   <button 
-                     onClick={() => handleDeleteCategory(category._id, category.name)}
-                     className="p-1 hover:text-red-600 dark:hover:text-red-400" title="Delete Category">
-                     <Trash2 className="h-3 w-3" />
-                   </button>
-                </div>
-             )}
+            <button
+              onClick={() => handleCategoryChange(category.name)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                activeCategory === category.name
+                  ? 'bg-primary text-primary-foreground shadow-md'
+                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+              }`}
+            >
+              {category.name}
+            </button>
+            {canManage && (
+              <div className="absolute -top-2 -right-2 hidden group-hover:flex bg-background border rounded shadow-sm z-10 p-0.5">
+                <button
+                  onClick={() => {
+                    setIsCatEditMode(true)
+                    setEditingCatId(category._id)
+                    setCatNameInput(category.name)
+                    setIsCategoryModalOpen(true)
+                  }}
+                  className="p-1 hover:text-yellow-600 dark:hover:text-yellow-400"
+                  title="Rename Category"
+                >
+                  <Edit className="h-3 w-3" />
+                </button>
+                <button
+                  onClick={() =>
+                    handleDeleteCategory(category._id, category.name)
+                  }
+                  className="p-1 hover:text-red-600 dark:hover:text-red-400"
+                  title="Delete Category"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              </div>
+            )}
           </div>
         ))}
 
         {canManage && (
-           <button
-             onClick={() => { setIsCatEditMode(false); setCatNameInput(''); setIsCategoryModalOpen(true); }}
-             className="px-4 py-2 flex items-center gap-1 rounded-full text-sm font-medium border border-dashed border-gray-400 text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-           >
-             <Plus className="h-4 w-4" /> Add Category
-           </button>
+          <button
+            onClick={() => {
+              setIsCatEditMode(false)
+              setCatNameInput('')
+              setIsCategoryModalOpen(true)
+            }}
+            className="px-4 py-2 flex items-center gap-1 rounded-full text-sm font-medium border border-dashed border-gray-400 text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <Plus className="h-4 w-4" /> Add Category
+          </button>
         )}
       </div>
 
@@ -429,7 +481,7 @@ export default function QuickReads() {
                       ? `Added by ${item.uploadedBy.name}`
                       : 'Community Shared'}
                   </p>
-                  
+
                   {canManage && (
                     <div className="flex items-center gap-1 z-10">
                       <button
@@ -475,7 +527,7 @@ export default function QuickReads() {
                     className="w-full bg-muted text-muted-foreground p-2 rounded-md border"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium mb-1">
                     Title *
@@ -574,7 +626,7 @@ export default function QuickReads() {
                 {isCatEditMode ? 'Rename Category' : 'Create Category'}
               </h2>
               <form onSubmit={handleCatSubmit} className="space-y-4">
-                 <div>
+                <div>
                   <label className="block text-sm font-medium mb-1">
                     Category Name *
                   </label>

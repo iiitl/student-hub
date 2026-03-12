@@ -70,7 +70,11 @@ export async function middleware(request: NextRequest) {
   const userAgent = request.headers.get('user-agent') || ''
 
   // Allow public API endpoints without bot checking
-  const publicApiEndpoints = ['/api/papers', '/api/quick-reads', '/api/quick_read_categories']
+  const publicApiEndpoints = [
+    '/api/papers',
+    '/api/quick-reads',
+    '/api/quick_read_categories',
+  ]
   const isPublicEndpoint = publicApiEndpoints.some(
     (endpoint) => path.startsWith(endpoint) && request.method === 'GET'
   )
@@ -139,7 +143,11 @@ export async function middleware(request: NextRequest) {
 
   // Check authentication for protected routes
   // Exempt public GET endpoints from authentication
-  const publicGetEndpoints = ['/api/papers', '/api/quick-reads', '/api/quick_read_categories']
+  const publicGetEndpoints = [
+    '/api/papers',
+    '/api/quick-reads',
+    '/api/quick_read_categories',
+  ]
   const isPublicGetRequest = publicGetEndpoints.some(
     (endpoint) => path.startsWith(endpoint) && request.method === 'GET'
   )

@@ -55,8 +55,9 @@ export async function POST(request: NextRequest) {
     }
 
     const isSuperAdmin = user.email === 'technicalclub@iiitl.ac.in'
-    const hasAdminRole = Array.isArray(user.roles) && user.roles.includes('admin')
-    
+    const hasAdminRole =
+      Array.isArray(user.roles) && user.roles.includes('admin')
+
     if (!isSuperAdmin && !hasAdminRole) {
       return NextResponse.json(
         { success: false, message: 'Unauthorized. Admins only.' },
@@ -69,7 +70,10 @@ export async function POST(request: NextRequest) {
 
     if (!title || !url || !category) {
       return NextResponse.json(
-        { success: false, message: 'Missing required fields (title, url, category)' },
+        {
+          success: false,
+          message: 'Missing required fields (title, url, category)',
+        },
         { status: 400 }
       )
     }
@@ -84,7 +88,11 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json(
-      { success: true, message: 'Quick Read created successfully', quickRead: newQuickRead },
+      {
+        success: true,
+        message: 'Quick Read created successfully',
+        quickRead: newQuickRead,
+      },
       { status: 201 }
     )
   } catch (error) {
@@ -128,8 +136,9 @@ export async function DELETE(request: NextRequest) {
     }
 
     const isSuperAdmin = user.email === 'technicalclub@iiitl.ac.in'
-    const hasAdminRole = Array.isArray(user.roles) && user.roles.includes('admin')
-    
+    const hasAdminRole =
+      Array.isArray(user.roles) && user.roles.includes('admin')
+
     // Quick read uploader can also delete their own content
     const quickRead = await QuickRead.findById(id)
     if (!quickRead) {
@@ -184,7 +193,8 @@ export async function PATCH(request: NextRequest) {
     }
 
     const isSuperAdmin = user.email === 'technicalclub@iiitl.ac.in'
-    const hasAdminRole = Array.isArray(user.roles) && user.roles.includes('admin')
+    const hasAdminRole =
+      Array.isArray(user.roles) && user.roles.includes('admin')
 
     const body = await request.json()
     const { id, title, description, url, category, source } = body
@@ -195,7 +205,7 @@ export async function PATCH(request: NextRequest) {
         { status: 400 }
       )
     }
-    
+
     // Quick read uploader can also edit their own content
     const quickRead = await QuickRead.findById(id)
     if (!quickRead) {
