@@ -89,7 +89,9 @@ const markdownComponents = {
           cursor: 'pointer',
           borderBottom: '1px solid #0969da',
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
+        onMouseEnter={(e) =>
+          (e.currentTarget.style.textDecoration = 'underline')
+        }
         onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
         {...props}
       >
@@ -239,8 +241,7 @@ export default function QuickReads() {
           setCategories(data.categories)
           const saved = localStorage.getItem('quickReadsCategory')
           const valid =
-            saved &&
-            data.categories.some((c: CategoryType) => c.name === saved)
+            saved && data.categories.some((c: CategoryType) => c.name === saved)
           setActiveCategory(valid ? saved : data.categories[0].name)
         }
       } catch (err) {
@@ -401,8 +402,7 @@ export default function QuickReads() {
         prev.filter(
           (pc) =>
             !(
-              pc.targetCategoryId === activeData._id &&
-              pc.changeType === 'edit'
+              pc.targetCategoryId === activeData._id && pc.changeType === 'edit'
             )
         )
       )
@@ -458,7 +458,10 @@ export default function QuickReads() {
     } else {
       // Non-admin: stage
       const localId = nextLocalId()
-      setLocalCategories((prev) => [...prev, { id: localId, name, content: '' }])
+      setLocalCategories((prev) => [
+        ...prev,
+        { id: localId, name, content: '' },
+      ])
       setPendingChanges((prev) => [
         ...prev,
         {
@@ -629,10 +632,7 @@ export default function QuickReads() {
       {/* Category Tabs */}
       <div className="flex flex-wrap items-center gap-2 mb-6 border-b border-border pb-4">
         {allCategories.map((category) => (
-          <div
-            key={category._id}
-            className="group relative flex items-center"
-          >
+          <div key={category._id} className="group relative flex items-center">
             <button
               onClick={() => handleCategoryChange(category.name)}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
@@ -741,7 +741,14 @@ export default function QuickReads() {
 
           {/* Editor / Preview pane */}
           {showPreview ? (
-            <div className="max-w-none min-h-[400px]" style={{ padding: '24px', backgroundColor: '#ffffff', color: '#24292e' }}>
+            <div
+              className="max-w-none min-h-[400px]"
+              style={{
+                padding: '24px',
+                backgroundColor: '#ffffff',
+                color: '#24292e',
+              }}
+            >
               {editContent ? (
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
@@ -791,7 +798,14 @@ export default function QuickReads() {
           </div>
 
           {/* Rendered content */}
-          <div className="max-w-none min-h-[300px]" style={{ padding: '24px', backgroundColor: '#ffffff', color: '#24292e' }}>
+          <div
+            className="max-w-none min-h-[300px]"
+            style={{
+              padding: '24px',
+              backgroundColor: '#ffffff',
+              color: '#24292e',
+            }}
+          >
             {content ? (
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
@@ -800,8 +814,19 @@ export default function QuickReads() {
                 {content}
               </ReactMarkdown>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '192px', color: '#a0aec0' }}>
-                <AlertCircle style={{ height: '32px', width: '32px', marginBottom: '8px' }} />
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '192px',
+                  color: '#a0aec0',
+                }}
+              >
+                <AlertCircle
+                  style={{ height: '32px', width: '32px', marginBottom: '8px' }}
+                />
                 <p style={{ fontSize: '0.875rem' }}>
                   This file is empty.{' '}
                   {isLoggedIn && 'Click Edit to add content.'}
@@ -846,8 +871,8 @@ export default function QuickReads() {
                         pc.changeType === 'add'
                           ? 'bg-green-100 text-green-700'
                           : pc.changeType === 'edit'
-                          ? 'bg-yellow-100 text-yellow-700'
-                          : 'bg-red-100 text-red-700'
+                            ? 'bg-yellow-100 text-yellow-700'
+                            : 'bg-red-100 text-red-700'
                       }`}
                     >
                       {pc.changeType.toUpperCase()}
@@ -898,8 +923,8 @@ export default function QuickReads() {
               <h2 className="text-xl font-bold mb-4">Create Category</h2>
               {!canManage && (
                 <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-md text-sm text-yellow-700 dark:text-yellow-300">
-                  This category will be staged locally. You can edit its
-                  content before submitting.
+                  This category will be staged locally. You can edit its content
+                  before submitting.
                 </div>
               )}
               <form onSubmit={handleAddCategory} className="space-y-4">

@@ -76,7 +76,9 @@ if (mongoose.models.ProposedChange) {
   delete mongoose.models.ProposedChange
 }
 
-const ProposedChange: Model<IProposedChange> =
-  mongoose.model<IProposedChange>('ProposedChange', ProposedChangeSchema)
+const ProposedChange: Model<IProposedChange> = mongoose.model<IProposedChange>(
+  'ProposedChange',
+  ProposedChangeSchema
+)
 
 export default ProposedChange

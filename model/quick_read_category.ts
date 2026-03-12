@@ -41,7 +41,9 @@ if (mongoose.models.Category) {
   delete mongoose.models.Category
 }
 
-const Category: Model<ICategory> =
-  mongoose.model<ICategory>('Category', CategorySchema)
+const Category: Model<ICategory> = mongoose.model<ICategory>(
+  'Category',
+  CategorySchema
+)
 
 export default Category

@@ -90,10 +90,10 @@ function DiffViewer({
               wordRemovedBackground: 'rgba(185, 28, 28, 0.6)',
               addedGutterBackground: 'rgba(22, 101, 52, 0.5)',
               removedGutterBackground: 'rgba(153, 27, 27, 0.5)',
-              gutterBackground: '#18181b', // zinc-900 
+              gutterBackground: '#18181b', // zinc-900
               emptyLineBackground: '#09090b',
-            }
-          }
+            },
+          },
         }}
       />
     </div>
@@ -391,12 +391,8 @@ export default function ProposedChanges() {
                           {/* Diff view for content changes */}
                           {hasDiff && change.changeType !== 'delete' && (
                             <DiffViewer
-                              oldContent={
-                                change.proposedData?.oldContent || ''
-                              }
-                              newContent={
-                                change.proposedData?.newContent || ''
-                              }
+                              oldContent={change.proposedData?.oldContent || ''}
+                              newContent={change.proposedData?.newContent || ''}
                             />
                           )}
 
