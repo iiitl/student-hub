@@ -314,11 +314,12 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 })
     }
 
-    // Check authorization: either the uploader or technicalclub@iiitl.ac.in
+    // Check authorization: uploader, any admin, or technicalclub@iiitl.ac.in
     const isUploader = paper.uploaded_by.toString() === userId
+    const isAdmin = Array.isArray(user.roles) && user.roles.includes('admin')
     const isTechnicalClub = user.email === 'technicalclub@iiitl.ac.in'
 
-    if (!isUploader && !isTechnicalClub) {
+    if (!isUploader && !isAdmin && !isTechnicalClub) {
       return NextResponse.json(
         { message: 'You are not authorized to delete this paper' },
         { status: 403 }
@@ -402,11 +403,12 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 })
     }
 
-    // Check authorization: either the uploader or technicalclub@iiitl.ac.in
+    // Check authorization: uploader, any admin, or technicalclub@iiitl.ac.in
     const isUploader = paper.uploaded_by.toString() === userId
+    const isAdmin = Array.isArray(user.roles) && user.roles.includes('admin')
     const isTechnicalClub = user.email === 'technicalclub@iiitl.ac.in'
 
-    if (!isUploader && !isTechnicalClub) {
+    if (!isUploader && !isAdmin && !isTechnicalClub) {
       return NextResponse.json(
         { message: 'You are not authorized to edit this paper' },
         { status: 403 }

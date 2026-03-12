@@ -14,7 +14,10 @@ export function isAdmin(session: Session | null): boolean {
 /**
  * Middleware helper to check admin role in the token
  */
-export async function verifyAdminApi(request: NextRequest) {
+export async function verifyAdminApi(
+  request: NextRequest,
+  requireSuperAdmin: boolean = false
+) {
   const token = await getToken({
     req: request,
     secret: process.env.NEXTAUTH_SECRET,
@@ -28,9 +31,18 @@ export async function verifyAdminApi(request: NextRequest) {
     )
   }
 
-  // Check if the user has the admin role
+  // Check if the user has the admin role or is the super admin
   const userRoles = (token.roles as string[]) || []
-  if (!userRoles.includes('admin')) {
+  const isSuperAdmin = token.email === 'technicalclub@iiitl.ac.in'
+
+  if (requireSuperAdmin && !isSuperAdmin) {
+    return NextResponse.json(
+      { message: 'Forbidden - Super Admin access required', success: false },
+      { status: 403 }
+    )
+  }
+
+  if (!requireSuperAdmin && !userRoles.includes('admin') && !isSuperAdmin) {
     return NextResponse.json(
       { message: 'Forbidden - Admin access required', success: false },
       { status: 403 }
@@ -42,6 +54,7 @@ export async function verifyAdminApi(request: NextRequest) {
       message: 'Authorized as admin',
       success: true,
       userId: token.sub,
+      email: token.email,
     },
     { status: 200 }
   )

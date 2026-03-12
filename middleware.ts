@@ -70,7 +70,11 @@ export async function middleware(request: NextRequest) {
   const userAgent = request.headers.get('user-agent') || ''
 
   // Allow public API endpoints without bot checking
-  const publicApiEndpoints = ['/api/papers']
+  const publicApiEndpoints = [
+    '/api/papers',
+    '/api/quick-reads',
+    '/api/quick_read_categories',
+  ]
   const isPublicEndpoint = publicApiEndpoints.some(
     (endpoint) => path.startsWith(endpoint) && request.method === 'GET'
   )
@@ -139,7 +143,11 @@ export async function middleware(request: NextRequest) {
 
   // Check authentication for protected routes
   // Exempt public GET endpoints from authentication
-  const publicGetEndpoints = ['/api/papers']
+  const publicGetEndpoints = [
+    '/api/papers',
+    '/api/quick-reads',
+    '/api/quick_read_categories',
+  ]
   const isPublicGetRequest = publicGetEndpoints.some(
     (endpoint) => path.startsWith(endpoint) && request.method === 'GET'
   )
@@ -160,11 +168,11 @@ export async function middleware(request: NextRequest) {
   // Check admin access for admin routes
   if (path.startsWith('/api/admin/') || path.startsWith('/admin/')) {
     const token = await getToken({ req: request })
-    if (
-      !token ||
-      !Array.isArray(token.roles) ||
-      !token.roles.includes('admin')
-    ) {
+    const hasAdminRole =
+      token && Array.isArray(token.roles) && token.roles.includes('admin')
+    const isSuperAdmin = token?.email === 'technicalclub@iiitl.ac.in'
+
+    if (!token || (!hasAdminRole && !isSuperAdmin)) {
       // For page routes, redirect to access denied page
       if (path.startsWith('/admin/')) {
         return NextResponse.redirect(new URL('/', request.url))

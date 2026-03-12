@@ -137,7 +137,6 @@ export const authOptions: AuthOptions = {
             dbUser = updatedUser
           }
         }
-
       } else {
         dbUser = await User.create({
           name: user.name,

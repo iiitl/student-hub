@@ -33,8 +33,11 @@ const QuestionPaperCard = ({
       const userId = session.user.id
       const userEmail = session.user.email
       const isUploader = questionPaper.uploadedBy === userId
+      const isAdmin =
+        Array.isArray(session.user.roles) &&
+        session.user.roles.includes('admin')
       const isTechnicalClub = userEmail === 'technicalclub@iiitl.ac.in'
-      setCanEdit(isUploader || isTechnicalClub)
+      setCanEdit(isUploader || isAdmin || isTechnicalClub)
     }
   }, [session, questionPaper.uploadedBy])
 
