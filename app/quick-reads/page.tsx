@@ -27,7 +27,13 @@ type MarkdownComponentProps = React.HTMLAttributes<HTMLElement> & {
 }
 
 const markdownComponents = {
-  code({ node, inline, className, children, ...props }: MarkdownComponentProps) {
+  code({
+    node,
+    inline,
+    className,
+    children,
+    ...props
+  }: MarkdownComponentProps) {
     if (inline) {
       return (
         <code
@@ -209,14 +215,21 @@ export default function QuickReads() {
   // Editor
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState('')
-  const [editVisibility, setEditVisibility] = useState<'public' | 'college_only'>('public')
+  const [editVisibility, setEditVisibility] = useState<
+    'public' | 'college_only'
+  >('public')
   const [showPreview, setShowPreview] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
   // Staging (non-admin)
   const [pendingChanges, setPendingChanges] = useState<PendingChange[]>([])
   const [localCategories, setLocalCategories] = useState<
-    { id: string; name: string; content: string; visibility: 'public' | 'college_only' }[]
+    {
+      id: string
+      name: string
+      content: string
+      visibility: 'public' | 'college_only'
+    }[]
   >([])
   const [localContentEdits, setLocalContentEdits] = useState<
     Record<string, { content: string; visibility: 'public' | 'college_only' }>
@@ -233,7 +246,9 @@ export default function QuickReads() {
   // Category modal
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false)
   const [catNameInput, setCatNameInput] = useState('')
-  const [catVisibilityInput, setCatVisibilityInput] = useState<'public' | 'college_only'>('public')
+  const [catVisibilityInput, setCatVisibilityInput] = useState<
+    'public' | 'college_only'
+  >('public')
 
   const showToast = (message: string) => {
     setToast(message)
@@ -362,14 +377,20 @@ export default function QuickReads() {
       const res = await fetch('/api/quick_read_categories', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: activeData._id, content: editContent, visibility: editVisibility }),
+        body: JSON.stringify({
+          id: activeData._id,
+          content: editContent,
+          visibility: editVisibility,
+        }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || 'Failed to save')
 
       setCategories((prev) =>
         prev.map((c) =>
-          c._id === activeData._id ? { ...c, content: editContent, visibility: editVisibility } : c
+          c._id === activeData._id
+            ? { ...c, content: editContent, visibility: editVisibility }
+            : c
         )
       )
       setIsEditing(false)
@@ -392,7 +413,9 @@ export default function QuickReads() {
       // Update local category content directly
       setLocalCategories((prev) =>
         prev.map((lc) =>
-          lc.name === activeCategory ? { ...lc, content: editContent, visibility: editVisibility } : lc
+          lc.name === activeCategory
+            ? { ...lc, content: editContent, visibility: editVisibility }
+            : lc
         )
       )
       // Update the pending add change
@@ -490,7 +513,11 @@ export default function QuickReads() {
           id: localId,
           changeType: 'add',
           targetType: 'category',
-          proposedData: { categoryName: name, newContent: '', visibility: catVisibilityInput },
+          proposedData: {
+            categoryName: name,
+            newContent: '',
+            visibility: catVisibilityInput,
+          },
         },
       ])
       handleCategoryChange(name)
@@ -742,10 +769,16 @@ export default function QuickReads() {
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 border-r pr-4">
-                <label className="text-sm font-medium text-muted-foreground">Visibility:</label>
+                <label className="text-sm font-medium text-muted-foreground">
+                  Visibility:
+                </label>
                 <select
                   value={editVisibility}
-                  onChange={(e) => setEditVisibility(e.target.value as 'public' | 'college_only')}
+                  onChange={(e) =>
+                    setEditVisibility(
+                      e.target.value as 'public' | 'college_only'
+                    )
+                  }
                   className="text-sm bg-background border border-input rounded-md px-2 py-1"
                 >
                   <option value="public">Public</option>
@@ -823,11 +856,13 @@ export default function QuickReads() {
               <span className="text-sm font-medium text-muted-foreground">
                 {activeCategory} / README.md
               </span>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${
-                getVisibility() === 'college_only' 
-                  ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:border-blue-800' 
-                  : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:border-emerald-800'
-              }`}>
+              <span
+                className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${
+                  getVisibility() === 'college_only'
+                    ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:border-blue-800'
+                    : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:border-emerald-800'
+                }`}
+              >
                 {getVisibility() === 'college_only' ? 'College Only' : 'Public'}
               </span>
             </div>
@@ -851,7 +886,9 @@ export default function QuickReads() {
               color: '#24292e',
             }}
           >
-            {getVisibility() === 'college_only' && (!session?.user?.email?.endsWith('@iiitl.ac.in') && !canManage) ? (
+            {getVisibility() === 'college_only' &&
+            !session?.user?.email?.endsWith('@iiitl.ac.in') &&
+            !canManage ? (
               <div
                 style={{
                   display: 'flex',
@@ -866,20 +903,48 @@ export default function QuickReads() {
                   margin: '1rem',
                 }}
               >
-                <div style={{
-                  backgroundColor: '#fcd34d',
-                  padding: '16px',
-                  borderRadius: '50%',
-                  marginBottom: '16px'
-                }}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                <div
+                  style={{
+                    backgroundColor: '#fcd34d',
+                    padding: '16px',
+                    borderRadius: '50%',
+                    marginBottom: '16px',
+                  }}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="48"
+                    height="48"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                   </svg>
                 </div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '8px' }}>Restricted Access</h3>
-                <p style={{ fontSize: '0.875rem', maxWidth: '300px', textAlign: 'center' }}>
-                  This file is marked as <strong>College Only</strong>. You must be logged in with a valid @iiitl.ac.in email address to view its contents.
+                <h3
+                  style={{
+                    fontSize: '1.25rem',
+                    fontWeight: 'bold',
+                    marginBottom: '8px',
+                  }}
+                >
+                  Restricted Access
+                </h3>
+                <p
+                  style={{
+                    fontSize: '0.875rem',
+                    maxWidth: '300px',
+                    textAlign: 'center',
+                  }}
+                >
+                  This file is marked as <strong>College Only</strong>. You must
+                  be logged in with a valid @iiitl.ac.in email address to view
+                  its contents.
                 </p>
               </div>
             ) : content ? (
@@ -1025,11 +1090,17 @@ export default function QuickReads() {
                     </label>
                     <select
                       value={catVisibilityInput}
-                      onChange={(e) => setCatVisibilityInput(e.target.value as 'public' | 'college_only')}
+                      onChange={(e) =>
+                        setCatVisibilityInput(
+                          e.target.value as 'public' | 'college_only'
+                        )
+                      }
                       className="w-full p-2 rounded-md border bg-background"
                     >
                       <option value="public">Public (Anyone can view)</option>
-                      <option value="college_only">College Only (@iiitl.ac.in required)</option>
+                      <option value="college_only">
+                        College Only (@iiitl.ac.in required)
+                      </option>
                     </select>
                   </div>
                 </div>
