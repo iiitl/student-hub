@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import axios from 'axios'
 import { Hotel, Utensils, ShoppingBag, Landmark, MapPin } from 'lucide-react'
-import locationData from '../../data/nearby_data.json'
 
 const categories = ['All', 'Restaurant', 'Hotel', 'Landmarks', 'Shop']
 
@@ -11,32 +11,76 @@ const categoryIcons = {
   Hotel: <Hotel size={40} className="text-blue-500" />,
   Landmarks: <Landmark size={40} className="text-green-500" />,
   Shop: <ShoppingBag size={40} className="text-yellow-500" />,
-  Default: <MapPin size={40} className="text-gray-500" />, // Fallback icon
+  Default: <MapPin size={40} className="text-gray-500" />,
 }
 
 const NewcomersPage = () => {
+  const [locations, setLocations] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [filteredLocations, setFilteredLocations] = useState([])
 
+  // ---------------- GET API ----------------
+  const fetchLocations = async () => {
+    try {
+      const url =
+        selectedCategory === 'All'
+          ? '/api/locations'
+          : `/api/locations?category=${selectedCategory}`
+
+      const res = await axios.get(url)
+      setLocations(res.data.data || [])
+    } catch (error) {
+      console.error('Error fetching locations:', error)
+    }
+  }
+
   useEffect(() => {
-    const filtered = locationData.locations
+    fetchLocations()
+  }, [selectedCategory])
+
+  // ---------------- FILTER + SEARCH ----------------
+  useEffect(() => {
+    const filtered = locations
       .filter((location) => {
         return (
-          (selectedCategory === 'All' ||
-            location.category.trim() === selectedCategory) &&
-          (location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            location.address.toLowerCase().includes(searchQuery.toLowerCase()))
+          location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          location.address.toLowerCase().includes(searchQuery.toLowerCase())
         )
-      })
-      .sort((a, b) => {
-        const distA = parseFloat(a.distance.replace('km', '').trim())
-        const distB = parseFloat(b.distance.replace('km', '').trim())
-        return distA - distB
       })
 
     setFilteredLocations(filtered)
-  }, [searchQuery, selectedCategory])
+  }, [searchQuery, locations])
+
+  // ---------------- POST API ----------------
+  const addLocation = async (locationData) => {
+    try {
+      await axios.post('/api/locations', locationData)
+      fetchLocations()
+    } catch (error) {
+      console.error('Error adding location:', error)
+    }
+  }
+
+  // ---------------- PUT API ----------------
+  const updateLocation = async (id, updatedData) => {
+    try {
+      await axios.put(`/api/locations/${id}`, updatedData)
+      fetchLocations()
+    } catch (error) {
+      console.error('Error updating location:', error)
+    }
+  }
+
+  // ---------------- DELETE API ----------------
+  const deleteLocation = async (id) => {
+    try {
+      await axios.delete(`/api/locations/${id}`)
+      fetchLocations()
+    } catch (error) {
+      console.error('Error deleting location:', error)
+    }
+  }
 
   return (
     <div className="container mx-auto p-6 max-w-6xl">
@@ -44,11 +88,11 @@ const NewcomersPage = () => {
         Explore Nearby Locations
       </h1>
 
-      {/* Search Bar */}
+      {/* Search */}
       <input
         type="text"
         placeholder="Search for a location..."
-        className="w-full p-3 mb-6 border rounded-md dark:bg-gray-800 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-500"
+        className="w-full p-3 mb-6 border rounded-md dark:bg-gray-800 dark:text-white"
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
       />
@@ -58,7 +102,7 @@ const NewcomersPage = () => {
         {categories.map((category) => (
           <button
             key={category}
-            className={`px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 transition-all ${
+            className={`px-4 py-2 rounded-lg border ${
               selectedCategory === category
                 ? 'bg-blue-600 text-white'
                 : 'bg-gray-200 dark:bg-gray-700 dark:text-white'
@@ -70,51 +114,62 @@ const NewcomersPage = () => {
         ))}
       </div>
 
-      {/* Locations List */}
+      {/* Locations Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {filteredLocations.length > 0 ? (
-          filteredLocations.map((location, index) => (
+          filteredLocations.map((location) => (
             <div
-              key={index}
-              className="block p-5 border border-gray-300 dark:border-gray-600 rounded-lg shadow-md bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-all duration-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:scale-105 hover:shadow-lg"
+              key={location._id}
+              className="block p-5 border rounded-lg shadow-md bg-white dark:bg-gray-900 hover:scale-105 transition-all"
             >
-              {/* Icon Based on Category */}
+              {/* Icon */}
               <div className="flex justify-center mb-3">
-                {categoryIcons[location.category] || categoryIcons['Default']}
+                {categoryIcons[location.category] || categoryIcons.Default}
               </div>
 
-              {/* Details */}
-              <h3 className="text-lg font-medium text-blue-600 dark:text-blue-400 mb-2 text-center">
+              {/* Info */}
+              <h3 className="text-lg font-medium text-blue-600 text-center">
                 {location.name}
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
+
+              <p className="text-sm text-gray-600 text-center">
                 {location.address}
               </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-1">
-                {location.distance.trim()}
-              </p>
 
-              {/* View on Map Button */}
+              {/* Map */}
               <button
                 onClick={() => {
-                  if (location.map_link) {
-                    window.open(
-                      location.map_link,
-                      '_blank',
-                      'noopener,noreferrer'
-                    )
+                  if (location.location) {
+                    window.open(location.location, '_blank')
                   }
                 }}
-                aria-label={`View ${location.name.trim()} on map`}
-                disabled={!location.map_link}
-                className="mt-3 w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all"
+                className="mt-3 w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
               >
                 View on Map
               </button>
+
+              {/* Admin Buttons */}
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={() =>
+                    updateLocation(location._id, { name: location.name })
+                  }
+                  className="flex-1 bg-yellow-500 text-white py-1 rounded"
+                >
+                  Edit
+                </button>
+
+                <button
+                  onClick={() => deleteLocation(location._id)}
+                  className="flex-1 bg-red-500 text-white py-1 rounded"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           ))
         ) : (
-          <p className="text-center text-gray-500 dark:text-gray-400 col-span-full">
+          <p className="text-center text-gray-500 col-span-full">
             No locations found.
           </p>
         )}
