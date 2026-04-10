@@ -90,9 +90,13 @@ const QuestionPaperCard = ({
         <h2 className="text-xl truncate w-full" title={questionPaper.subject}>
           {questionPaper.subject}
         </h2>
-        {questionPaper.facultyName && (
-          <p className="text-sm text-muted-foreground mt-1 truncate" title={questionPaper.facultyName}>
-            Faculty: <span className="text-foreground">{questionPaper.facultyName}</span>
+        {questionPaper.facultyName?.trim() && (
+          <p
+            className="text-sm text-muted-foreground mt-1 truncate"
+            title={questionPaper.facultyName}
+          >
+            Faculty:{' '}
+            <span className="text-foreground">{questionPaper.facultyName}</span>
           </p>
         )}
       </div>
