@@ -2,48 +2,36 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
+import { usePathname } from 'next/navigation'
 import { MessageCircle, X, Send, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import ChatMessage, { MessageData } from './ChatMessage'
+import ChatMessage from './ChatMessage'
+import { useChatMessages } from '@/hooks/useChatMessages'
 
 export default function ChatWidget() {
+  const pathname = usePathname()
   const { data: session } = useSession()
   const [isOpen, setIsOpen] = useState(false)
-  const [messages, setMessages] = useState<MessageData[]>([])
-  const [inputText, setInputText] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
 
-  const [editingMessage, setEditingMessage] = useState<MessageData | null>(null)
-  const [replyingTo, setReplyingTo] = useState<MessageData | null>(null)
+  const {
+    messages,
+    inputText,
+    setInputText,
+    isLoading,
+    error,
+    editingMessage,
+    replyingTo,
+    currentUserId,
+    isIIITLUser,
+    handleSend,
+    handleDeleteMessage,
+    startReply,
+    startEdit,
+    cancelAction,
+    inputRef,
+  } = useChatMessages({ isOpen })
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const isIIITLUser = session?.user?.email?.toLowerCase()?.endsWith('@iiitl.ac.in')
-  const currentUserId = session?.user?.id
-
-  // Polling logic
-  useEffect(() => {
-    let interval: NodeJS.Timeout
-
-    const fetchMessages = async () => {
-      try {
-        const res = await fetch('/api/chat/messages')
-        if (res.ok) {
-          const data = await res.json()
-          setMessages(data)
-        }
-      } catch (err) {
-        console.error('Failed to fetch messages:', err)
-      }
-    }
-
-    if (isOpen) {
-      fetchMessages() // Fetch immediately on open
-      interval = setInterval(fetchMessages, 3000) // Poll every 3 seconds
-    }
-
-    return () => clearInterval(interval)
-  }, [isOpen])
 
   // Scroll to bottom when new messages arrive if not editing
   useEffect(() => {
@@ -52,51 +40,6 @@ export default function ChatWidget() {
     }
   }, [messages, editingMessage])
 
-  const handleSend = async () => {
-    if (!inputText.trim()) return
-
-    setIsLoading(true)
-    setError('')
-
-    try {
-      if (editingMessage) {
-        // Edit flow
-        const res = await fetch(`/api/chat/messages/${editingMessage._id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content: inputText }),
-        })
-        if (!res.ok) throw new Error((await res.json()).error)
-        setEditingMessage(null)
-      } else {
-        // Send / Reply flow
-        const payload = replyingTo
-          ? { content: inputText, replyTo: replyingTo._id }
-          : { content: inputText }
-
-        const res = await fetch('/api/chat/messages', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        })
-        if (!res.ok) throw new Error((await res.json()).error)
-        setReplyingTo(null)
-      }
-
-      setInputText('')
-      const fetchRes = await fetch('/api/chat/messages')
-      if (fetchRes.ok) setMessages(await fetchRes.json())
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message || 'Failed to send message')
-      } else {
-        setError('Failed to send message')
-      }
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
@@ -104,46 +47,8 @@ export default function ChatWidget() {
     }
   }
 
-  const startReply = (msg: MessageData) => {
-    setEditingMessage(null)
-    setReplyingTo(msg)
-    setInputText('')
-  }
-
-  const startEdit = (msg: MessageData) => {
-    if (msg.isDeleted) return
-    setReplyingTo(null)
-    setEditingMessage(msg)
-    setInputText(msg.content)
-  }
-
-  const handleDeleteMessage = async (id: string) => {
-    try {
-      const res = await fetch(`/api/chat/messages/${id}`, {
-        method: 'DELETE',
-      })
-      if (!res.ok) throw new Error('Failed to delete')
-      
-      const fetchRes = await fetch('/api/chat/messages')
-      if (fetchRes.ok) setMessages(await fetchRes.json())
-      
-      if (editingMessage?._id === id) {
-        cancelAction()
-      }
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        alert(err.message)
-      } else {
-        alert('An error occurred')
-      }
-    }
-  }
-
-  const cancelAction = () => {
-    setReplyingTo(null)
-    setEditingMessage(null)
-    setInputText('')
-  }
+  // Don't render on full chat page
+  if (pathname === '/chat') return null
 
   return (
     <>
@@ -224,6 +129,7 @@ export default function ChatWidget() {
 
             <div className="p-4 flex gap-2 items-center relative">
               <input
+                ref={inputRef}
                 type="text"
                 placeholder={editingMessage ? 'Edit your message...' : 'Type a message...'}
                 value={inputText}

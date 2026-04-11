@@ -52,9 +52,12 @@ export default function ChatMessage({
 
   const confirmDelete = async () => {
     setIsDeleting(true)
-    await onDelete(message._id)
-    setIsDeleting(false)
-    setShowDeleteModal(false)
+    try {
+      await onDelete(message._id)
+      setShowDeleteModal(false)
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   const formatTime = (dateString: string) => {
@@ -161,7 +164,11 @@ export default function ChatMessage({
               <DropdownMenuTrigger className="p-1 rounded-full hover:bg-muted text-muted-foreground outline-none">
                 <MoreHorizontal size={16} />
               </DropdownMenuTrigger>
-              <DropdownMenuContent align={isMe ? 'end' : 'start'} side="top">
+              <DropdownMenuContent 
+                align={isMe ? 'end' : 'start'} 
+                side="top"
+                onCloseAutoFocus={(e) => e.preventDefault()}
+              >
                 <DropdownMenuItem onClick={() => onReply(message)}>
                   <Reply className="mr-2 h-4 w-4" />
                   <span>Reply</span>

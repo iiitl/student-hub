@@ -3,6 +3,10 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/app/api/auth/[...nextauth]/options'
 import dbConnect from '@/lib/dbConnect'
 import Message from '@/model/Message'
+import { chatEmitter } from '@/lib/eventEmitter'
+
+import mongoose from 'mongoose'
+
 
 export async function PATCH(
   req: Request,
@@ -16,6 +20,9 @@ export async function PATCH(
     }
 
     const { id } = await params
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json({ error: 'Invalid message ID' }, { status: 400 })
+    }
     const { content } = await req.json()
 
     if (!content || !content.trim()) {
@@ -51,6 +58,19 @@ export async function PATCH(
     message.isEdited = true
     await message.save()
 
+    await message.populate('sender', 'name image email')
+    if (message.replyTo) {
+      await message.populate({
+        path: 'replyTo',
+        populate: { path: 'sender', select: 'name' },
+      })
+    }
+
+    chatEmitter.emit('chatUpdate', {
+      type: 'UPDATE_MESSAGE',
+      message: message,
+    })
+
     return NextResponse.json(message, { status: 200 })
   } catch (error) {
     console.error('Error updating message:', error)
@@ -73,6 +93,9 @@ export async function DELETE(
     }
 
     const { id } = await params
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json({ error: 'Invalid message ID' }, { status: 400 })
+    }
 
     await dbConnect()
 
@@ -97,6 +120,19 @@ export async function DELETE(
     message.content = '🚫 This message was deleted.'
     message.isDeleted = true
     await message.save()
+
+    await message.populate('sender', 'name image email')
+    if (message.replyTo) {
+      await message.populate({
+        path: 'replyTo',
+        populate: { path: 'sender', select: 'name' },
+      })
+    }
+
+    chatEmitter.emit('chatUpdate', {
+      type: 'DELETE_MESSAGE',
+      message: message,
+    })
 
     return NextResponse.json({ success: true }, { status: 200 })
   } catch (error) {

@@ -3,6 +3,10 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/app/api/auth/[...nextauth]/options'
 import dbConnect from '@/lib/dbConnect'
 import Message from '@/model/Message'
+import { chatEmitter } from '@/lib/eventEmitter'
+
+import mongoose from 'mongoose'
+
 
 export const dynamic = 'force-dynamic'
 
@@ -57,6 +61,13 @@ export async function POST(req: Request) {
       )
     }
 
+    if (replyTo && !mongoose.Types.ObjectId.isValid(replyTo)) {
+      return NextResponse.json(
+        { error: 'Invalid replyTo message ID' },
+        { status: 400 }
+      )
+    }
+
     await dbConnect()
 
     const newMessage = await Message.create({
@@ -74,6 +85,12 @@ export async function POST(req: Request) {
         populate: { path: 'sender', select: 'name' },
       })
     }
+
+    // Emit event for SSE subscribers
+    chatEmitter.emit('chatUpdate', {
+      type: 'NEW_MESSAGE',
+      message: newMessage,
+    })
 
     return NextResponse.json(newMessage, { status: 201 })
   } catch (error) {
