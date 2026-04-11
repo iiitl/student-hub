@@ -7,9 +7,14 @@ import { chatEmitter } from '@/lib/eventEmitter'
 
 import mongoose from 'mongoose'
 
-
 export const dynamic = 'force-dynamic'
 
+/**
+ * Retrieves the latest chat messages from the database and populates
+ * user and replyTo metadata.
+ *
+ * @returns A NextResponse containing chronologically ordered Message arrays.
+ */
 export async function GET() {
   try {
     await dbConnect()
@@ -36,6 +41,13 @@ export async function GET() {
   }
 }
 
+/**
+ * Validates, authorizes, and persists a brand-new generated message in the database.
+ * If successfully stored, an event is emitted down the SSE pipeline to notify clients.
+ *
+ * @param req The incoming NextRequest containing chat payloads (content, replyTo).
+ * @returns An API response indicating success or failure.
+ */
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions)

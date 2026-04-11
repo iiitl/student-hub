@@ -7,6 +7,11 @@ import ChatMessage from '@/components/chat/ChatMessage'
 import { useChatMessages } from '@/hooks/useChatMessages'
 import { useSession } from 'next-auth/react'
 
+/**
+ * Full-page UI rendering component for the general Hub chat.
+ * Implements styling boundaries while hooking into shared context management.
+ * @returns A structurally enclosed interactive Chat component node.
+ */
 export default function ChatPage() {
   const { data: session } = useSession()
   const {
@@ -86,7 +91,8 @@ export default function ChatPage() {
         {/* Auth / Read-only warning */}
         {!isIIITLUser && (
           <div className="bg-destructive/10 text-destructive text-sm font-medium py-3 px-4 text-center border-t border-b">
-            Read-only mode. You need an @iiitl.ac.in email to send messages in the group chat.
+            Read-only mode. You need an @iiitl.ac.in email to send messages in
+            the group chat.
           </div>
         )}
 
@@ -98,13 +104,24 @@ export default function ChatPage() {
               <div className="p-3 bg-primary/10 border-b flex justify-between items-center text-sm px-6">
                 {replyingTo && (
                   <span className="font-medium text-primary">
-                    Replying to {typeof replyingTo.sender === 'object' && replyingTo.sender !== null ? (replyingTo.sender as { name: string }).name : 'someone'}
+                    Replying to{' '}
+                    {typeof replyingTo.sender === 'object' &&
+                    replyingTo.sender !== null
+                      ? (replyingTo.sender as { name: string }).name
+                      : 'someone'}
                   </span>
                 )}
                 {editingMessage && (
-                  <span className="font-medium text-primary">Editing message</span>
+                  <span className="font-medium text-primary">
+                    Editing message
+                  </span>
                 )}
-                <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full hover:bg-primary/20" onClick={cancelAction}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 rounded-full hover:bg-primary/20"
+                  onClick={cancelAction}
+                >
                   <XCircle size={16} />
                 </Button>
               </div>
@@ -114,7 +131,11 @@ export default function ChatPage() {
               <input
                 ref={inputRef}
                 type="text"
-                placeholder={editingMessage ? 'Edit your message...' : 'Type a message to the group...'}
+                placeholder={
+                  editingMessage
+                    ? 'Edit your message...'
+                    : 'Type a message to the group...'
+                }
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyDown={handleKeyDown}

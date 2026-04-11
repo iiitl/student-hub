@@ -2,6 +2,14 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import { MessageData } from '@/components/chat/ChatMessage'
 
+/**
+ * Custom hook to manage real-time chat messages and state.
+ * Uses Server-Sent Events (SSE) instead of polling for instant updates.
+ *
+ * @param options Configuration for the hook
+ * @param options.isOpen Whether the chat widget is open (controls active fetching/streaming)
+ * @returns State and handlers for the chat UI
+ */
 export function useChatMessages(options: { isOpen?: boolean } = {}) {
   const { data: session } = useSession()
   const { isOpen = true } = options
@@ -9,13 +17,15 @@ export function useChatMessages(options: { isOpen?: boolean } = {}) {
   const [inputText, setInputText] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-  
+
   const [editingMessage, setEditingMessage] = useState<MessageData | null>(null)
   const [replyingTo, setReplyingTo] = useState<MessageData | null>(null)
 
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const isIIITLUser = session?.user?.email?.toLowerCase()?.endsWith('@iiitl.ac.in')
+  const isIIITLUser = session?.user?.email
+    ?.toLowerCase()
+    ?.endsWith('@iiitl.ac.in')
   const currentUserId = session?.user?.id
 
   // Use refs to track latest state for event listeners without re-binding
@@ -56,7 +66,10 @@ export function useChatMessages(options: { isOpen?: boolean } = {}) {
             if (prev.some((m) => m._id === data.message._id)) return prev
             return [...prev, data.message]
           })
-        } else if (data.type === 'UPDATE_MESSAGE' || data.type === 'DELETE_MESSAGE') {
+        } else if (
+          data.type === 'UPDATE_MESSAGE' ||
+          data.type === 'DELETE_MESSAGE'
+        ) {
           setMessages((prev) =>
             prev.map((msg) => {
               let updatedMsg = msg._id === data.message._id ? data.message : msg
@@ -79,9 +92,12 @@ export function useChatMessages(options: { isOpen?: boolean } = {}) {
               return updatedMsg
             })
           )
-          
+
           // Cancel reply if the target message was deleted
-          if (data.type === 'DELETE_MESSAGE' && replyingTo?._id === data.message._id) {
+          if (
+            data.type === 'DELETE_MESSAGE' &&
+            replyingTo?._id === data.message._id
+          ) {
             setReplyingTo(null)
           }
         }
@@ -101,6 +117,10 @@ export function useChatMessages(options: { isOpen?: boolean } = {}) {
     }
   }, [isOpen, replyingTo]) // Include replyingTo so we can clear it if deleted
 
+  /**
+   * Handles sending a new message or modifying an existing one (edit/reply).
+   * Automatically targets POST or PATCH based on component state.
+   */
   const handleSend = async () => {
     if (!inputText.trim()) return
 
@@ -154,6 +174,11 @@ export function useChatMessages(options: { isOpen?: boolean } = {}) {
     }
   }
 
+  /**
+   * Triggers a soft delete for a specified message ID.
+   *
+   * @param id The message's MongoDB ObjectId to delete.
+   */
   const handleDeleteMessage = async (id: string) => {
     try {
       const res = await fetch(`/api/chat/messages/${id}`, {
@@ -163,7 +188,7 @@ export function useChatMessages(options: { isOpen?: boolean } = {}) {
         const data = await res.json().catch(() => ({}))
         throw new Error(data.error || 'Request failed')
       }
-      
+
       if (editingMessage?._id === id) {
         cancelAction()
       }
@@ -179,6 +204,11 @@ export function useChatMessages(options: { isOpen?: boolean } = {}) {
     }
   }
 
+  /**
+   * Prepares the UI specifically for a reply action onto a targeted message.
+   *
+   * @param msg The message data object to reply to.
+   */
   const startReply = useCallback((msg: MessageData) => {
     setEditingMessage(null)
     setReplyingTo(msg)
@@ -186,6 +216,11 @@ export function useChatMessages(options: { isOpen?: boolean } = {}) {
     setTimeout(() => inputRef.current?.focus(), 10)
   }, [])
 
+  /**
+   * Places the UI onto edit mode for the given message and safely populates input.
+   *
+   * @param msg The message data object to edit.
+   */
   const startEdit = useCallback((msg: MessageData) => {
     if (msg.isDeleted) return
     setReplyingTo(null)
@@ -194,11 +229,17 @@ export function useChatMessages(options: { isOpen?: boolean } = {}) {
     setTimeout(() => {
       if (inputRef.current) {
         inputRef.current.focus()
-        inputRef.current.setSelectionRange(msg.content.length, msg.content.length)
+        inputRef.current.setSelectionRange(
+          msg.content.length,
+          msg.content.length
+        )
       }
     }, 10)
   }, [])
 
+  /**
+   * Aborts all active edit/reply sessions and clears the input state.
+   */
   const cancelAction = useCallback(() => {
     setReplyingTo(null)
     setEditingMessage(null)

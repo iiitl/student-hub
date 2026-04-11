@@ -3,6 +3,13 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
 
+/**
+ * Initializes and manages a Server-Sent Events (SSE) stream for real-time chat updates.
+ * Pushes events downstream to connected browser clients upon new messages, edits, or deletions.
+ *
+ * @param req The incoming NextRequest interface.
+ * @returns A streaming NextResponse encoded as text/event-stream.
+ */
 export async function GET(req: NextRequest) {
   // Use a TransformStream to create a readable stream for SSE
   const { readable, writable } = new TransformStream()

@@ -7,7 +7,13 @@ import { chatEmitter } from '@/lib/eventEmitter'
 
 import mongoose from 'mongoose'
 
-
+/**
+ * Authorizes and modifies specific content inside an already existing database message artifact.
+ *
+ * @param req External Request object containing the intended replacement message payload.
+ * @param params Destructured route params to acquire the object ID.
+ * @returns Success response with updated populated object for frontend handling.
+ */
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> } // In Next 15+ we technically should await params if it's dynamic but let's check config, typically Next 14 handles it synchronously but App Router changed params to Promise in Next 15 depending on usage. Actually, Next 15 recommends `await params`. Let's do `const { id } = await params`.
@@ -81,6 +87,13 @@ export async function PATCH(
   }
 }
 
+/**
+ * Triggers a soft deletion sequence on the specified Message object within properties, overriding the content payload.
+ *
+ * @param req NextRequest object payload.
+ * @param params Contains the active database-generated ID context string.
+ * @returns Server-side confirmation of database alterations mapping success string.
+ */
 export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ id: string }> }

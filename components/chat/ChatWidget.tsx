@@ -8,6 +8,12 @@ import { Button } from '@/components/ui/button'
 import ChatMessage from './ChatMessage'
 import { useChatMessages } from '@/hooks/useChatMessages'
 
+/**
+ * Floating drawer UI rendering component for global contextual hub chat.
+ * Toggled off when viewing the full standalone chat page to prevent redundancy.
+ *
+ * @returns An attached side-panel layout or null if pathing hides component.
+ */
 export default function ChatWidget() {
   const pathname = usePathname()
   const { data: session } = useSession()
@@ -115,13 +121,24 @@ export default function ChatWidget() {
               <div className="p-2 bg-primary/10 border-b flex justify-between items-center text-xs px-4">
                 {replyingTo && (
                   <span className="font-semibold text-primary">
-                    Replying to {typeof replyingTo.sender === 'object' && replyingTo.sender !== null ? (replyingTo.sender as { name: string }).name : 'someone'}
+                    Replying to{' '}
+                    {typeof replyingTo.sender === 'object' &&
+                    replyingTo.sender !== null
+                      ? (replyingTo.sender as { name: string }).name
+                      : 'someone'}
                   </span>
                 )}
                 {editingMessage && (
-                  <span className="font-semibold text-primary">Editing message</span>
+                  <span className="font-semibold text-primary">
+                    Editing message
+                  </span>
                 )}
-                <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full" onClick={cancelAction}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-5 rounded-full"
+                  onClick={cancelAction}
+                >
                   <XCircle size={14} />
                 </Button>
               </div>
@@ -131,7 +148,9 @@ export default function ChatWidget() {
               <input
                 ref={inputRef}
                 type="text"
-                placeholder={editingMessage ? 'Edit your message...' : 'Type a message...'}
+                placeholder={
+                  editingMessage ? 'Edit your message...' : 'Type a message...'
+                }
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyDown={handleKeyDown}
