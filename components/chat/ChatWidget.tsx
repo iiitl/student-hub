@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
-import { MessageCircle, Send, XCircle } from 'lucide-react'
+import { MessageCircle, X, Send, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import ChatMessage, { MessageData } from '@/components/chat/ChatMessage'
+import ChatMessage, { MessageData } from './ChatMessage'
 
-export default function ChatPage() {
+export default function ChatWidget() {
   const { data: session } = useSession()
+  const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<MessageData[]>([])
   const [inputText, setInputText] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -22,6 +23,8 @@ export default function ChatPage() {
 
   // Polling logic
   useEffect(() => {
+    let interval: NodeJS.Timeout
+
     const fetchMessages = async () => {
       try {
         const res = await fetch('/api/chat/messages')
@@ -34,11 +37,13 @@ export default function ChatPage() {
       }
     }
 
-    fetchMessages() // Fetch immediately on mount
-    const interval = setInterval(fetchMessages, 3000) // Poll every 3 seconds
+    if (isOpen) {
+      fetchMessages() // Fetch immediately on open
+      interval = setInterval(fetchMessages, 3000) // Poll every 3 seconds
+    }
 
     return () => clearInterval(interval)
-  }, [])
+  }, [isOpen])
 
   // Scroll to bottom when new messages arrive if not editing
   useEffect(() => {
@@ -141,30 +146,40 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 flex flex-col h-[calc(100vh-80px)] max-h-[800px]">
-      <div className="bg-card border rounded-2xl shadow-xl flex flex-col h-full overflow-hidden">
+    <>
+      {/* Floating Action Button */}
+      {!isOpen && (
+        <Button
+          onClick={() => setIsOpen(true)}
+          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-xl bg-primary hover:bg-primary/90 text-primary-foreground z-50 transition-transform hover:scale-105"
+        >
+          <MessageCircle size={28} />
+        </Button>
+      )}
+
+      {/* Side Panel Drawer */}
+      <div
+        className={`fixed top-0 right-0 h-full w-full sm:w-[400px] bg-background border-l shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b bg-muted/30">
-          <div className="flex items-center gap-3">
-            <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
-            <h1 className="font-bold text-2xl">IIITL General Chat</h1>
+        <div className="flex items-center justify-between p-4 border-b bg-card text-card-foreground">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <h2 className="font-semibold text-lg">IIITL Group Chat</h2>
           </div>
-          <div className="text-sm text-muted-foreground whitespace-nowrap">
-            Real-time Community
-          </div>
+          <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
+            <X size={20} />
+          </Button>
         </div>
 
         {/* Message Area */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-muted/10">
+        <div className="flex-1 overflow-y-auto p-4 bg-muted/20">
           {messages.length === 0 ? (
             <div className="h-full flex flex-col justify-center items-center text-muted-foreground">
-              <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-4">
-                <MessageCircle size={40} className="opacity-30" />
-              </div>
               <p>No messages yet. Be the first to say hi!</p>
             </div>
           ) : (
-            <div className="flex flex-col space-y-2 max-w-4xl mx-auto w-full">
+            <div className="flex flex-col">
               {messages.map((msg) => (
                 <ChatMessage
                   key={msg._id}
@@ -182,57 +197,65 @@ export default function ChatPage() {
 
         {/* Auth / Read-only warning */}
         {!isIIITLUser && (
-          <div className="bg-destructive/10 text-destructive text-sm font-medium py-3 px-4 text-center border-t border-b">
-            Read-only mode. You need an @iiitl.ac.in email to send messages in the group chat.
+          <div className="bg-destructive/10 text-destructive text-xs py-2 px-4 text-center border-t">
+            Read-only mode. You need an @iiitl.ac.in email to send messages.
           </div>
         )}
 
         {/* Input Area */}
         {session && isIIITLUser && (
-          <div className="border-t bg-card flex flex-col max-w-4xl mx-auto w-full">
+          <div className="border-t bg-card flex flex-col">
             {/* Status Banner for Replying/Editing */}
             {(replyingTo || editingMessage) && (
-              <div className="p-3 bg-primary/10 border-b flex justify-between items-center text-sm px-6">
+              <div className="p-2 bg-primary/10 border-b flex justify-between items-center text-xs px-4">
                 {replyingTo && (
-                  <span className="font-medium text-primary">
+                  <span className="font-semibold text-primary">
                     Replying to {typeof replyingTo.sender === 'object' && replyingTo.sender !== null ? (replyingTo.sender as { name: string }).name : 'someone'}
                   </span>
                 )}
                 {editingMessage && (
-                  <span className="font-medium text-primary">Editing message</span>
+                  <span className="font-semibold text-primary">Editing message</span>
                 )}
-                <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full hover:bg-primary/20" onClick={cancelAction}>
-                  <XCircle size={16} />
+                <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full" onClick={cancelAction}>
+                  <XCircle size={14} />
                 </Button>
               </div>
             )}
 
-            <div className="p-4 md:p-6 flex gap-3 items-center relative">
+            <div className="p-4 flex gap-2 items-center relative">
               <input
                 type="text"
-                placeholder={editingMessage ? 'Edit your message...' : 'Type a message to the group...'}
+                placeholder={editingMessage ? 'Edit your message...' : 'Type a message...'}
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="flex-1 bg-muted border border-transparent p-4 rounded-full outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 text-base transition-all"
+                className="flex-1 bg-muted border-none p-3 rounded-full outline-none focus:ring-2 focus:ring-primary/50 text-sm"
                 disabled={isLoading}
               />
               <Button
                 onClick={handleSend}
                 disabled={isLoading || !inputText.trim()}
-                className="rounded-full h-12 w-12 md:h-14 md:w-14 p-0 flex justify-center items-center shadow-md hover:shadow-lg hover:-translate-y-1 transition-all"
+                className="rounded-full h-10 w-10 p-0 flex justify-center items-center"
               >
-                <Send size={22} className={isLoading ? 'opacity-50' : 'ml-1'} />
+                <Send size={18} className={isLoading ? 'opacity-50' : ''} />
               </Button>
             </div>
             {error && (
-              <div className="px-6 pb-4 text-sm text-destructive text-center font-medium">
+              <div className="px-4 pb-2 text-xs text-destructive text-center">
                 {error}
               </div>
             )}
           </div>
         )}
       </div>
-    </div>
+
+      {/* Overlay to close panel when clicking outside on mobile */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/20 z-40 sm:hidden"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+    </>
   )
 }

@@ -5,6 +5,7 @@ import Header from '@/components/header'
 import AuthProvider from '@/context/session-provider'
 import { Analytics } from '@vercel/analytics/next'
 import Script from 'next/script'
+import ChatWidget from '@/components/chat/ChatWidget'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -25,6 +26,7 @@ export default function RootLayout({ children }) {
           <Header />
           {children}
           <Footer />
+          <ChatWidget />
           <Analytics />
         </AuthProvider>
 
