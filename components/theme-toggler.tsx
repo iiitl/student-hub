@@ -1,4 +1,5 @@
 'use client'
+import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 import { FaSun, FaMoon } from 'react-icons/fa'
 
@@ -7,25 +8,17 @@ interface ThemeToggleProps {
 }
 
 export default function ThemeToggle({ text }: ThemeToggleProps) {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const {theme, setTheme} = useTheme()
+  const [mounted, setMounted] = useState(false)
 
-  useEffect(() => {
-    const storedTheme = localStorage.getItem('theme')
-    if (storedTheme === 'dark') {
-      setTheme('dark')
-      document.documentElement.classList.add('dark')
-    }
+    useEffect(() => {
+    setMounted(true)
   }, [])
 
-  useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark')
-      localStorage.setItem('theme', 'dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-      localStorage.setItem('theme', 'light')
-    }
-  }, [theme])
+  if (!mounted) {
+    return <button className="p-2 bg-primary flex items-center justify-center gap-3 text-white rounded cursor-pointer opacity-0">{text}</button>
+  }
+
 
   return (
     <button
