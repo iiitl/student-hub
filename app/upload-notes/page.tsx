@@ -91,7 +91,6 @@ const UploadNotePage = () => {
 
   const handleFileChange = (file: File | null) => {
     setFormData((prev) => ({ ...prev, uploaded_file: file }))
-
   }
 
   const handleDrop = (e: React.DragEvent) => {

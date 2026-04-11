@@ -116,7 +116,6 @@ export default function SignIn() {
           </div>
 
           <form className="space-y-6" onSubmit={handleSubmit}>
-            
             <div>
               <label
                 htmlFor="email"
