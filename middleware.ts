@@ -62,8 +62,8 @@ const rateLimiterMap = rateLimiters
     }
   : {}
 
-// Maximum request size (10MB)
-const MAX_REQUEST_SIZE = 10 * 1024 * 1024
+// Maximum request size (25MB)
+const MAX_REQUEST_SIZE = 25 * 1024 * 1024
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname
