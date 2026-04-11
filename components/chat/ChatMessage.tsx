@@ -9,6 +9,9 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 
+/**
+ * Represents the populated sender metadata for a chat message.
+ */
 export interface Sender {
   _id: string
   name: string
@@ -16,6 +19,9 @@ export interface Sender {
   email: string
 }
 
+/**
+ * Represents a single broadcasted chat message object.
+ */
 export interface MessageData {
   _id: string
   content: string
@@ -34,6 +40,17 @@ interface ChatMessageProps {
   onDelete: (messageId: string) => void
 }
 
+/**
+ * Renders a single localized message bubble alongside contextual actions.
+ * Supports delete, edit, and reply context overlays.
+ *
+ * @param message The populated message object.
+ * @param currentUserId The active user ID for ownership validation.
+ * @param onReply Callback handler to trigger replying state.
+ * @param onEdit Callback handler to trigger edit state.
+ * @param onDelete Callback handler executing the soft delete mutation.
+ * @returns React functional component node.
+ */
 export default function ChatMessage({
   message,
   currentUserId,
@@ -41,8 +58,8 @@ export default function ChatMessage({
   onEdit,
   onDelete,
 }: ChatMessageProps) {
-  const sender = message.sender as Sender
-  const isMe = sender._id === currentUserId
+  const sender = typeof message.sender === 'object' ? message.sender as Sender : null
+  const isMe = sender?._id === currentUserId
   const [isDeleting, setIsDeleting] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
 
