@@ -85,10 +85,21 @@ const QuestionPaperCard = ({
   }
 
   return (
-    <Card className="w-full flex flex-col md:flex-row p-4 justify-between items-start md:items-center bg-border/20 shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
-      <h2 className="text-xl truncate w-full" title={questionPaper.subject}>
-        {questionPaper.subject}
-      </h2>
+    <Card className="w-full flex flex-col md:flex-row p-4 justify-between items-start md:items-center bg-border/20 shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out gap-4">
+      <div className="flex-1 min-w-0 w-full md:w-auto">
+        <h2 className="text-xl truncate w-full" title={questionPaper.subject}>
+          {questionPaper.subject}
+        </h2>
+        {questionPaper.facultyName?.trim() && (
+          <p
+            className="text-sm text-muted-foreground mt-1 truncate"
+            title={questionPaper.facultyName}
+          >
+            Faculty:{' '}
+            <span className="text-foreground">{questionPaper.facultyName}</span>
+          </p>
+        )}
+      </div>
       <div className="flex flex-row-reverse shrink-0 md:flex-row justify-center items-center gap-4">
         <p className="text-foreground">
           {questionPaper.batch} - {questionPaper.exam} Semester{' '}
