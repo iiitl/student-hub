@@ -1,6 +1,17 @@
 import { chatEmitter } from '@/lib/eventEmitter'
 import { NextRequest, NextResponse } from 'next/server'
 
+/**
+ * Payload shape emitted by the chat event system.
+ * `type` distinguishes between lifecycle events (CONNECTED, HEARTBEAT)
+ * and mutation events (NEW_MESSAGE, EDIT_MESSAGE, DELETE_MESSAGE).
+ * `message` carries the serialised document when applicable.
+ */
+interface ChatEventPayload {
+  type: 'CONNECTED' | 'HEARTBEAT' | 'NEW_MESSAGE' | 'EDIT_MESSAGE' | 'DELETE_MESSAGE'
+  message?: Record<string, unknown>
+}
+
 export const dynamic = 'force-dynamic'
 
 /**
@@ -16,17 +27,23 @@ export async function GET(req: NextRequest) {
   const writer = writable.getWriter()
   const encoder = new TextEncoder()
 
-  // Helper to send data
-  const sendEvent = async (data: any) => {
+  /**
+   * Serialises `data` as a JSON SSE frame and pushes it to the writable stream.
+   * Catches write errors (e.g. client already disconnected) to avoid crashing the handler.
+   */
+  const sendEvent = async (data: ChatEventPayload) => {
     try {
       await writer.write(encoder.encode(`data: ${JSON.stringify(data)}\n\n`))
-    } catch (e) {
-      console.error('SSE write error:', e)
+    } catch (writeErr) {
+      console.error('SSE write error:', writeErr)
     }
   }
 
-  // Define the event listener
-  const onChatUpdate = (data: any) => {
+  /**
+   * Listener callback wired to the shared chatEmitter.
+   * Forwards every chatUpdate event directly to the SSE client.
+   */
+  const onChatUpdate = (data: ChatEventPayload) => {
     sendEvent(data)
   }
 
@@ -47,7 +64,9 @@ export async function GET(req: NextRequest) {
     chatEmitter.off('chatUpdate', onChatUpdate)
     try {
       writer.close()
-    } catch (e) {}
+    } catch (_closeErr) {
+      /* Writer may already be closed; safe to ignore. */
+    }
   })
 
   return new NextResponse(readable, {

@@ -28,11 +28,22 @@ export function useChatMessages(options: { isOpen?: boolean } = {}) {
     ?.endsWith('@iiitl.ac.in')
   const currentUserId = session?.user?.id
 
-  // Use refs to track latest state for event listeners without re-binding
+  // Use refs to track latest state for event listeners without re-binding.
+  // This avoids recreating the SSE connection when these values change.
   const messagesRef = useRef(messages)
   useEffect(() => {
     messagesRef.current = messages
   }, [messages])
+
+  const replyingToRef = useRef(replyingTo)
+  useEffect(() => {
+    replyingToRef.current = replyingTo
+  }, [replyingTo])
+
+  const editingMessageRef = useRef(editingMessage)
+  useEffect(() => {
+    editingMessageRef.current = editingMessage
+  }, [editingMessage])
 
   // Initial fetch
   useEffect(() => {
@@ -93,12 +104,16 @@ export function useChatMessages(options: { isOpen?: boolean } = {}) {
             })
           )
 
-          // Cancel reply if the target message was deleted
-          if (
-            data.type === 'DELETE_MESSAGE' &&
-            replyingTo?._id === data.message._id
-          ) {
-            setReplyingTo(null)
+          // Cancel reply if the target message was deleted (by another user)
+          if (data.type === 'DELETE_MESSAGE') {
+            if (replyingToRef.current?._id === data.message._id) {
+              setReplyingTo(null)
+            }
+            // Also exit edit mode if the deleted message was being edited
+            if (editingMessageRef.current?._id === data.message._id) {
+              setEditingMessage(null)
+              setInputText('')
+            }
           }
         }
       } catch (e) {
@@ -115,7 +130,7 @@ export function useChatMessages(options: { isOpen?: boolean } = {}) {
     return () => {
       eventSource.close()
     }
-  }, [isOpen, replyingTo]) // Include replyingTo so we can clear it if deleted
+  }, [isOpen]) // Only re-create SSE when open/close changes; refs handle mutable state
 
   /**
    * Handles sending a new message or modifying an existing one (edit/reply).

@@ -21,8 +21,17 @@ export async function PATCH(
   try {
     const session = await getServerSession(authOptions)
 
+    /* ── Auth gate: must be logged in with a valid user ID ── */
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    /* ── Domain gate: only @iiitl.ac.in emails may write (edit/delete) ── */
+    if (!session.user.email?.toLowerCase().endsWith('@iiitl.ac.in')) {
+      return NextResponse.json(
+        { error: 'Read-only: write access restricted to @iiitl.ac.in' },
+        { status: 403 }
+      )
     }
 
     const { id } = await params
@@ -101,8 +110,17 @@ export async function DELETE(
   try {
     const session = await getServerSession(authOptions)
 
+    /* ── Auth gate: must be logged in with a valid user ID ── */
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    /* ── Domain gate: only @iiitl.ac.in emails may write (edit/delete) ── */
+    if (!session.user.email?.toLowerCase().endsWith('@iiitl.ac.in')) {
+      return NextResponse.json(
+        { error: 'Read-only: write access restricted to @iiitl.ac.in' },
+        { status: 403 }
+      )
     }
 
     const { id } = await params

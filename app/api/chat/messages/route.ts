@@ -52,7 +52,8 @@ export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions)
 
-    if (!session?.user?.email) {
+    /* ── Auth gate: require both email (for domain check) and id (for sender reference) ── */
+    if (!session?.user?.email || !session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

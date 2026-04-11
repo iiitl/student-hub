@@ -121,6 +121,7 @@ export default function ChatPage() {
                   size="icon"
                   className="h-6 w-6 rounded-full hover:bg-primary/20"
                   onClick={cancelAction}
+                  aria-label={editingMessage ? 'Cancel edit' : 'Cancel reply'}
                 >
                   <XCircle size={16} />
                 </Button>
@@ -136,6 +137,11 @@ export default function ChatPage() {
                     ? 'Edit your message...'
                     : 'Type a message to the group...'
                 }
+                aria-label={
+                  editingMessage
+                    ? 'Edit your message'
+                    : 'Type a message to the group'
+                }
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -145,6 +151,8 @@ export default function ChatPage() {
               <Button
                 onClick={handleSend}
                 disabled={isLoading || !inputText.trim()}
+                aria-disabled={isLoading || !inputText.trim()}
+                aria-label="Send message"
                 className="rounded-full h-12 w-12 md:h-14 md:w-14 p-0 flex justify-center items-center shadow-md hover:shadow-lg hover:-translate-y-1 transition-all"
               >
                 <Send size={22} className={isLoading ? 'opacity-50' : 'ml-1'} />
