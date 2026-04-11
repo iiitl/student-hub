@@ -58,7 +58,8 @@ export default function ChatMessage({
   onEdit,
   onDelete,
 }: ChatMessageProps) {
-  const sender = typeof message.sender === 'object' ? message.sender as Sender : null
+  const sender =
+    typeof message.sender === 'object' ? (message.sender as Sender) : null
   const isMe = sender?._id === currentUserId
   const [isDeleting, setIsDeleting] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)

@@ -16,6 +16,14 @@ import { useChatMessages } from '@/hooks/useChatMessages'
  */
 export default function ChatWidget() {
   const pathname = usePathname()
+
+  // Don't render (or poll) on full chat page
+  if (pathname === '/chat') return null
+
+  return <ChatWidgetInner />
+}
+
+function ChatWidgetInner() {
   const { data: session } = useSession()
   const [isOpen, setIsOpen] = useState(false)
 
@@ -52,9 +60,6 @@ export default function ChatWidget() {
       handleSend()
     }
   }
-
-  // Don't render on full chat page
-  if (pathname === '/chat') return null
 
   return (
     <>
