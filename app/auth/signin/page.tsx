@@ -1,5 +1,5 @@
 'use client'
-
+import { useToast } from '@/context/toast-provider'
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
@@ -13,6 +13,7 @@ export default function SignIn() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const { addToast } = useToast()
 
   // Validate email domain
   const isValidIIITLEmail = (email: string) => {
@@ -21,61 +22,70 @@ export default function SignIn() {
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+  e.preventDefault()
+  setLoading(true)
+  setError('')
 
-    // Validate IIITL domain
-    if (!isValidIIITLEmail(email)) {
-      setError('Only IIITL email addresses are allowed')
-      setLoading(false)
-      return
-    }
+  // Validate IIITL domain
+  if (!isValidIIITLEmail(email)) {
+    const msg = 'Only IIITL email addresses are allowed'
+    setError(msg)
+    addToast('Validation Error', msg, 'error')
+    setLoading(false)
+    return
+  }
 
-    try {
-      const result = await signIn('credentials', {
-        redirect: false,
-        email,
-        password,
-      })
+  try {
+    const result = await signIn('credentials', {
+      redirect: false,
+      email,
+      password,
+    })
 
-      if (result?.error) {
-        if (result.error === 'PASSWORD_NOT_SET') {
-          // Redirect to set password page if they signed up with Google
-          router.push(`/auth/set-password?email=${encodeURIComponent(email)}`)
-          return
-        }
-        // Handle other errors
-        if (result.error === 'Invalid Credentials') {
-          setError('Invalid email or password')
-        } else {
-          setError(result.error)
-        }
-      } else if (result?.ok) {
-        // Successful login
-        router.push('/')
-        router.refresh()
+    if (result?.error) {
+      if (result.error === 'PASSWORD_NOT_SET') {
+        router.push(`/auth/set-password?email=${encodeURIComponent(email)}`)
+        return
       }
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : 'Something went wrong. Please try again.'
-      setError(errorMessage)
-    } finally {
-      setLoading(false)
+      // Handle other errors
+      if (result.error === 'Invalid Credentials') {
+        const errorMsg = 'Invalid email or password'
+        setError(errorMsg)
+        addToast('Login Failed', errorMsg, 'error')
+      } else {
+        setError(result.error)
+        addToast('Error', result.error, 'error')
+      }
+    } else if (result?.ok) {
+      // Successful login
+      addToast('Login Successful', 'Welcome back!', 'success')
+      router.push('/')
+      router.refresh()
     }
+  } catch (error: unknown) {
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : 'Something went wrong. Please try again.'
+    setError(errorMessage)
+    addToast('Error', errorMessage, 'error')
+  } finally {
+    setLoading(false)
   }
+}
 
-  const handleGoogleSignIn = async () => {
-    try {
-      setLoading(true)
-      await signIn('google', { callbackUrl: '/' })
-    } catch {
-      setError('Failed to sign in with Google. Please try again.')
-      setLoading(false)
-    }
+ const handleGoogleSignIn = async () => {
+  try {
+    setLoading(true)
+    addToast('Redirecting', 'Signing in with Google...', 'info')
+    await signIn('google', { callbackUrl: '/' })
+  } catch {
+    const msg = 'Failed to sign in with Google. Please try again.'
+    setError(msg)
+    addToast('Error', msg, 'error')
+    setLoading(false)
   }
+}
 
   return (
     <div className="flex min-h-[80vh] flex-col justify-center px-6 py-12 lg:px-8">

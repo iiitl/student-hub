@@ -1,5 +1,6 @@
 'use client'
 
+import { useToast } from '@/context/toast-provider'
 import React, { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -28,6 +29,7 @@ import { NoteCategory } from '@/types/note'
 const UploadNotePage = () => {
   const router = useRouter()
   const { status } = useSession()
+  const { addToast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [formData, setFormData] = useState({
@@ -102,98 +104,107 @@ const UploadNotePage = () => {
     handleFileChange(file)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError(null)
-    setSuccess(null)
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+  setIsLoading(true)
+  setError(null)
+  setSuccess(null)
 
-    try {
-      const finalSubject = isNewSubject ? customSubject : formData.subject
+  try {
+    const finalSubject = isNewSubject ? customSubject : formData.subject
 
-      if (
-        !finalSubject ||
-        !formData.facultyName ||
-        !formData.year ||
-        !formData.semester ||
-        !formData.term ||
-        !formData.uploaded_file
-      ) {
-        setError('Please fill in all required fields')
-        setIsLoading(false)
-        return
-      }
-
-      const maxSize = 25 * 1024 * 1024
-      if (formData.uploaded_file.size > maxSize) {
-        setError('File size must be less than 25MB')
-        setIsLoading(false)
-        return
-      }
-
-      const allowedTypes = [
-        'application/pdf',
-        'image/png',
-        'image/jpeg',
-        'image/webp',
-      ]
-      if (!allowedTypes.includes(formData.uploaded_file.type)) {
-        setError('Only PDF, PNG, JPG, JPEG, and WEBP files are allowed')
-        setIsLoading(false)
-        return
-      }
-
-      const submitFormData = new FormData()
-      submitFormData.append('facultyName', formData.facultyName)
-      submitFormData.append('content', formData.content)
-      submitFormData.append('subject', finalSubject)
-      submitFormData.append('year', formData.year)
-      submitFormData.append('semester', formData.semester)
-      submitFormData.append('term', formData.term)
-      submitFormData.append('category', formData.category)
-      submitFormData.append('uploaded_file', formData.uploaded_file)
-
-      const response = await fetch('/api/notes', {
-        method: 'POST',
-        body: submitFormData,
-      })
-
-      let data
-      try {
-        data = await response.json()
-      } catch {
-        throw new Error(
-          `Server error: ${response.status} ${response.statusText}`
-        )
-      }
-
-      if (!response.ok) throw new Error(data.message || 'Failed to upload note')
-
-      setSuccess('Note uploaded successfully!')
-      setFormData({
-        facultyName: '',
-        content: '',
-        subject: '',
-        year: '',
-        semester: '',
-        term: '',
-        category: 'academic',
-        uploaded_file: null,
-      })
-      setCustomSubject('')
-      setIsNewSubject(false)
-      if (fileInputRef.current) fileInputRef.current.value = ''
-    } catch (err) {
-      console.error('Upload error:', err)
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Failed to upload note. Please try again.'
-      )
-    } finally {
+    if (
+      !finalSubject ||
+      !formData.facultyName ||
+      !formData.year ||
+      !formData.semester ||
+      !formData.term ||
+      !formData.uploaded_file
+    ) {
+      const msg = 'Please fill in all required fields'
+      setError(msg)
+      addToast('Validation Error', msg, 'error')
       setIsLoading(false)
+      return
     }
+
+    const maxSize = 25 * 1024 * 1024
+    if (formData.uploaded_file.size > maxSize) {
+      const msg = 'File size must be less than 25MB'
+      setError(msg)
+      addToast('File Too Large', msg, 'error')
+      setIsLoading(false)
+      return
+    }
+
+    const allowedTypes = [
+      'application/pdf',
+      'image/png',
+      'image/jpeg',
+      'image/webp',
+    ]
+    if (!allowedTypes.includes(formData.uploaded_file.type)) {
+      const msg = 'Only PDF, PNG, JPG, JPEG, and WEBP files are allowed'
+      setError(msg)
+      addToast('Invalid File Type', msg, 'error')
+      setIsLoading(false)
+      return
+    }
+
+    const submitFormData = new FormData()
+    submitFormData.append('facultyName', formData.facultyName)
+    submitFormData.append('content', formData.content)
+    submitFormData.append('subject', finalSubject)
+    submitFormData.append('year', formData.year)
+    submitFormData.append('semester', formData.semester)
+    submitFormData.append('term', formData.term)
+    submitFormData.append('category', formData.category)
+    submitFormData.append('uploaded_file', formData.uploaded_file)
+
+    const response = await fetch('/api/notes', {
+      method: 'POST',
+      body: submitFormData,
+    })
+
+    let data
+    try {
+      data = await response.json()
+    } catch {
+      throw new Error(
+        `Server error: ${response.status} ${response.statusText}`
+      )
+    }
+
+    if (!response.ok) throw new Error(data.message || 'Failed to upload note')
+
+    const successMsg = 'Note uploaded successfully!'
+    setSuccess(successMsg)
+    addToast('Upload Successful', successMsg, 'success')
+    setFormData({
+      facultyName: '',
+      content: '',
+      subject: '',
+      year: '',
+      semester: '',
+      term: '',
+      category: 'academic',
+      uploaded_file: null,
+    })
+    setCustomSubject('')
+    setIsNewSubject(false)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  } catch (err) {
+    console.error('Upload error:', err)
+    const errorMsg =
+      err instanceof Error
+        ? err.message
+        : 'Failed to upload note. Please try again.'
+    setError(errorMsg)
+    addToast('Upload Failed', errorMsg, 'error')
+  } finally {
+    setIsLoading(false)
   }
+}
 
   if (status === 'loading') {
     return (
@@ -213,34 +224,6 @@ const UploadNotePage = () => {
           <h1 className="text-3xl font-semibold text-center">Upload a Note</h1>
         </div>
 
-        {/* Alerts */}
-        {error && (
-          <div className="flex items-start gap-3 px-4 py-3 rounded-md border border-destructive/40 bg-destructive/10 text-destructive text-sm">
-            <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="font-medium">Upload failed</p>
-              <p className="text-xs mt-0.5 opacity-80">{error}</p>
-            </div>
-            <button
-              onClick={() => setError(null)}
-              className="ml-auto flex-shrink-0 opacity-70 hover:opacity-100"
-            >
-              ✕
-            </button>
-          </div>
-        )}
-        {success && (
-          <div className="flex items-start gap-3 px-4 py-3 rounded-md border border-green-500/40 bg-green-500/10 text-green-600 dark:text-green-400 text-sm">
-            <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-            <p className="font-medium">{success}</p>
-            <button
-              onClick={() => setSuccess(null)}
-              className="ml-auto flex-shrink-0 opacity-70 hover:opacity-100"
-            >
-              ✕
-            </button>
-          </div>
-        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">

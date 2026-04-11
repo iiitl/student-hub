@@ -1,5 +1,6 @@
 'use client'
 
+import { useToast } from '@/context/toast-provider'
 import React, { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -29,6 +30,7 @@ const UploadPaperPage = () => {
   const router = useRouter()
   const { data: session, status } = useSession()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const { addToast } = useToast()
   const [formData, setFormData] = useState({
     facultyName: '',
     content: '',
@@ -109,111 +111,120 @@ const UploadPaperPage = () => {
     if (error) setError(null)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError(null)
-    setSuccess(null)
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+  setIsLoading(true)
+  setError(null)
+  setSuccess(null)
 
-    try {
-      // Validate form data
-      const finalSubject = isNewSubject ? customSubject : formData.subject
+  try {
+    // Validate form data
+    const finalSubject = isNewSubject ? customSubject : formData.subject
 
-      if (
-        !finalSubject ||
-        !formData.year ||
-        !formData.semester ||
-        !formData.term ||
-        !formData.uploaded_file
-      ) {
-        setError('Please fill in all required fields')
-        setIsLoading(false)
-        return
-      }
-
-      // Validate file size (25MB max)
-      const maxSize = 25 * 1024 * 1024 // 25MB in bytes
-      if (formData.uploaded_file.size > maxSize) {
-        setError('File size must be less than 25MB')
-        setIsLoading(false)
-        return
-      }
-
-      // Validate file type
-      const allowedTypes = [
-        'application/pdf',
-        'image/png',
-        'image/jpeg',
-        'image/webp',
-      ]
-      if (!allowedTypes.includes(formData.uploaded_file.type)) {
-        setError('Only PDF, PNG, JPG, JPEG, and WEBP files are allowed')
-        setIsLoading(false)
-        return
-      }
-
-      // Create FormData object
-      const submitFormData = new FormData()
-      submitFormData.append('facultyName', formData.facultyName)
-      submitFormData.append('content', formData.content)
-      submitFormData.append('subject', finalSubject)
-      submitFormData.append('year', formData.year)
-      submitFormData.append('semester', formData.semester)
-      submitFormData.append('term', formData.term)
-      submitFormData.append('uploaded_file', formData.uploaded_file)
-
-      // Make API call
-      const response = await fetch('/api/papers', {
-        method: 'POST',
-        body: submitFormData,
-      })
-
-      // Try to parse JSON response
-      let data
-      try {
-        data = await response.json()
-      } catch {
-        // If response is not JSON, throw a generic error
-        throw new Error(
-          `Server error: ${response.status} ${response.statusText}`
-        )
-      }
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to upload paper')
-      }
-
-      // Success
-      setSuccess('Paper uploaded successfully!')
-
-      // Reset form
-      setFormData({
-        facultyName: '',
-        content: '',
-        subject: '',
-        year: '',
-        semester: '',
-        term: '',
-        uploaded_file: null,
-      })
-      setCustomSubject('')
-      setIsNewSubject(false)
-
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ''
-      }
-    } catch (err) {
-      console.error('Upload error:', err)
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Failed to upload paper. Please try again.'
-      )
-    } finally {
+    if (
+      !finalSubject ||
+      !formData.year ||
+      !formData.semester ||
+      !formData.term ||
+      !formData.uploaded_file
+    ) {
+      const msg = 'Please fill in all required fields'
+      setError(msg)
+      addToast('Validation Error', msg, 'error')
       setIsLoading(false)
+      return
     }
+
+    // Validate file size (25MB max)
+    const maxSize = 25 * 1024 * 1024 // 25MB in bytes
+    if (formData.uploaded_file.size > maxSize) {
+      const msg = 'File size must be less than 25MB'
+      setError(msg)
+      addToast('File Too Large', msg, 'error')
+      setIsLoading(false)
+      return
+    }
+
+    // Validate file type
+    const allowedTypes = [
+      'application/pdf',
+      'image/png',
+      'image/jpeg',
+      'image/webp',
+    ]
+    if (!allowedTypes.includes(formData.uploaded_file.type)) {
+      const msg = 'Only PDF, PNG, JPG, JPEG, and WEBP files are allowed'
+      setError(msg)
+      addToast('Invalid File Type', msg, 'error')
+      setIsLoading(false)
+      return
+    }
+
+    // Create FormData object
+    const submitFormData = new FormData()
+    submitFormData.append('facultyName', formData.facultyName)
+    submitFormData.append('content', formData.content)
+    submitFormData.append('subject', finalSubject)
+    submitFormData.append('year', formData.year)
+    submitFormData.append('semester', formData.semester)
+    submitFormData.append('term', formData.term)
+    submitFormData.append('uploaded_file', formData.uploaded_file)
+
+    // Make API call
+    const response = await fetch('/api/papers', {
+      method: 'POST',
+      body: submitFormData,
+    })
+
+    // Try to parse JSON response
+    let data
+    try {
+      data = await response.json()
+    } catch {
+      // If response is not JSON, throw a generic error
+      throw new Error(
+        `Server error: ${response.status} ${response.statusText}`
+      )
+    }
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to upload paper')
+    }
+
+    // Success
+    const successMsg = 'Paper uploaded successfully!'
+    setSuccess(successMsg)
+    addToast('Upload Successful', successMsg, 'success')
+
+    // Reset form
+    setFormData({
+      facultyName: '',
+      content: '',
+      subject: '',
+      year: '',
+      semester: '',
+      term: '',
+      uploaded_file: null,
+    })
+    setCustomSubject('')
+    setIsNewSubject(false)
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  } catch (err) {
+    console.error('Upload error:', err)
+    const errorMsg =
+      err instanceof Error
+        ? err.message
+        : 'Failed to upload paper. Please try again.'
+    setError(errorMsg)
+    addToast('Upload Failed', errorMsg, 'error')
+  } finally {
+    setIsLoading(false)
   }
+}
 
   // Show loading state while checking authentication
   if (status === 'loading') {
@@ -246,27 +257,6 @@ const UploadPaperPage = () => {
 
         <Card className="shadow-lg">
           <CardContent>
-            {/* Error Message */}
-            {error && (
-              <div className="mb-6 p-4 bg-destructive/10 border border-destructive rounded-lg flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
-                <div>
-                  <h4 className="font-medium text-destructive">Error</h4>
-                  <p className="text-sm text-destructive/90">{error}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Success Message */}
-            {success && (
-              <div className="mb-6 p-4 bg-green-500/10 border border-green-500 rounded-lg flex items-start gap-3">
-                <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
-                <div>
-                  <h4 className="font-medium text-green-500">Success</h4>
-                  <p className="text-sm text-green-500/90">{success}</p>
-                </div>
-              </div>
-            )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Subject Field */}
