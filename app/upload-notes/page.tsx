@@ -18,7 +18,6 @@ import {
   Calendar,
   GraduationCap,
   CheckCircle,
-  AlertCircle,
   BookOpen,
   Tag,
 } from 'lucide-react'
@@ -43,8 +42,6 @@ const UploadNotePage = () => {
     uploaded_file: null as File | null,
   })
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
 
   const [subjects, setSubjects] = useState<string[]>([])
   const [isNewSubject, setIsNewSubject] = useState(false)
@@ -94,7 +91,7 @@ const UploadNotePage = () => {
 
   const handleFileChange = (file: File | null) => {
     setFormData((prev) => ({ ...prev, uploaded_file: file }))
-    if (error) setError(null)
+
   }
 
   const handleDrop = (e: React.DragEvent) => {
@@ -104,107 +101,105 @@ const UploadNotePage = () => {
     handleFileChange(file)
   }
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault()
-  setIsLoading(true)
-  setError(null)
-  setSuccess(null)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
 
-  try {
-    const finalSubject = isNewSubject ? customSubject : formData.subject
-
-    if (
-      !finalSubject ||
-      !formData.facultyName ||
-      !formData.year ||
-      !formData.semester ||
-      !formData.term ||
-      !formData.uploaded_file
-    ) {
-      const msg = 'Please fill in all required fields'
-      setError(msg)
-      addToast('Validation Error', msg, 'error')
-      setIsLoading(false)
-      return
-    }
-
-    const maxSize = 25 * 1024 * 1024
-    if (formData.uploaded_file.size > maxSize) {
-      const msg = 'File size must be less than 25MB'
-      setError(msg)
-      addToast('File Too Large', msg, 'error')
-      setIsLoading(false)
-      return
-    }
-
-    const allowedTypes = [
-      'application/pdf',
-      'image/png',
-      'image/jpeg',
-      'image/webp',
-    ]
-    if (!allowedTypes.includes(formData.uploaded_file.type)) {
-      const msg = 'Only PDF, PNG, JPG, JPEG, and WEBP files are allowed'
-      setError(msg)
-      addToast('Invalid File Type', msg, 'error')
-      setIsLoading(false)
-      return
-    }
-
-    const submitFormData = new FormData()
-    submitFormData.append('facultyName', formData.facultyName)
-    submitFormData.append('content', formData.content)
-    submitFormData.append('subject', finalSubject)
-    submitFormData.append('year', formData.year)
-    submitFormData.append('semester', formData.semester)
-    submitFormData.append('term', formData.term)
-    submitFormData.append('category', formData.category)
-    submitFormData.append('uploaded_file', formData.uploaded_file)
-
-    const response = await fetch('/api/notes', {
-      method: 'POST',
-      body: submitFormData,
-    })
-
-    let data
     try {
-      data = await response.json()
-    } catch {
-      throw new Error(
-        `Server error: ${response.status} ${response.statusText}`
-      )
+      const finalSubject = isNewSubject ? customSubject : formData.subject
+
+      if (
+        !finalSubject ||
+        !formData.facultyName ||
+        !formData.year ||
+        !formData.semester ||
+        !formData.term ||
+        !formData.uploaded_file
+      ) {
+        const msg = 'Please fill in all required fields'
+        addToast(msg)
+        addToast('Validation Error', msg, 'error')
+        setIsLoading(false)
+        return
+      }
+
+      const maxSize = 25 * 1024 * 1024
+      if (formData.uploaded_file.size > maxSize) {
+        const msg = 'File size must be less than 25MB'
+        addToast(msg)
+        addToast('File Too Large', msg, 'error')
+        setIsLoading(false)
+        return
+      }
+
+      const allowedTypes = [
+        'application/pdf',
+        'image/png',
+        'image/jpeg',
+        'image/webp',
+      ]
+      if (!allowedTypes.includes(formData.uploaded_file.type)) {
+        const msg = 'Only PDF, PNG, JPG, JPEG, and WEBP files are allowed'
+        addToast(msg)
+        addToast('Invalid File Type', msg, 'error')
+        setIsLoading(false)
+        return
+      }
+
+      const submitFormData = new FormData()
+      submitFormData.append('facultyName', formData.facultyName)
+      submitFormData.append('content', formData.content)
+      submitFormData.append('subject', finalSubject)
+      submitFormData.append('year', formData.year)
+      submitFormData.append('semester', formData.semester)
+      submitFormData.append('term', formData.term)
+      submitFormData.append('category', formData.category)
+      submitFormData.append('uploaded_file', formData.uploaded_file)
+
+      const response = await fetch('/api/notes', {
+        method: 'POST',
+        body: submitFormData,
+      })
+
+      let data
+      try {
+        data = await response.json()
+      } catch {
+        throw new Error(
+          `Server error: ${response.status} ${response.statusText}`
+        )
+      }
+
+      if (!response.ok) throw new Error(data.message || 'Failed to upload note')
+
+      const successMsg = 'Note uploaded successfully!'
+      addToast(successMsg)
+      addToast('Upload Successful', successMsg, 'success')
+      setFormData({
+        facultyName: '',
+        content: '',
+        subject: '',
+        year: '',
+        semester: '',
+        term: '',
+        category: 'academic',
+        uploaded_file: null,
+      })
+      setCustomSubject('')
+      setIsNewSubject(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    } catch (err) {
+      console.error('Upload error:', err)
+      const errorMsg =
+        err instanceof Error
+          ? err.message
+          : 'Failed to upload note. Please try again.'
+      addToast(errorMsg)
+      addToast('Upload Failed', errorMsg, 'error')
+    } finally {
+      setIsLoading(false)
     }
-
-    if (!response.ok) throw new Error(data.message || 'Failed to upload note')
-
-    const successMsg = 'Note uploaded successfully!'
-    setSuccess(successMsg)
-    addToast('Upload Successful', successMsg, 'success')
-    setFormData({
-      facultyName: '',
-      content: '',
-      subject: '',
-      year: '',
-      semester: '',
-      term: '',
-      category: 'academic',
-      uploaded_file: null,
-    })
-    setCustomSubject('')
-    setIsNewSubject(false)
-    if (fileInputRef.current) fileInputRef.current.value = ''
-  } catch (err) {
-    console.error('Upload error:', err)
-    const errorMsg =
-      err instanceof Error
-        ? err.message
-        : 'Failed to upload note. Please try again.'
-    setError(errorMsg)
-    addToast('Upload Failed', errorMsg, 'error')
-  } finally {
-    setIsLoading(false)
   }
-}
 
   if (status === 'loading') {
     return (
@@ -223,7 +218,6 @@ const handleSubmit = async (e: React.FormEvent) => {
         <div className="flex flex-col sm:flex-row sm:relative sm:justify-center items-center gap-3">
           <h1 className="text-3xl font-semibold text-center">Upload a Note</h1>
         </div>
-
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">

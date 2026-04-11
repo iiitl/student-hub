@@ -20,8 +20,6 @@ import {
   Calendar,
   BookOpen,
   GraduationCap,
-  CheckCircle,
-  AlertCircle,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
@@ -111,120 +109,120 @@ const UploadPaperPage = () => {
     if (error) setError(null)
   }
 
- const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault()
-  setIsLoading(true)
-  setError(null)
-  setSuccess(null)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError(null)
+    setSuccess(null)
 
-  try {
-    // Validate form data
-    const finalSubject = isNewSubject ? customSubject : formData.subject
-
-    if (
-      !finalSubject ||
-      !formData.year ||
-      !formData.semester ||
-      !formData.term ||
-      !formData.uploaded_file
-    ) {
-      const msg = 'Please fill in all required fields'
-      setError(msg)
-      addToast('Validation Error', msg, 'error')
-      setIsLoading(false)
-      return
-    }
-
-    // Validate file size (25MB max)
-    const maxSize = 25 * 1024 * 1024 // 25MB in bytes
-    if (formData.uploaded_file.size > maxSize) {
-      const msg = 'File size must be less than 25MB'
-      setError(msg)
-      addToast('File Too Large', msg, 'error')
-      setIsLoading(false)
-      return
-    }
-
-    // Validate file type
-    const allowedTypes = [
-      'application/pdf',
-      'image/png',
-      'image/jpeg',
-      'image/webp',
-    ]
-    if (!allowedTypes.includes(formData.uploaded_file.type)) {
-      const msg = 'Only PDF, PNG, JPG, JPEG, and WEBP files are allowed'
-      setError(msg)
-      addToast('Invalid File Type', msg, 'error')
-      setIsLoading(false)
-      return
-    }
-
-    // Create FormData object
-    const submitFormData = new FormData()
-    submitFormData.append('facultyName', formData.facultyName)
-    submitFormData.append('content', formData.content)
-    submitFormData.append('subject', finalSubject)
-    submitFormData.append('year', formData.year)
-    submitFormData.append('semester', formData.semester)
-    submitFormData.append('term', formData.term)
-    submitFormData.append('uploaded_file', formData.uploaded_file)
-
-    // Make API call
-    const response = await fetch('/api/papers', {
-      method: 'POST',
-      body: submitFormData,
-    })
-
-    // Try to parse JSON response
-    let data
     try {
-      data = await response.json()
-    } catch {
-      // If response is not JSON, throw a generic error
-      throw new Error(
-        `Server error: ${response.status} ${response.statusText}`
-      )
+      // Validate form data
+      const finalSubject = isNewSubject ? customSubject : formData.subject
+
+      if (
+        !finalSubject ||
+        !formData.year ||
+        !formData.semester ||
+        !formData.term ||
+        !formData.uploaded_file
+      ) {
+        const msg = 'Please fill in all required fields'
+        setError(msg)
+        addToast('Validation Error', msg, 'error')
+        setIsLoading(false)
+        return
+      }
+
+      // Validate file size (25MB max)
+      const maxSize = 25 * 1024 * 1024 // 25MB in bytes
+      if (formData.uploaded_file.size > maxSize) {
+        const msg = 'File size must be less than 25MB'
+        setError(msg)
+        addToast('File Too Large', msg, 'error')
+        setIsLoading(false)
+        return
+      }
+
+      // Validate file type
+      const allowedTypes = [
+        'application/pdf',
+        'image/png',
+        'image/jpeg',
+        'image/webp',
+      ]
+      if (!allowedTypes.includes(formData.uploaded_file.type)) {
+        const msg = 'Only PDF, PNG, JPG, JPEG, and WEBP files are allowed'
+        setError(msg)
+        addToast('Invalid File Type', msg, 'error')
+        setIsLoading(false)
+        return
+      }
+
+      // Create FormData object
+      const submitFormData = new FormData()
+      submitFormData.append('facultyName', formData.facultyName)
+      submitFormData.append('content', formData.content)
+      submitFormData.append('subject', finalSubject)
+      submitFormData.append('year', formData.year)
+      submitFormData.append('semester', formData.semester)
+      submitFormData.append('term', formData.term)
+      submitFormData.append('uploaded_file', formData.uploaded_file)
+
+      // Make API call
+      const response = await fetch('/api/papers', {
+        method: 'POST',
+        body: submitFormData,
+      })
+
+      // Try to parse JSON response
+      let data
+      try {
+        data = await response.json()
+      } catch {
+        // If response is not JSON, throw a generic error
+        throw new Error(
+          `Server error: ${response.status} ${response.statusText}`
+        )
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to upload paper')
+      }
+
+      // Success
+      const successMsg = 'Paper uploaded successfully!'
+      setSuccess(successMsg)
+      addToast('Upload Successful', successMsg, 'success')
+
+      // Reset form
+      setFormData({
+        facultyName: '',
+        content: '',
+        subject: '',
+        year: '',
+        semester: '',
+        term: '',
+        uploaded_file: null,
+      })
+      setCustomSubject('')
+      setIsNewSubject(false)
+
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    } catch (err) {
+      console.error('Upload error:', err)
+      const errorMsg =
+        err instanceof Error
+          ? err.message
+          : 'Failed to upload paper. Please try again.'
+      setError(errorMsg)
+      addToast('Upload Failed', errorMsg, 'error')
+    } finally {
+      setIsLoading(false)
     }
-
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to upload paper')
-    }
-
-    // Success
-    const successMsg = 'Paper uploaded successfully!'
-    setSuccess(successMsg)
-    addToast('Upload Successful', successMsg, 'success')
-
-    // Reset form
-    setFormData({
-      facultyName: '',
-      content: '',
-      subject: '',
-      year: '',
-      semester: '',
-      term: '',
-      uploaded_file: null,
-    })
-    setCustomSubject('')
-    setIsNewSubject(false)
-
-    // Reset file input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ''
-    }
-  } catch (err) {
-    console.error('Upload error:', err)
-    const errorMsg =
-      err instanceof Error
-        ? err.message
-        : 'Failed to upload paper. Please try again.'
-    setError(errorMsg)
-    addToast('Upload Failed', errorMsg, 'error')
-  } finally {
-    setIsLoading(false)
   }
-}
 
   // Show loading state while checking authentication
   if (status === 'loading') {
@@ -257,7 +255,6 @@ const UploadPaperPage = () => {
 
         <Card className="shadow-lg">
           <CardContent>
-
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Subject Field */}
               <div className="space-y-2">

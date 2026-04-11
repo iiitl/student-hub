@@ -5,12 +5,11 @@ import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { FcGoogle } from 'react-icons/fc'
-import { Mail, Lock, AlertCircle } from 'lucide-react'
+import { Mail, Lock } from 'lucide-react'
 
 export default function SignIn() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const { addToast } = useToast()
@@ -22,70 +21,69 @@ export default function SignIn() {
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault()
-  setLoading(true)
-  setError('')
-
-  // Validate IIITL domain
-  if (!isValidIIITLEmail(email)) {
-    const msg = 'Only IIITL email addresses are allowed'
-    setError(msg)
-    addToast('Validation Error', msg, 'error')
-    setLoading(false)
-    return
-  }
-
-  try {
-    const result = await signIn('credentials', {
-      redirect: false,
-      email,
-      password,
-    })
-
-    if (result?.error) {
-      if (result.error === 'PASSWORD_NOT_SET') {
-        router.push(`/auth/set-password?email=${encodeURIComponent(email)}`)
-        return
-      }
-      // Handle other errors
-      if (result.error === 'Invalid Credentials') {
-        const errorMsg = 'Invalid email or password'
-        setError(errorMsg)
-        addToast('Login Failed', errorMsg, 'error')
-      } else {
-        setError(result.error)
-        addToast('Error', result.error, 'error')
-      }
-    } else if (result?.ok) {
-      // Successful login
-      addToast('Login Successful', 'Welcome back!', 'success')
-      router.push('/')
-      router.refresh()
-    }
-  } catch (error: unknown) {
-    const errorMessage =
-      error instanceof Error
-        ? error.message
-        : 'Something went wrong. Please try again.'
-    setError(errorMessage)
-    addToast('Error', errorMessage, 'error')
-  } finally {
-    setLoading(false)
-  }
-}
-
- const handleGoogleSignIn = async () => {
-  try {
+    e.preventDefault()
     setLoading(true)
-    addToast('Redirecting', 'Signing in with Google...', 'info')
-    await signIn('google', { callbackUrl: '/' })
-  } catch {
-    const msg = 'Failed to sign in with Google. Please try again.'
-    setError(msg)
-    addToast('Error', msg, 'error')
-    setLoading(false)
+
+    // Validate IIITL domain
+    if (!isValidIIITLEmail(email)) {
+      const msg = 'Only IIITL email addresses are allowed'
+      addToast(msg)
+      addToast('Validation Error', msg, 'error')
+      setLoading(false)
+      return
+    }
+
+    try {
+      const result = await signIn('credentials', {
+        redirect: false,
+        email,
+        password,
+      })
+
+      if (result?.error) {
+        if (result.error === 'PASSWORD_NOT_SET') {
+          router.push(`/auth/set-password?email=${encodeURIComponent(email)}`)
+          return
+        }
+        // Handle other errors
+        if (result.error === 'Invalid Credentials') {
+          const errorMsg = 'Invalid email or password'
+          addToast(errorMsg)
+          addToast('Login Failed', errorMsg, 'error')
+        } else {
+          addToast(result.error)
+          addToast('Error', result.error, 'error')
+        }
+      } else if (result?.ok) {
+        // Successful login
+        addToast('Login Successful', 'Welcome back!', 'success')
+        router.push('/')
+        router.refresh()
+      }
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Something went wrong. Please try again.'
+      addToast(errorMessage)
+      addToast('Error', errorMessage, 'error')
+    } finally {
+      setLoading(false)
+    }
   }
-}
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setLoading(true)
+      addToast('Redirecting', 'Signing in with Google...', 'info')
+      await signIn('google', { callbackUrl: '/' })
+    } catch {
+      const msg = 'Failed to sign in with Google. Please try again.'
+      addToast(msg)
+      addToast('Error', msg, 'error')
+      setLoading(false)
+    }
+  }
 
   return (
     <div className="flex min-h-[80vh] flex-col justify-center px-6 py-12 lg:px-8">
@@ -118,14 +116,7 @@ export default function SignIn() {
           </div>
 
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {error && (
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 text-red-700 dark:text-red-400 px-4 py-3 rounded-md text-sm">
-                <div className="flex gap-2 items-start">
-                  <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
-                  <span>{error}</span>
-                </div>
-              </div>
-            )}
+            
             <div>
               <label
                 htmlFor="email"
