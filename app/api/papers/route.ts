@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
     }
     if ((file.size ?? 0) > maxBytes) {
       return NextResponse.json(
-        { message: 'File size must be less than 10MB' },
+        { message: 'File size must not exceed 10MB' },
         { status: 413 }
       )
     }
