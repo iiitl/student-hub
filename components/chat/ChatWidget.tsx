@@ -191,6 +191,7 @@ function ChatWidgetInner() {
                   size="icon"
                   className="h-5 w-5 rounded-full"
                   onClick={cancelAction}
+                  aria-label={editingMessage ? 'Cancel edit' : 'Cancel reply'}
                 >
                   <XCircle size={14} />
                 </Button>
