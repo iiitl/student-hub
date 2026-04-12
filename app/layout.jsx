@@ -23,14 +23,19 @@ export default function RootLayout({ children }) {
           inter.className + ' flex flex-col min-h-screen justify-between'
         }
       >
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-        <AuthProvider>
-          <Header />
-          {children}
-          <Footer />
-          <ChatWidget />
-          <Analytics />
-        </AuthProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthProvider>
+            <Header />
+            {children}
+            <Footer />
+            <ChatWidget />
+            <Analytics />
+          </AuthProvider>
         </ThemeProvider>
         {/* Google Analytics */}
         <Script

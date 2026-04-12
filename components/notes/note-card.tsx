@@ -76,29 +76,67 @@ const NoteCard = ({ note, onDelete }: NoteCardProps) => {
         >
           {note.subject}
         </h3>
-        <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 truncate">
-          Faculty:{' '}
-          <span className="text-foreground">{note.facultyName || 'N/A'}</span>
-          {note.description && (
-            <>
-              {' '}
-              · <span className="italic">{note.description}</span>
-            </>
-          )}
-        </p>
+        {note.category === 'axios' ? (
+          <>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 truncate">
+              Presenter:{' '}
+              <span className="text-foreground">
+                {note.presenterName || 'N/A'}
+              </span>
+              {note.description && (
+                <>
+                  {' '}
+                  · <span className="italic">{note.description}</span>
+                </>
+              )}
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 truncate">
+              Faculty:{' '}
+              <span className="text-foreground">
+                {note.facultyName || 'N/A'}
+              </span>
+              {note.description && (
+                <>
+                  {' '}
+                  · <span className="italic">{note.description}</span>
+                </>
+              )}
+            </p>
+          </>
+        )}
       </div>
 
       {/* Meta badges */}
       <div className="flex flex-wrap items-center gap-1.5 flex-shrink-0">
-        <span className="inline-flex items-center px-2 sm:px-3 py-0.5 sm:py-1 rounded text-xs sm:text-sm font-medium bg-background border border-border text-muted-foreground">
-          Sem {note.semester}
-        </span>
-        <span className="inline-flex items-center px-2 sm:px-3 py-0.5 sm:py-1 rounded text-xs sm:text-sm font-medium bg-background border border-border text-muted-foreground">
-          {note.exam}
-        </span>
-        <span className="inline-flex items-center px-2 sm:px-3 py-0.5 sm:py-1 rounded text-xs sm:text-sm font-medium bg-background border border-border text-muted-foreground">
-          {note.batch}
-        </span>
+        {note.category === 'axios' ? (
+          <>
+            {note.wing && (
+              <span className="inline-flex items-center px-2 sm:px-3 py-0.5 sm:py-1 rounded text-xs sm:text-sm font-medium bg-background border border-border text-muted-foreground">
+                {note.wing}
+              </span>
+            )}
+            {note.targetAudience && (
+              <span className="inline-flex items-center px-2 sm:px-3 py-0.5 sm:py-1 rounded text-xs sm:text-sm font-medium bg-background border border-border text-muted-foreground">
+                {note.targetAudience}
+              </span>
+            )}
+          </>
+        ) : (
+          <>
+            <span className="inline-flex items-center px-2 sm:px-3 py-0.5 sm:py-1 rounded text-xs sm:text-sm font-medium bg-background border border-border text-muted-foreground">
+              Sem {note.semester}
+            </span>
+            <span className="inline-flex items-center px-2 sm:px-3 py-0.5 sm:py-1 rounded text-xs sm:text-sm font-medium bg-background border border-border text-muted-foreground">
+              {note.exam}
+            </span>
+            <span className="inline-flex items-center px-2 sm:px-3 py-0.5 sm:py-1 rounded text-xs sm:text-sm font-medium bg-background border border-border text-muted-foreground">
+              {note.batch}
+            </span>
+          </>
+        )}
       </div>
 
       {/* Actions */}
@@ -113,7 +151,9 @@ const NoteCard = ({ note, onDelete }: NoteCardProps) => {
           </button>
           <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-64 p-3 bg-popover text-popover-foreground text-sm rounded-md shadow-md border z-50 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none">
             <div className="font-semibold mb-1">
-              Faculty: {note.facultyName || 'N/A'}
+              {note.category === 'axios'
+                ? `Presenter: ${note.presenterName || 'N/A'}`
+                : `Faculty: ${note.facultyName || 'N/A'}`}
             </div>
             <div className="text-muted-foreground text-xs">
               {note.description || 'No description available'}
