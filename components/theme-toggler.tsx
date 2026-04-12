@@ -8,10 +8,11 @@ interface ThemeToggleProps {
 }
 
 export default function ThemeToggle({ text }: ThemeToggleProps) {
-  const {theme, setTheme} = useTheme()
+  const { theme, resolvedTheme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
+  const activeTheme = resolvedTheme ?? theme
 
-    useEffect(() => {
+  useEffect(() => {
     setMounted(true)
   }, [])
 
@@ -23,9 +24,9 @@ export default function ThemeToggle({ text }: ThemeToggleProps) {
   return (
     <button
       className="p-2 bg-primary flex items-center justify-center gap-3 text-white rounded cursor-pointer"
-      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+      onClick={() => setTheme(activeTheme === 'dark' ? 'light' : 'dark')}
     >
-      {theme === 'dark' ? <FaSun /> : <FaMoon />} {text}
+      {activeTheme === 'dark' ? <FaSun /> : <FaMoon />} {text}
     </button>
   )
 }
