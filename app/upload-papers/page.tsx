@@ -466,7 +466,7 @@ const UploadPaperPage = () => {
                             : 'Click to upload file'}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          PDF, PNG, JPG, JPEG, WEBP (Max 25MB)
+                          PDF, PNG, JPG, JPEG, WEBP (Max 10MB)
                         </p>
                       </div>
                     </div>
