@@ -721,6 +721,7 @@ export default function QuickReads() {
                     )
                   }
                   className="text-sm bg-background border border-input rounded-md px-2 py-1"
+                  aria-label="Visibility setting"
                 >
                   <option value="public">Public</option>
                   <option value="college_only">College Only</option>
@@ -879,6 +880,9 @@ export default function QuickReads() {
                 <button
                   onClick={() => setIsStagingOpen(false)}
                   className="p-1 hover:bg-muted rounded"
+                  aria-label="Close staged changes panel"
+                  title="Close staged changes panel"
+                >
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -978,6 +982,7 @@ export default function QuickReads() {
                         )
                       }
                       className="w-full p-2 rounded-md border bg-background"
+                      aria-label="Category visibility setting"
                     >
                       <option value="public">Public (Anyone can view)</option>
                       <option value="college_only">

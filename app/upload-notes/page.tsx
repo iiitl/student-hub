@@ -1,5 +1,6 @@
 'use client'
 
+import { useToast } from '@/context/toast-provider'
 import React, { useState, useRef, useEffect } from 'react'
 import { useSemesterAutofill } from '@/hooks/useSemesterAutofill'
 import { Button } from '@/components/ui/button'
@@ -18,7 +19,6 @@ import {
   Calendar,
   GraduationCap,
   CheckCircle,
-  AlertCircle,
   BookOpen,
   Tag,
 } from 'lucide-react'
@@ -28,6 +28,7 @@ import { NoteCategory } from '@/types/note'
 
 const UploadNotePage = () => {
   const router = useRouter()
+  const { addToast } = useToast()
   const { data: session, status } = useSession()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -42,8 +43,6 @@ const UploadNotePage = () => {
     uploaded_file: null as File | null,
   })
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
 
   const [subjects, setSubjects] = useState<string[]>([])
   const [isNewSubject, setIsNewSubject] = useState(false)
@@ -100,7 +99,6 @@ const UploadNotePage = () => {
 
   const handleFileChange = (file: File | null) => {
     setFormData((prev) => ({ ...prev, uploaded_file: file }))
-    if (error) setError(null)
   }
 
   const handleDrop = (e: React.DragEvent) => {
@@ -113,8 +111,6 @@ const UploadNotePage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    setError(null)
-    setSuccess(null)
 
     try {
       const finalSubject = isNewSubject ? customSubject : formData.subject
@@ -127,14 +123,16 @@ const UploadNotePage = () => {
         !formData.term ||
         !formData.uploaded_file
       ) {
-        setError('Please fill in all required fields')
+        const msg = 'Please fill in all required fields'
+        addToast(msg, 'error')
         setIsLoading(false)
         return
       }
 
       const maxSize = 25 * 1024 * 1024
       if (formData.uploaded_file.size > maxSize) {
-        setError('File size must be less than 25MB')
+        const msg = 'File size must be less than 25MB'
+        addToast(msg, 'error')
         setIsLoading(false)
         return
       }
@@ -146,7 +144,8 @@ const UploadNotePage = () => {
         'image/webp',
       ]
       if (!allowedTypes.includes(formData.uploaded_file.type)) {
-        setError('Only PDF, PNG, JPG, JPEG, and WEBP files are allowed')
+        const msg = 'Only PDF, PNG, JPG, JPEG, and WEBP files are allowed'
+        addToast(msg, 'error')
         setIsLoading(false)
         return
       }
@@ -177,7 +176,8 @@ const UploadNotePage = () => {
 
       if (!response.ok) throw new Error(data.message || 'Failed to upload note')
 
-      setSuccess('Note uploaded successfully!')
+      const successMsg = 'Note uploaded successfully!'
+      addToast(successMsg, 'success')
       setFormData({
         facultyName: '',
         content: '',
@@ -193,11 +193,11 @@ const UploadNotePage = () => {
       if (fileInputRef.current) fileInputRef.current.value = ''
     } catch (err) {
       console.error('Upload error:', err)
-      setError(
+      const errorMsg =
         err instanceof Error
           ? err.message
           : 'Failed to upload note. Please try again.'
-      )
+      addToast(errorMsg, 'error')
     } finally {
       setIsLoading(false)
     }
@@ -220,35 +220,6 @@ const UploadNotePage = () => {
         <div className="flex flex-col sm:flex-row sm:relative sm:justify-center items-center gap-3">
           <h1 className="text-3xl font-semibold text-center">Upload a Note</h1>
         </div>
-
-        {/* Alerts */}
-        {error && (
-          <div className="flex items-start gap-3 px-4 py-3 rounded-md border border-destructive/40 bg-destructive/10 text-destructive text-sm">
-            <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="font-medium">Upload failed</p>
-              <p className="text-xs mt-0.5 opacity-80">{error}</p>
-            </div>
-            <button
-              onClick={() => setError(null)}
-              className="ml-auto flex-shrink-0 opacity-70 hover:opacity-100"
-            >
-              ✕
-            </button>
-          </div>
-        )}
-        {success && (
-          <div className="flex items-start gap-3 px-4 py-3 rounded-md border border-green-500/40 bg-green-500/10 text-green-600 dark:text-green-400 text-sm">
-            <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-            <p className="font-medium">{success}</p>
-            <button
-              onClick={() => setSuccess(null)}
-              className="ml-auto flex-shrink-0 opacity-70 hover:opacity-100"
-            >
-              ✕
-            </button>
-          </div>
-        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">

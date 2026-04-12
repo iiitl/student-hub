@@ -1,3 +1,4 @@
+import { ToastProvider } from '@/context/toast-provider'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import Footer from '@/components/footer'
@@ -25,11 +26,13 @@ export default function RootLayout({ children }) {
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
         <AuthProvider>
-          <Header />
-          {children}
-          <Footer />
-          <ChatWidget />
-          <Analytics />
+          <ToastProvider>
+            <Header />
+            {children}
+            <Footer />
+            <ChatWidget />
+            <Analytics />
+          </ToastProvider>
         </AuthProvider>
         </ThemeProvider>
         {/* Google Analytics */}
