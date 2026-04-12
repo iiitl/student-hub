@@ -76,7 +76,7 @@ export default function SignIn() {
     } catch {
       const msg = 'Failed to sign in with Google. Please try again.'
       addToast(msg)
-    } finally { 
+    } finally {
       setLoading(false)
     }
   }
