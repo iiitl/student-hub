@@ -29,7 +29,7 @@ const UploadPaperPage = () => {
   const { data: session, status } = useSession()
   const { addToast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
-  
+
   const [formData, setFormData] = useState({
     facultyName: '',
     content: '',
@@ -142,7 +142,10 @@ const UploadPaperPage = () => {
         'image/webp',
       ]
       if (!allowedTypes.includes(formData.uploaded_file.type)) {
-        addToast('Only PDF, PNG, JPG, JPEG, and WEBP files are allowed', 'error' )
+        addToast(
+          'Only PDF, PNG, JPG, JPEG, and WEBP files are allowed',
+          'error'
+        )
         setIsLoading(false)
         return
       }
@@ -203,7 +206,9 @@ const UploadPaperPage = () => {
       addToast(
         err instanceof Error
           ? err.message
-          : 'Failed to upload paper. Please try again.', 'error' )
+          : 'Failed to upload paper. Please try again.',
+        'error'
+      )
     } finally {
       setIsLoading(false)
     }
