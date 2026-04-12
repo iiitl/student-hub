@@ -28,7 +28,6 @@ import { NoteCategory } from '@/types/note'
 
 const UploadNotePage = () => {
   const router = useRouter()
-  const { status } = useSession()
   const { addToast } = useToast()
   const { data: session, status } = useSession()
   const fileInputRef = useRef<HTMLInputElement>(null)
