@@ -132,8 +132,8 @@ const UploadPaperPage = () => {
         return
       }
 
-      // Validate file size (25MB max)
-      const maxSize = 25 * 1024 * 1024 // 25MB in bytes
+      // Validate file size (10MB max)
+      const maxSize = 10 * 1024 * 1024 // 10MB in bytes
       if (formData.uploaded_file.size > maxSize) {
         const msg = 'File size must be less than 25MB'
         addToast(msg)
@@ -448,7 +448,7 @@ const UploadPaperPage = () => {
                             : 'Click to upload file'}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          PDF, PNG, JPG, JPEG, WEBP (Max 25MB)
+                          PDF, PNG, JPG, JPEG, WEBP (Max 10MB)
                         </p>
                       </div>
                     </div>
@@ -496,7 +496,7 @@ const UploadPaperPage = () => {
               </h4>
               <ul className="space-y-1 ml-4">
                 <li>• Ensure the paper is clear and readable</li>
-                <li>• Maximum file size: 25MB</li>
+                <li>• Maximum file size: 10MB</li>
                 <li>• Supported formats: PDF, PNG, JPG, JPEG, WEBP</li>
                 <li>• All fields marked with * are required</li>
                 <li>
