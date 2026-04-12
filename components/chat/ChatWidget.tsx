@@ -218,6 +218,7 @@ function ChatWidgetInner() {
               <Button
                 onClick={handleSend}
                 disabled={isLoading || !inputText.trim()}
+                aria-label="Send message"
                 className="rounded-full h-10 w-10 p-0 flex justify-center items-center"
               >
                 <Send size={18} className={isLoading ? 'opacity-50' : ''} />
