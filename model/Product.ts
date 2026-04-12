@@ -21,7 +21,7 @@ export interface IProduct extends Document {
   description: string
   price: number
   quantity: number
-  bulk_discounts: { min_quantity: number, discount_per_item: number }[]
+  bulk_discounts: { min_quantity: number; discount_per_item: number }[]
   image_url: string
   contact_info: string
   seller: Schema.Types.ObjectId
@@ -99,13 +99,21 @@ const ProductSchema: Schema<IProduct> = new Schema<IProduct>({
   },
   comments: [
     {
-      user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+      },
       text: { type: String, required: true, maxlength: 1000 },
       offerPrice: { type: Number },
       createdAt: { type: Date, default: Date.now },
       replies: [
         {
-          user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+          user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+          },
           text: { type: String, required: true, maxlength: 500 },
           createdAt: { type: Date, default: Date.now },
         },

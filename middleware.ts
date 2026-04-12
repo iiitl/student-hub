@@ -89,7 +89,13 @@ export async function middleware(request: NextRequest) {
   // Check request size
   const contentLength = request.headers.get('content-length')
   if (contentLength && parseInt(contentLength) > MAX_REQUEST_SIZE) {
-    return NextResponse.json({ message: 'File size exceeds the maximum limit of 10MB. Please upload a smaller file.' }, { status: 413 })
+    return NextResponse.json(
+      {
+        message:
+          'File size exceeds the maximum limit of 10MB. Please upload a smaller file.',
+      },
+      { status: 413 }
+    )
   }
 
   // Check if the path needs rate limiting

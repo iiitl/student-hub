@@ -58,7 +58,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
     product.is_sold = false
     product.show_when_sold = false
     if (product.quantity <= 0) {
-        product.quantity = 1
+      product.quantity = 1
     }
 
     await product.save()

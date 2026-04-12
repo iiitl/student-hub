@@ -4,9 +4,12 @@ import fs from 'fs/promises'
 import path from 'path'
 import { uploadOnCloudinary } from '@/helpers/cloudinary'
 import Product from '@/model/Product'
+import User from '@/model/User'
 import { verifyJwt } from '@/lib/auth-utils'
 import { tmpdir } from 'os'
 import { randomUUID } from 'crypto'
+
+export const dynamic = 'force-dynamic'
 
 export const config = {
   api: {
@@ -153,7 +156,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    let bulk_discounts: { min_quantity: number; discount_per_item: number }[] = []
+    let bulk_discounts: { min_quantity: number; discount_per_item: number }[] =
+      []
     if (bulkDiscountsRaw) {
       try {
         bulk_discounts = JSON.parse(bulkDiscountsRaw)
@@ -195,8 +199,7 @@ export async function POST(req: NextRequest) {
     if (!allowedTypes.has(file!.type)) {
       return NextResponse.json(
         {
-          message:
-            'Unsupported image format. Allowed: PNG, JPEG, WebP, GIF',
+          message: 'Unsupported image format. Allowed: PNG, JPEG, WebP, GIF',
         },
         { status: 415 }
       )

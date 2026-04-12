@@ -75,7 +75,9 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
 
     if (sold_quantity > product.quantity) {
       return NextResponse.json(
-        { message: `You cannot sell more than the available quantity (${product.quantity})` },
+        {
+          message: `You cannot sell more than the available quantity (${product.quantity})`,
+        },
         { status: 400 }
       )
     }
@@ -91,7 +93,12 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
     await product.save()
 
     return NextResponse.json(
-      { message: product.is_sold ? 'Product fully sold' : `Sold ${sold_quantity} items. ${product.quantity} remaining.`, product },
+      {
+        message: product.is_sold
+          ? 'Product fully sold'
+          : `Sold ${sold_quantity} items. ${product.quantity} remaining.`,
+        product,
+      },
       { status: 200 }
     )
   } catch (error: unknown) {

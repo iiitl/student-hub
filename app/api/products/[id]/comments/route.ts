@@ -70,7 +70,9 @@ export async function POST(req: NextRequest, context: RouteContext) {
         )
       }
 
-      const parentComment = product.comments.find((c: any) => c._id && c._id.toString() === parentCommentId) as any
+      const parentComment = product.comments.find(
+        (c: any) => c._id && c._id.toString() === parentCommentId
+      ) as any
       if (!parentComment) {
         return NextResponse.json(
           { message: 'Parent comment not found' },
@@ -84,7 +86,10 @@ export async function POST(req: NextRequest, context: RouteContext) {
       const newComment = {
         user: new mongoose.Types.ObjectId(userId),
         text: String(text).trim().substring(0, 1000),
-        offerPrice: (offerPrice !== undefined && offerPrice !== null && offerPrice !== '') ? Number(offerPrice) : undefined,
+        offerPrice:
+          offerPrice !== undefined && offerPrice !== null && offerPrice !== ''
+            ? Number(offerPrice)
+            : undefined,
         createdAt: new Date(),
         replies: [],
       }

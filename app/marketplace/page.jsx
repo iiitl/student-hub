@@ -115,7 +115,7 @@ const Marketplace = () => {
   const [soldPromptId, setSoldPromptId] = useState(null)
   const [soldQuantityValue, setSoldQuantityValue] = useState(1)
   const [toast, setToast] = useState(null)
-  
+
   // Toolbar filters
   const [myListingsOnly, setMyListingsOnly] = useState(false)
 
@@ -133,7 +133,10 @@ const Marketplace = () => {
   // ── pre-fill email from session ──────────────────────────────────────────
   useEffect(() => {
     if (session?.user?.email) {
-      setFormData((prev) => ({ ...prev, email: prev.email || session.user.email }))
+      setFormData((prev) => ({
+        ...prev,
+        email: prev.email || session.user.email,
+      }))
     }
   }, [session])
 
@@ -145,13 +148,27 @@ const Marketplace = () => {
 
   // ── disable body scroll when modals open ─────────────────────────────────
   useEffect(() => {
-    if (showCreate || editingProduct || detailedProduct || soldPromptId || deletePromptId) {
+    if (
+      showCreate ||
+      editingProduct ||
+      detailedProduct ||
+      soldPromptId ||
+      deletePromptId
+    ) {
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = 'unset'
     }
-    return () => { document.body.style.overflow = 'unset' }
-  }, [showCreate, editingProduct, detailedProduct, soldPromptId, deletePromptId])
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [
+    showCreate,
+    editingProduct,
+    detailedProduct,
+    soldPromptId,
+    deletePromptId,
+  ])
 
   // ── fetch products ───────────────────────────────────────────────────────
   const fetchProducts = useCallback(
@@ -165,13 +182,21 @@ const Marketplace = () => {
           sortOrder,
         })
         if (debouncedSearch.trim()) params.set('search', debouncedSearch.trim())
-        if (myListingsOnly && session?.user?.id) params.set('seller', session.user.id)
+        if (myListingsOnly && session?.user?.id)
+          params.set('seller', session.user.id)
 
         const res = await fetch(`/api/products?${params}`)
         const data = await res.json()
         if (res.ok) {
           setProducts(data.products || [])
-          setPagination(data.pagination || { page: 1, totalPages: 1, total: 0, hasNext: false })
+          setPagination(
+            data.pagination || {
+              page: 1,
+              totalPages: 1,
+              total: 0,
+              hasNext: false,
+            }
+          )
         }
       } catch {
         showToast('Failed to load products', 'error')
@@ -244,33 +269,50 @@ const Marketplace = () => {
     if (!formData.title.trim()) err.title = 'Title is required'
     else if (formData.title.trim().length > TITLE_MAX)
       err.title = `Max ${TITLE_MAX} characters`
-    if (!formData.description.trim()) err.description = 'Description is required'
+    if (!formData.description.trim())
+      err.description = 'Description is required'
     else if (formData.description.trim().length > DESC_MAX)
       err.description = `Max ${DESC_MAX} characters`
     if (!formData.price) err.price = 'Price is required'
     else if (isNaN(formData.price) || Number(formData.price) < 0)
       err.price = 'Enter a valid price'
-    if (!formData.quantity || isNaN(formData.quantity) || Number(formData.quantity) < 1)
+    if (
+      !formData.quantity ||
+      isNaN(formData.quantity) ||
+      Number(formData.quantity) < 1
+    )
       err.quantity = 'Quantity must be at least 1'
     if (!formData.phone.trim()) err.phone = 'Phone number is required'
     else if (!/^\d{10}$/.test(formData.phone.trim()))
       err.phone = 'Enter a valid 10-digit phone number'
     if (!formData.email.trim()) err.email = 'Email is required'
-    else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(formData.email.trim()))
+    else if (
+      !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(
+        formData.email.trim()
+      )
+    )
       err.email = 'Enter a valid email address'
     if (!formData.image) err.image = 'Product image is required'
-    
-    if (formData.bulk_discounts.some(d => d.discount_per_item <= 0)) {
+
+    if (formData.bulk_discounts.some((d) => d.discount_per_item <= 0)) {
       err.bulk_discounts = 'Bulk discounts must have a discount greater than 0'
-    } else if (Number(formData.price) > 0 && formData.bulk_discounts.some(d => d.discount_per_item >= Number(formData.price))) {
-      err.bulk_discounts = 'Discount cannot be greater than or equal to the price'
+    } else if (
+      Number(formData.price) > 0 &&
+      formData.bulk_discounts.some(
+        (d) => d.discount_per_item >= Number(formData.price)
+      )
+    ) {
+      err.bulk_discounts =
+        'Discount cannot be greater than or equal to the price'
     } else {
-      const qs = new Set(formData.bulk_discounts.map(d => Number(d.min_quantity)))
+      const qs = new Set(
+        formData.bulk_discounts.map((d) => Number(d.min_quantity))
+      )
       if (qs.size !== formData.bulk_discounts.length) {
         err.bulk_discounts = 'Each bulk rule must have a unique quantity'
       }
     }
-    
+
     setFormErrors(err)
     return Object.keys(err).length === 0
   }
@@ -279,7 +321,9 @@ const Marketplace = () => {
   const handleCreate = async (e) => {
     e.preventDefault()
     if (!validate()) {
-      setCreateError('Please fix the errors highlighted below before submitting.')
+      setCreateError(
+        'Please fix the errors highlighted below before submitting.'
+      )
       return
     }
     setCreating(true)
@@ -292,7 +336,14 @@ const Marketplace = () => {
     fd.append('description', formData.description.trim())
     fd.append('price', formData.price)
     fd.append('quantity', formData.quantity)
-    fd.append('bulk_discounts', JSON.stringify(formData.bulk_discounts.filter(d => d.min_quantity > 0 && d.discount_per_item > 0)))
+    fd.append(
+      'bulk_discounts',
+      JSON.stringify(
+        formData.bulk_discounts.filter(
+          (d) => d.min_quantity > 0 && d.discount_per_item > 0
+        )
+      )
+    )
     fd.append('contact_info', contactInfo)
     fd.append('image', formData.image)
 
@@ -317,7 +368,11 @@ const Marketplace = () => {
     let email = ''
     if (product.contact_info) {
       const parts = product.contact_info.split(' | ')
-      if (parts.length === 2 && parts[0].startsWith('Phone: ') && parts[1].startsWith('Email: ')) {
+      if (
+        parts.length === 2 &&
+        parts[0].startsWith('Phone: ') &&
+        parts[1].startsWith('Email: ')
+      ) {
         phone = parts[0].replace('Phone: ', '').trim()
         email = parts[1].replace('Email: ', '').trim()
       } else {
@@ -344,31 +399,54 @@ const Marketplace = () => {
 
   const handleUpdate = async (e) => {
     e.preventDefault()
-    
+
     // Quick validation
     const err = {}
     if (!editFormData.title.trim()) err.title = 'Title is required'
-    else if (editFormData.title.trim().length > TITLE_MAX) err.title = `Max ${TITLE_MAX} characters`
-    if (!editFormData.description.trim()) err.description = 'Description is required'
-    else if (editFormData.description.trim().length > DESC_MAX) err.description = `Max ${DESC_MAX} characters`
+    else if (editFormData.title.trim().length > TITLE_MAX)
+      err.title = `Max ${TITLE_MAX} characters`
+    if (!editFormData.description.trim())
+      err.description = 'Description is required'
+    else if (editFormData.description.trim().length > DESC_MAX)
+      err.description = `Max ${DESC_MAX} characters`
     if (!editFormData.price) err.price = 'Price is required'
-    else if (isNaN(editFormData.price) || Number(editFormData.price) < 0) err.price = 'Enter a valid price'
+    else if (isNaN(editFormData.price) || Number(editFormData.price) < 0)
+      err.price = 'Enter a valid price'
     if (!editFormData.phone.trim()) err.phone = 'Phone number is required'
-    else if (!/^\d{10}$/.test(editFormData.phone.trim())) err.phone = 'Enter a valid 10-digit phone number'
+    else if (!/^\d{10}$/.test(editFormData.phone.trim()))
+      err.phone = 'Enter a valid 10-digit phone number'
     if (!editFormData.email.trim()) err.email = 'Email is required'
-    else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(editFormData.email.trim())) err.email = 'Enter a valid email address'
-    if (!editFormData.quantity || isNaN(editFormData.quantity) || Number(editFormData.quantity) < 1) err.quantity = 'Quantity must be at least 1'
-    if (editFormData.bulk_discounts.some(d => d.discount_per_item <= 0)) {
+    else if (
+      !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(
+        editFormData.email.trim()
+      )
+    )
+      err.email = 'Enter a valid email address'
+    if (
+      !editFormData.quantity ||
+      isNaN(editFormData.quantity) ||
+      Number(editFormData.quantity) < 1
+    )
+      err.quantity = 'Quantity must be at least 1'
+    if (editFormData.bulk_discounts.some((d) => d.discount_per_item <= 0)) {
       err.bulk_discounts = 'Bulk discounts must have a discount greater than 0'
-    } else if (Number(editFormData.price) > 0 && editFormData.bulk_discounts.some(d => d.discount_per_item >= Number(editFormData.price))) {
-      err.bulk_discounts = 'Discount cannot be greater than or equal to the price'
+    } else if (
+      Number(editFormData.price) > 0 &&
+      editFormData.bulk_discounts.some(
+        (d) => d.discount_per_item >= Number(editFormData.price)
+      )
+    ) {
+      err.bulk_discounts =
+        'Discount cannot be greater than or equal to the price'
     } else {
-      const qs = new Set(editFormData.bulk_discounts.map(d => Number(d.min_quantity)))
+      const qs = new Set(
+        editFormData.bulk_discounts.map((d) => Number(d.min_quantity))
+      )
       if (qs.size !== editFormData.bulk_discounts.length) {
         err.bulk_discounts = 'Each bulk rule must have a unique quantity'
       }
     }
-    
+
     if (Object.keys(err).length > 0) {
       setEditError(Object.values(err)[0])
       return
@@ -383,20 +461,22 @@ const Marketplace = () => {
       const res = await fetch(`/api/products/${editingProduct._id}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           title: editFormData.title.trim(),
           description: editFormData.description.trim(),
           price: Number(editFormData.price),
           quantity: Number(editFormData.quantity),
-          bulk_discounts: editFormData.bulk_discounts.filter(d => d.min_quantity > 0 && d.discount_per_item > 0),
-          contact_info: contactInfo
-        })
+          bulk_discounts: editFormData.bulk_discounts.filter(
+            (d) => d.min_quantity > 0 && d.discount_per_item > 0
+          ),
+          contact_info: contactInfo,
+        }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || 'Failed to update listing')
-      
+
       showToast('Listing updated successfully!')
       closeEditModal()
       fetchProducts(pagination.page)
@@ -408,32 +488,50 @@ const Marketplace = () => {
   }
 
   // ── mark as sold (removes from listing like OLX) ─────────────────────────
-  const handleMarkSold = async (id, show_when_sold = false, quantity_to_sell = 1) => {
+  const handleMarkSold = async (
+    id,
+    show_when_sold = false,
+    quantity_to_sell = 1
+  ) => {
     setSoldPromptId(null)
     setActionLoading((prev) => ({ ...prev, [id]: 'sold' }))
     try {
-      const res = await fetch(`/api/products/${id}/sold`, { 
+      const res = await fetch(`/api/products/${id}/sold`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ show_when_sold, sold_quantity: quantity_to_sell })
+        body: JSON.stringify({
+          show_when_sold,
+          sold_quantity: quantity_to_sell,
+        }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || 'Failed')
-      
-      const product = products.find(p => p._id === id);
-      const remaining = product.quantity - quantity_to_sell;
+
+      const product = products.find((p) => p._id === id)
+      const remaining = product.quantity - quantity_to_sell
 
       if (remaining <= 0) {
         if (show_when_sold) {
-          setProducts(prev => prev.map(p => p._id === id ? { ...p, is_sold: true, show_when_sold: true, quantity: 0 } : p))
+          setProducts((prev) =>
+            prev.map((p) =>
+              p._id === id
+                ? { ...p, is_sold: true, show_when_sold: true, quantity: 0 }
+                : p
+            )
+          )
           showToast('Marked as sold (Kept Visible)')
         } else {
           setProducts((prev) => prev.filter((p) => p._id !== id))
-          setPagination((prev) => ({ ...prev, total: Math.max(0, prev.total - 1) }))
+          setPagination((prev) => ({
+            ...prev,
+            total: Math.max(0, prev.total - 1),
+          }))
           showToast('Marked as sold and removed from marketplace')
         }
       } else {
-        setProducts(prev => prev.map(p => p._id === id ? { ...p, quantity: remaining } : p))
+        setProducts((prev) =>
+          prev.map((p) => (p._id === id ? { ...p, quantity: remaining } : p))
+        )
         showToast(`Successfully sold ${quantity_to_sell} items.`)
       }
     } catch (err) {
@@ -447,7 +545,9 @@ const Marketplace = () => {
   const handleMarkAvailable = async (id) => {
     setActionLoading((prev) => ({ ...prev, [id]: 'available' }))
     try {
-      const res = await fetch(`/api/products/${id}/available`, { method: 'PATCH' })
+      const res = await fetch(`/api/products/${id}/available`, {
+        method: 'PATCH',
+      })
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || 'Failed')
       setProducts((prev) => prev.map((p) => (p._id === id ? data.product : p)))
@@ -490,14 +590,16 @@ const Marketplace = () => {
         body: JSON.stringify({
           text: commentText,
           offerPrice: offerPrice ? Number(offerPrice) : undefined,
-          parentCommentId: replyingTo || undefined
-        })
+          parentCommentId: replyingTo || undefined,
+        }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.message)
 
       setDetailedProduct(data.product)
-      setProducts(prev => prev.map(p => p._id === data.product._id ? data.product : p))
+      setProducts((prev) =>
+        prev.map((p) => (p._id === data.product._id ? data.product : p))
+      )
       setCommentText('')
       setOfferPrice('')
       setReplyingTo(null)
@@ -526,7 +628,10 @@ const Marketplace = () => {
 
   // ─── render ──────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen overflow-x-hidden" style={{ background: 'var(--marketplace-bg, #f2f4f5)' }}>
+    <div
+      className="min-h-screen overflow-x-hidden"
+      style={{ background: 'var(--marketplace-bg, #f2f4f5)' }}
+    >
       {/* ── Toast ─────────────────────────────────────────────────────────── */}
       {toast && (
         <div
@@ -536,9 +641,17 @@ const Marketplace = () => {
               : 'bg-emerald-600 text-white'
           }`}
         >
-          {toast.type === 'error' ? <AlertCircle size={16} /> : <CheckCircle size={16} />}
+          {toast.type === 'error' ? (
+            <AlertCircle size={16} />
+          ) : (
+            <CheckCircle size={16} />
+          )}
           {toast.message}
-          <button onClick={() => setToast(null)} aria-label="Dismiss notification" className="ml-2 opacity-70 hover:opacity-100">
+          <button
+            onClick={() => setToast(null)}
+            aria-label="Dismiss notification"
+            className="ml-2 opacity-70 hover:opacity-100"
+          >
             <X size={14} />
           </button>
         </div>
@@ -548,7 +661,8 @@ const Marketplace = () => {
       <div
         className="relative overflow-hidden"
         style={{
-          background: 'linear-gradient(135deg, #002f34 0%, #00505a 50%, #007a85 100%)',
+          background:
+            'linear-gradient(135deg, #002f34 0%, #00505a 50%, #007a85 100%)',
         }}
       >
         <div className="absolute inset-0 opacity-10">
@@ -619,12 +733,23 @@ const Marketplace = () => {
                   }}
                   className="appearance-none px-4 py-3 pr-10 rounded-xl bg-white/10 backdrop-blur text-white border border-white/20 focus:outline-none focus:ring-2 focus:ring-teal-400/60 text-sm cursor-pointer"
                 >
-                  <option value="created_at:-1" className="text-gray-900">Newest first</option>
-                  <option value="created_at:1" className="text-gray-900">Oldest first</option>
-                  <option value="price:1" className="text-gray-900">Price: Low to High</option>
-                  <option value="price:-1" className="text-gray-900">Price: High to Low</option>
+                  <option value="created_at:-1" className="text-gray-900">
+                    Newest first
+                  </option>
+                  <option value="created_at:1" className="text-gray-900">
+                    Oldest first
+                  </option>
+                  <option value="price:1" className="text-gray-900">
+                    Price: Low to High
+                  </option>
+                  <option value="price:-1" className="text-gray-900">
+                    Price: High to Low
+                  </option>
                 </select>
-                <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 pointer-events-none" />
+                <ChevronDown
+                  size={14}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 pointer-events-none"
+                />
               </div>
 
               {session?.user?.id && (
@@ -636,7 +761,10 @@ const Marketplace = () => {
                       : 'bg-white/10 border-white/20 text-white hover:bg-white/20'
                   }`}
                 >
-                  <Tag size={16} /> <span className="hidden sm:inline">{myListingsOnly ? 'All Listings' : 'My Listings'}</span>
+                  <Tag size={16} />{' '}
+                  <span className="hidden sm:inline">
+                    {myListingsOnly ? 'All Listings' : 'My Listings'}
+                  </span>
                 </button>
               )}
             </div>
@@ -649,14 +777,17 @@ const Marketplace = () => {
         {/* Results count */}
         {!loading && (
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 font-medium uppercase tracking-wider">
-            {pagination.total} {pagination.total === 1 ? 'listing' : 'listings'} available
+            {pagination.total} {pagination.total === 1 ? 'listing' : 'listings'}{' '}
+            available
           </p>
         )}
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-32">
             <Loader2 size={40} className="animate-spin text-teal-600 mb-4" />
-            <p className="text-gray-500 dark:text-gray-400 text-sm">Loading marketplace…</p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">
+              Loading marketplace…
+            </p>
           </div>
         ) : products.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-32 text-center">
@@ -682,11 +813,13 @@ const Marketplace = () => {
                   <div
                     key={product._id}
                     className={`group relative bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-sm transition-all duration-300 border border-gray-200/60 dark:border-gray-800 ${
-                      product.is_sold ? 'opacity-75 grayscale-[30%]' : 'hover:shadow-xl'
+                      product.is_sold
+                        ? 'opacity-75 grayscale-[30%]'
+                        : 'hover:shadow-xl'
                     }`}
                   >
                     {/* Image (Click to view details) */}
-                    <div 
+                    <div
                       className="relative aspect-[4/3] bg-gray-100 dark:bg-gray-800 overflow-hidden cursor-pointer"
                       onClick={() => setDetailedProduct(product)}
                     >
@@ -700,7 +833,10 @@ const Marketplace = () => {
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <ImageIcon size={40} className="text-gray-300 dark:text-gray-600" />
+                          <ImageIcon
+                            size={40}
+                            className="text-gray-300 dark:text-gray-600"
+                          />
                         </div>
                       )}
 
@@ -744,20 +880,38 @@ const Marketplace = () => {
                       {/* Seller + time */}
                       <div className="flex flex-col gap-1.5 mt-3 text-[11px] text-gray-400 dark:text-gray-500 bg-gray-50/50 dark:bg-gray-800/20 p-2 rounded-lg">
                         <div className="flex items-center justify-between gap-2">
-                           <span className="flex items-center gap-1.5 truncate">
-                             <Phone size={10} className="shrink-0 text-teal-600 dark:text-teal-400" />
-                             <span className="truncate">{product.contact_info.includes(' | ') ? product.contact_info.split(' | ')[0].replace('Phone: ', '') : product.contact_info}</span>
-                           </span>
-                           <span className="flex items-center gap-1 shrink-0 bg-white dark:bg-gray-800 px-1.5 py-0.5 rounded shadow-sm border border-gray-100 dark:border-gray-700 max-w-[40%]">
-                             <Clock size={10} className="text-gray-400" />
-                             <span className="truncate">{timeAgo(product.created_at)}</span>
-                           </span>
+                          <span className="flex items-center gap-1.5 truncate">
+                            <Phone
+                              size={10}
+                              className="shrink-0 text-teal-600 dark:text-teal-400"
+                            />
+                            <span className="truncate">
+                              {product.contact_info.includes(' | ')
+                                ? product.contact_info
+                                    .split(' | ')[0]
+                                    .replace('Phone: ', '')
+                                : product.contact_info}
+                            </span>
+                          </span>
+                          <span className="flex items-center gap-1 shrink-0 bg-white dark:bg-gray-800 px-1.5 py-0.5 rounded shadow-sm border border-gray-100 dark:border-gray-700 max-w-[40%]">
+                            <Clock size={10} className="text-gray-400" />
+                            <span className="truncate">
+                              {timeAgo(product.created_at)}
+                            </span>
+                          </span>
                         </div>
                         {product.contact_info.includes(' | ') && (
-                           <span className="flex items-center gap-1.5 truncate">
-                             <Mail size={10} className="shrink-0 text-teal-600 dark:text-teal-400" />
-                             <span className="truncate">{product.contact_info.split(' | ')[1].replace('Email: ', '')}</span>
-                           </span>
+                          <span className="flex items-center gap-1.5 truncate">
+                            <Mail
+                              size={10}
+                              className="shrink-0 text-teal-600 dark:text-teal-400"
+                            />
+                            <span className="truncate">
+                              {product.contact_info
+                                .split(' | ')[1]
+                                .replace('Email: ', '')}
+                            </span>
+                          </span>
                         )}
                       </div>
 
@@ -766,7 +920,7 @@ const Marketplace = () => {
                           by {product.seller.name || product.seller.email}
                         </p>
                       )}
-                      
+
                       {/* Owner actions — OLX style */}
                       {owner && (
                         <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
@@ -812,7 +966,10 @@ const Marketplace = () => {
                               <button
                                 id={`sold-btn-${product._id}`}
                                 disabled={!!busy}
-                                onClick={() => { setSoldPromptId(product._id); setSoldQuantityValue(1); }}
+                                onClick={() => {
+                                  setSoldPromptId(product._id)
+                                  setSoldQuantityValue(1)
+                                }}
                                 className="flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-medium transition-all bg-teal-50 text-teal-700 hover:bg-teal-100 dark:bg-teal-900/30 dark:text-teal-300 dark:hover:bg-teal-900/50 disabled:opacity-50"
                               >
                                 {busy === 'sold' ? (
@@ -925,14 +1082,18 @@ const Marketplace = () => {
                         className="object-cover rounded-2xl"
                       />
                       <div className="absolute inset-0 bg-black/30 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center rounded-2xl">
-                        <p className="text-white text-sm font-medium">Click to change</p>
+                        <p className="text-white text-sm font-medium">
+                          Click to change
+                        </p>
                       </div>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center py-10 text-gray-400">
                       <ImageIcon size={32} className="mb-2" />
                       <p className="text-sm font-medium">Click to upload</p>
-                      <p className="text-xs mt-0.5">PNG, JPEG, WebP, GIF • Max 10 MB</p>
+                      <p className="text-xs mt-0.5">
+                        PNG, JPEG, WebP, GIF • Max 10 MB
+                      </p>
                     </div>
                   )}
                   <input
@@ -1069,7 +1230,10 @@ const Marketplace = () => {
               <div className="space-y-3 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700/50">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
-                    <Tag size={14} /> Bulk Discounts <span className="text-xs text-gray-400 font-normal">(Optional)</span>
+                    <Tag size={14} /> Bulk Discounts{' '}
+                    <span className="text-xs text-gray-400 font-normal">
+                      (Optional)
+                    </span>
                   </label>
                   {formData.bulk_discounts.length < 10 && (
                     <button
@@ -1077,7 +1241,10 @@ const Marketplace = () => {
                       onClick={() =>
                         setFormData((p) => ({
                           ...p,
-                          bulk_discounts: [...p.bulk_discounts, { min_quantity: 2, discount_per_item: 0 }],
+                          bulk_discounts: [
+                            ...p.bulk_discounts,
+                            { min_quantity: 2, discount_per_item: 0 },
+                          ],
                         }))
                       }
                       className="text-xs font-semibold text-teal-600 hover:text-teal-700 dark:text-teal-400 transition"
@@ -1105,25 +1272,34 @@ const Marketplace = () => {
                         setFormData((p) => ({ ...p, bulk_discounts: n }))
                       }}
                     />
-                    <span className="text-xs text-gray-500 whitespace-nowrap">items, get ₹</span>
+                    <span className="text-xs text-gray-500 whitespace-nowrap">
+                      items, get ₹
+                    </span>
                     <input
                       type="number"
                       className="flex-1 px-2 py-1.5 rounded-lg border text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
                       min="0"
-                      value={d.discount_per_item === 0 ? '' : d.discount_per_item}
+                      value={
+                        d.discount_per_item === 0 ? '' : d.discount_per_item
+                      }
                       onChange={(e) => {
                         const n = [...formData.bulk_discounts]
-                        n[i].discount_per_item = e.target.value === '' ? 0 : Number(e.target.value)
+                        n[i].discount_per_item =
+                          e.target.value === '' ? 0 : Number(e.target.value)
                         setFormData((p) => ({ ...p, bulk_discounts: n }))
                       }}
                     />
-                    <span className="text-xs text-gray-500 whitespace-nowrap hidden sm:inline">off/item</span>
+                    <span className="text-xs text-gray-500 whitespace-nowrap hidden sm:inline">
+                      off/item
+                    </span>
                     <button
                       type="button"
                       onClick={() =>
                         setFormData((p) => ({
                           ...p,
-                          bulk_discounts: p.bulk_discounts.filter((_, idx) => idx !== i),
+                          bulk_discounts: p.bulk_discounts.filter(
+                            (_, idx) => idx !== i
+                          ),
                         }))
                       }
                       className="p-2 text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100 dark:text-red-400 dark:bg-red-900/20 dark:hover:bg-red-900/40 transition-colors rounded-lg ml-2 border border-red-100 dark:border-red-900/30 shadow-sm flex-shrink-0"
@@ -1133,7 +1309,10 @@ const Marketplace = () => {
                   </div>
                 ))}
                 {formData.bulk_discounts.length === 0 && (
-                  <p className="text-xs text-gray-400">Offer a discount per item when buyers purchase multiple units.</p>
+                  <p className="text-xs text-gray-400">
+                    Offer a discount per item when buyers purchase multiple
+                    units.
+                  </p>
                 )}
               </div>
 
@@ -1141,7 +1320,9 @@ const Marketplace = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    <span className="flex items-center gap-1"><Phone size={13} /> Phone</span>
+                    <span className="flex items-center gap-1">
+                      <Phone size={13} /> Phone
+                    </span>
                     <span className="text-red-500 ml-0.5">*</span>
                   </label>
                   <input
@@ -1166,7 +1347,9 @@ const Marketplace = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    <span className="flex items-center gap-1"><Mail size={13} /> Email</span>
+                    <span className="flex items-center gap-1">
+                      <Mail size={13} /> Email
+                    </span>
                     <span className="text-red-500 ml-0.5">*</span>
                   </label>
                   <input
@@ -1252,7 +1435,12 @@ const Marketplace = () => {
                     type="text"
                     maxLength={TITLE_MAX}
                     value={editFormData.title}
-                    onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        title: e.target.value,
+                      })
+                    }
                     className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400/60 transition-all"
                   />
                 </div>
@@ -1266,7 +1454,12 @@ const Marketplace = () => {
                     maxLength={DESC_MAX}
                     rows={4}
                     value={editFormData.description}
-                    onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        description: e.target.value,
+                      })
+                    }
                     className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400/60 transition-all resize-none"
                   />
                 </div>
@@ -1283,11 +1476,16 @@ const Marketplace = () => {
                       min="0"
                       step="1"
                       value={editFormData.price}
-                      onChange={(e) => setEditFormData({ ...editFormData, price: e.target.value })}
+                      onChange={(e) =>
+                        setEditFormData({
+                          ...editFormData,
+                          price: e.target.value,
+                        })
+                      }
                       className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400/60 transition-all"
                     />
                   </div>
-                  
+
                   {/* Quantity */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -1298,7 +1496,12 @@ const Marketplace = () => {
                       min="1"
                       step="1"
                       value={editFormData.quantity}
-                      onChange={(e) => setEditFormData({ ...editFormData, quantity: e.target.value })}
+                      onChange={(e) =>
+                        setEditFormData({
+                          ...editFormData,
+                          quantity: e.target.value,
+                        })
+                      }
                       className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400/60 transition-all"
                     />
                   </div>
@@ -1308,7 +1511,10 @@ const Marketplace = () => {
                 <div className="space-y-3 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700/50">
                   <div className="flex items-center justify-between">
                     <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
-                      <Tag size={14} /> Bulk Discounts <span className="text-xs text-gray-400 font-normal">(Optional)</span>
+                      <Tag size={14} /> Bulk Discounts{' '}
+                      <span className="text-xs text-gray-400 font-normal">
+                        (Optional)
+                      </span>
                     </label>
                     {editFormData.bulk_discounts.length < 10 && (
                       <button
@@ -1316,7 +1522,10 @@ const Marketplace = () => {
                         onClick={() =>
                           setEditFormData((p) => ({
                             ...p,
-                            bulk_discounts: [...p.bulk_discounts, { min_quantity: 2, discount_per_item: 0 }],
+                            bulk_discounts: [
+                              ...p.bulk_discounts,
+                              { min_quantity: 2, discount_per_item: 0 },
+                            ],
                           }))
                         }
                         className="text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 transition"
@@ -1327,7 +1536,9 @@ const Marketplace = () => {
                   </div>
                   {editFormData.bulk_discounts.map((d, i) => (
                     <div key={i} className="flex items-center gap-2">
-                      <span className="text-xs text-gray-500 w-10">Buy &ge;</span>
+                      <span className="text-xs text-gray-500 w-10">
+                        Buy &ge;
+                      </span>
                       <input
                         type="number"
                         className="w-16 px-2 py-1.5 rounded-lg border text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
@@ -1339,25 +1550,34 @@ const Marketplace = () => {
                           setEditFormData((p) => ({ ...p, bulk_discounts: n }))
                         }}
                       />
-                      <span className="text-xs text-gray-500 whitespace-nowrap">items, get ₹</span>
+                      <span className="text-xs text-gray-500 whitespace-nowrap">
+                        items, get ₹
+                      </span>
                       <input
                         type="number"
                         className="flex-1 px-2 py-1.5 rounded-lg border text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
                         min="0"
-                        value={d.discount_per_item === 0 ? '' : d.discount_per_item}
+                        value={
+                          d.discount_per_item === 0 ? '' : d.discount_per_item
+                        }
                         onChange={(e) => {
                           const n = [...editFormData.bulk_discounts]
-                          n[i].discount_per_item = e.target.value === '' ? 0 : Number(e.target.value)
+                          n[i].discount_per_item =
+                            e.target.value === '' ? 0 : Number(e.target.value)
                           setEditFormData((p) => ({ ...p, bulk_discounts: n }))
                         }}
                       />
-                      <span className="text-xs text-gray-500 whitespace-nowrap hidden sm:inline">off/item</span>
+                      <span className="text-xs text-gray-500 whitespace-nowrap hidden sm:inline">
+                        off/item
+                      </span>
                       <button
                         type="button"
                         onClick={() =>
                           setEditFormData((p) => ({
                             ...p,
-                            bulk_discounts: p.bulk_discounts.filter((_, idx) => idx !== i),
+                            bulk_discounts: p.bulk_discounts.filter(
+                              (_, idx) => idx !== i
+                            ),
                           }))
                         }
                         className="p-2 text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100 dark:text-red-400 dark:bg-red-900/20 dark:hover:bg-red-900/40 transition-colors rounded-lg ml-2 border border-red-100 dark:border-red-900/30 shadow-sm flex-shrink-0"
@@ -1367,7 +1587,10 @@ const Marketplace = () => {
                     </div>
                   ))}
                   {editFormData.bulk_discounts.length === 0 && (
-                    <p className="text-xs text-gray-400">Offer a discount per item when buyers purchase multiple units.</p>
+                    <p className="text-xs text-gray-400">
+                      Offer a discount per item when buyers purchase multiple
+                      units.
+                    </p>
                   )}
                 </div>
 
@@ -1375,26 +1598,40 @@ const Marketplace = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      <span className="flex items-center gap-1"><Phone size={13} /> Phone</span>
+                      <span className="flex items-center gap-1">
+                        <Phone size={13} /> Phone
+                      </span>
                       <span className="text-red-500 ml-0.5">*</span>
                     </label>
                     <input
                       type="tel"
                       maxLength={10}
                       value={editFormData.phone}
-                      onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
+                      onChange={(e) =>
+                        setEditFormData({
+                          ...editFormData,
+                          phone: e.target.value,
+                        })
+                      }
                       className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400/60 transition-all"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      <span className="flex items-center gap-1"><Mail size={13} /> Email</span>
+                      <span className="flex items-center gap-1">
+                        <Mail size={13} /> Email
+                      </span>
                       <span className="text-red-500 ml-0.5">*</span>
                     </label>
                     <input
                       type="email"
                       value={editFormData.email}
-                      onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
+                      onChange={(e) =>
+                        setEditFormData({
+                          ...editFormData,
+                          email: e.target.value,
+                        })
+                      }
                       className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400/60 transition-all"
                     />
                   </div>
@@ -1406,7 +1643,11 @@ const Marketplace = () => {
                   disabled={editLoading}
                   className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all shadow-lg hover:shadow-xl disabled:opacity-60 disabled:cursor-not-allowed bg-blue-600 hover:bg-blue-700 text-white"
                 >
-                  {editLoading ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle size={18} />}
+                  {editLoading ? (
+                    <Loader2 size={18} className="animate-spin" />
+                  ) : (
+                    <CheckCircle size={18} />
+                  )}
                   {editLoading ? 'Saving changes…' : 'Save Changes'}
                 </button>
               </form>
@@ -1422,7 +1663,7 @@ const Marketplace = () => {
               >
                 <X size={20} className="text-gray-700 dark:text-gray-300" />
               </button>
-              
+
               <div className="p-6 flex-1 flex flex-col justify-center">
                 <div className="relative w-full aspect-square rounded-2xl overflow-hidden shadow-lg border border-gray-200/60 dark:border-gray-700/60">
                   {editingProduct.image_url ? (
@@ -1434,12 +1675,16 @@ const Marketplace = () => {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700">
-                      <ImageIcon size={64} className="text-gray-400 dark:text-gray-500" />
+                      <ImageIcon
+                        size={64}
+                        className="text-gray-400 dark:text-gray-500"
+                      />
                     </div>
                   )}
                 </div>
                 <p className="text-center text-xs text-gray-500 dark:text-gray-400 mt-4 leading-relaxed px-4">
-                  Image editing is not available. To change the image, you must delete this listing and create a new one.
+                  Image editing is not available. To change the image, you must
+                  delete this listing and create a new one.
                 </p>
               </div>
             </div>
@@ -1448,94 +1693,125 @@ const Marketplace = () => {
       )}
 
       {/* ── Sold Prompt Modal ─────────────────────────────────────────────── */}
-      {soldPromptId && (() => {
-        const product = products.find(p => p._id === soldPromptId);
-        if (!product) return null;
-        
-        const isPartialSale = product.quantity > 1 && soldQuantityValue < product.quantity;
+      {soldPromptId &&
+        (() => {
+          const product = products.find((p) => p._id === soldPromptId)
+          if (!product) return null
 
-        return (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className="bg-white dark:bg-gray-900 rounded-3xl p-6 md:p-8 max-w-sm w-full shadow-2xl flex flex-col gap-6 text-center">
-              <div>
-                <div className="mx-auto w-16 h-16 bg-teal-100 dark:bg-teal-900/40 text-teal-600 dark:text-teal-400 rounded-full flex flex-col items-center justify-center mb-4">
-                  <CheckCircle size={32} />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                  {product.quantity > 1 ? 'Sell Items' : 'Mark as Sold'}
-                </h3>
-                {product.quantity > 1 && (
-                  <div className="mt-4 text-left">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Quantity to sell (Max: {product.quantity})
-                    </label>
-                    <input 
-                      type="number" 
-                      min="1" 
-                      max={product.quantity}
-                      value={soldQuantityValue}
-                      onChange={(e) => setSoldQuantityValue(Math.min(product.quantity, Math.max(1, Number(e.target.value))))}
-                      className="w-full px-4 py-2 border rounded-xl dark:bg-gray-800 dark:border-gray-700 text-sm"
-                    />
+          const isPartialSale =
+            product.quantity > 1 && soldQuantityValue < product.quantity
+
+          return (
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+              <div className="bg-white dark:bg-gray-900 rounded-3xl p-6 md:p-8 max-w-sm w-full shadow-2xl flex flex-col gap-6 text-center">
+                <div>
+                  <div className="mx-auto w-16 h-16 bg-teal-100 dark:bg-teal-900/40 text-teal-600 dark:text-teal-400 rounded-full flex flex-col items-center justify-center mb-4">
+                    <CheckCircle size={32} />
                   </div>
-                )}
-                {!isPartialSale ? (
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-4 leading-relaxed">
-                    Congratulations on selling out! Would you like to completely hide this listing, or keep it visible with a "SOLD OUT" badge?
-                  </p>
-                ) : (
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-4 leading-relaxed">
-                    This will reduce your available inventory by {soldQuantityValue}. The listing will remain active until quantity reaches 0.
-                  </p>
-                )}
-              </div>
-              
-              <div className="flex flex-col gap-3">
-                {!isPartialSale ? (
-                  <>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                    {product.quantity > 1 ? 'Sell Items' : 'Mark as Sold'}
+                  </h3>
+                  {product.quantity > 1 && (
+                    <div className="mt-4 text-left">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Quantity to sell (Max: {product.quantity})
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max={product.quantity}
+                        value={soldQuantityValue}
+                        onChange={(e) =>
+                          setSoldQuantityValue(
+                            Math.min(
+                              product.quantity,
+                              Math.max(1, Number(e.target.value))
+                            )
+                          )
+                        }
+                        className="w-full px-4 py-2 border rounded-xl dark:bg-gray-800 dark:border-gray-700 text-sm"
+                      />
+                    </div>
+                  )}
+                  {!isPartialSale ? (
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-4 leading-relaxed">
+                      Congratulations on selling out! Would you like to
+                      completely hide this listing, or keep it visible with a
+                      "SOLD OUT" badge?
+                    </p>
+                  ) : (
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-4 leading-relaxed">
+                      This will reduce your available inventory by{' '}
+                      {soldQuantityValue}. The listing will remain active until
+                      quantity reaches 0.
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  {!isPartialSale ? (
+                    <>
+                      <button
+                        onClick={() =>
+                          handleMarkSold(soldPromptId, true, soldQuantityValue)
+                        }
+                        className="w-full py-3 rounded-xl text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 transition"
+                      >
+                        Keep Visible (Sold Out Badge)
+                      </button>
+                      <button
+                        onClick={() =>
+                          handleMarkSold(soldPromptId, false, soldQuantityValue)
+                        }
+                        className="w-full py-3 rounded-xl text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-900/30 dark:hover:bg-red-900/50 transition"
+                      >
+                        Hide Completely
+                      </button>
+                    </>
+                  ) : (
                     <button
-                      onClick={() => handleMarkSold(soldPromptId, true, soldQuantityValue)}
+                      onClick={() =>
+                        handleMarkSold(soldPromptId, false, soldQuantityValue)
+                      }
                       className="w-full py-3 rounded-xl text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 transition"
                     >
-                      Keep Visible (Sold Out Badge)
+                      Confirm Sale
                     </button>
-                    <button
-                      onClick={() => handleMarkSold(soldPromptId, false, soldQuantityValue)}
-                      className="w-full py-3 rounded-xl text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-900/30 dark:hover:bg-red-900/50 transition"
-                    >
-                      Hide Completely
-                    </button>
-                  </>
-                ) : (
+                  )}
                   <button
-                    onClick={() => handleMarkSold(soldPromptId, false, soldQuantityValue)}
-                    className="w-full py-3 rounded-xl text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 transition"
+                    onClick={() => setSoldPromptId(null)}
+                    className="w-full py-3 rounded-xl text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 dark:text-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 transition"
                   >
-                    Confirm Sale
+                    Cancel
                   </button>
-                )}
-                <button
-                  onClick={() => setSoldPromptId(null)}
-                  className="w-full py-3 rounded-xl text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 dark:text-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 transition"
-                >
-                  Cancel
-                </button>
+                </div>
               </div>
             </div>
-          </div>
-        );
-      })()}
+          )
+        })()}
 
       {/* ── Custom Delete Prompt ────────────────────────────────────────── */}
       {deletePromptId && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setDeletePromptId(null)}>
-          <div className="bg-white dark:bg-gray-900 w-full max-w-sm rounded-2xl shadow-xl p-6 animate-scale-up" onClick={e => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+          onClick={() => setDeletePromptId(null)}
+        >
+          <div
+            className="bg-white dark:bg-gray-900 w-full max-w-sm rounded-2xl shadow-xl p-6 animate-scale-up"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-4 mx-auto">
-              <AlertCircle size={24} className="text-red-600 dark:text-red-500" />
+              <AlertCircle
+                size={24}
+                className="text-red-600 dark:text-red-500"
+              />
             </div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white text-center mb-2">Delete Listing?</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white text-center mb-2">
+              Delete Listing?
+            </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-6">
-              Are you sure you want to delete this listing permanently? This action cannot be undone.
+              Are you sure you want to delete this listing permanently? This
+              action cannot be undone.
             </p>
             <div className="flex gap-3">
               <button
@@ -1557,19 +1833,32 @@ const Marketplace = () => {
 
       {/* ── Detailed View Modal ─────────────────────────────────────────── */}
       {detailedProduct && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm lg:p-8" onClick={() => setDetailedProduct(null)}>
+        <div
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm lg:p-8"
+          onClick={() => setDetailedProduct(null)}
+        >
           <div
             className={`relative w-full ${showCommentsPanel ? 'max-w-[95vw]' : 'max-w-4xl'} bg-white dark:bg-gray-900 rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row h-full max-h-[90vh] transition-all duration-300`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Left/Top Area: Image */}
-            <div className={`w-full ${showCommentsPanel ? 'md:w-[40%]' : 'md:w-[50%]'} bg-gray-100 dark:bg-gray-950 flex flex-col relative h-[40vh] md:h-full overflow-y-auto transition-all duration-300`}>
+            <div
+              className={`w-full ${showCommentsPanel ? 'md:w-[40%]' : 'md:w-[50%]'} bg-gray-100 dark:bg-gray-950 flex flex-col relative h-[40vh] md:h-full overflow-y-auto transition-all duration-300`}
+            >
               {/* Image Header */}
               <div className="relative w-full aspect-[4/3] md:aspect-auto md:min-h-full flex-shrink-0 bg-black/5 dark:bg-white/5 flex items-center justify-center border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-800">
                 {detailedProduct.image_url ? (
-                  <Image src={detailedProduct.image_url} alt={detailedProduct.title} fill className="object-contain" />
+                  <Image
+                    src={detailedProduct.image_url}
+                    alt={detailedProduct.title}
+                    fill
+                    className="object-contain"
+                  />
                 ) : (
-                  <ImageIcon size={64} className="text-gray-300 dark:text-gray-600" />
+                  <ImageIcon
+                    size={64}
+                    className="text-gray-300 dark:text-gray-600"
+                  />
                 )}
                 {detailedProduct.is_sold && (
                   <div className="absolute inset-0 z-10 bg-black/40 flex items-center justify-center backdrop-blur-[2px]">
@@ -1587,151 +1876,214 @@ const Marketplace = () => {
               </div>
             </div>
 
-              {/* Right/Bottom Area: Details & Comments */}
-              <div className={`w-full ${showCommentsPanel ? 'md:w-[30%]' : 'md:w-[50%]'} flex flex-col h-[60vh] md:h-full bg-white dark:bg-gray-900 break-words min-w-0 transition-all duration-300 border-r border-gray-100 dark:border-gray-800 overflow-y-auto`}>
-                <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex-shrink-0">
-                  <div className="flex justify-between items-start gap-4">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 leading-tight">
-                      {detailedProduct.title}
-                    </h2>
-                    <div className="flex items-center gap-2">
-                       <button onClick={() => setShowCommentsPanel(!showCommentsPanel)} className="hidden md:flex items-center gap-2 p-2 text-teal-600 hover:text-teal-700 bg-teal-50 hover:bg-teal-100 dark:bg-teal-900/20 dark:text-teal-400 rounded-full transition shrink-0" title="Toggle Comments">
-                         <MessageCircle size={20} />
-                       </button>
-                       <button onClick={() => setDetailedProduct(null)} className="hidden md:block p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition dark:hover:bg-gray-800 dark:hover:text-gray-200 shrink-0">
-                         <X size={24} />
-                       </button>
-                    </div>
+            {/* Right/Bottom Area: Details & Comments */}
+            <div
+              className={`w-full ${showCommentsPanel ? 'md:w-[30%]' : 'md:w-[50%]'} flex flex-col h-[60vh] md:h-full bg-white dark:bg-gray-900 break-words min-w-0 transition-all duration-300 border-r border-gray-100 dark:border-gray-800 overflow-y-auto`}
+            >
+              <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex-shrink-0">
+                <div className="flex justify-between items-start gap-4">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 leading-tight">
+                    {detailedProduct.title}
+                  </h2>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setShowCommentsPanel(!showCommentsPanel)}
+                      className="hidden md:flex items-center gap-2 p-2 text-teal-600 hover:text-teal-700 bg-teal-50 hover:bg-teal-100 dark:bg-teal-900/20 dark:text-teal-400 rounded-full transition shrink-0"
+                      title="Toggle Comments"
+                    >
+                      <MessageCircle size={20} />
+                    </button>
+                    <button
+                      onClick={() => setDetailedProduct(null)}
+                      className="hidden md:block p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition dark:hover:bg-gray-800 dark:hover:text-gray-200 shrink-0"
+                    >
+                      <X size={24} />
+                    </button>
                   </div>
+                </div>
 
-                  {(() => {
-                     let finalPrice = detailedProduct.price * qtyToBuy;
-                     if (detailedProduct.bulk_discounts?.length > 0) {
-                        const applicableDiscount = detailedProduct.bulk_discounts
-                           .filter(d => d.min_quantity <= qtyToBuy)
-                           .reduce((max, d) => Math.max(max, d.discount_per_item), 0);
-                        finalPrice -= (applicableDiscount * qtyToBuy);
-                     }
+                {(() => {
+                  let finalPrice = detailedProduct.price * qtyToBuy
+                  if (detailedProduct.bulk_discounts?.length > 0) {
+                    const applicableDiscount = detailedProduct.bulk_discounts
+                      .filter((d) => d.min_quantity <= qtyToBuy)
+                      .reduce((max, d) => Math.max(max, d.discount_per_item), 0)
+                    finalPrice -= applicableDiscount * qtyToBuy
+                  }
 
-                     return (
-                        <div className="mt-4 flex flex-col sm:flex-row sm:items-end gap-3 sm:justify-between">
-                           <div className="flex flex-col">
-                              <span className="text-xs text-gray-500 font-semibold mb-1 uppercase tracking-wider">
-                                {detailedProduct.quantity > 1 ? 'Total Cost' : 'Price'}
-                              </span>
-                              <p className="text-4xl font-extrabold text-[#002f34] dark:text-teal-400 leading-none">
-                                {formatPrice(finalPrice)}
-                              </p>
-                              {finalPrice < detailedProduct.price * qtyToBuy && (
-                                <p className="text-sm font-semibold text-green-600 mt-1 dark:text-green-400 line-through opacity-80">
-                                  {formatPrice(detailedProduct.price * qtyToBuy)}
-                                </p>
-                              )}
-                           </div>
+                  return (
+                    <div className="mt-4 flex flex-col sm:flex-row sm:items-end gap-3 sm:justify-between">
+                      <div className="flex flex-col">
+                        <span className="text-xs text-gray-500 font-semibold mb-1 uppercase tracking-wider">
+                          {detailedProduct.quantity > 1
+                            ? 'Total Cost'
+                            : 'Price'}
+                        </span>
+                        <p className="text-4xl font-extrabold text-[#002f34] dark:text-teal-400 leading-none">
+                          {formatPrice(finalPrice)}
+                        </p>
+                        {finalPrice < detailedProduct.price * qtyToBuy && (
+                          <p className="text-sm font-semibold text-green-600 mt-1 dark:text-green-400 line-through opacity-80">
+                            {formatPrice(detailedProduct.price * qtyToBuy)}
+                          </p>
+                        )}
+                      </div>
 
-                           {detailedProduct.quantity > 1 && (
-                             <div className="flex items-center flex-wrap gap-2 mt-2 sm:mt-0">
-                               <label className="text-sm font-semibold text-gray-600 dark:text-gray-300">
-                                 Select Quantity:
-                               </label>
-                               <input 
-                                 type="number" 
-                                 min="1" 
-                                 max={detailedProduct.quantity}
-                                 value={qtyToBuy}
-                                 onChange={(e) => setQtyToBuy(Math.min(detailedProduct.quantity, Math.max(1, Number(e.target.value))))}
-                                 className="w-16 px-2 py-1 text-sm border rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700 font-bold"
-                               />
-                               <span className="text-xs font-semibold px-2 py-1 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 rounded-lg">
-                                 (Max {detailedProduct.quantity})
-                               </span>
-                               {detailedProduct.bulk_discounts?.length > 0 && (
-                                 <button onClick={() => setShowOffers(!showOffers)} className="ml-1 flex items-center gap-1 text-orange-600 dark:text-orange-400 font-semibold text-xs uppercase tracking-wide hover:underline cursor-pointer">
-                                   <Tag size={14} /> {showOffers ? 'Hide Offer' : 'View Offer'}
-                                 </button>
-                               )}
-                             </div>
-                           )}
+                      {detailedProduct.quantity > 1 && (
+                        <div className="flex items-center flex-wrap gap-2 mt-2 sm:mt-0">
+                          <label className="text-sm font-semibold text-gray-600 dark:text-gray-300">
+                            Select Quantity:
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            max={detailedProduct.quantity}
+                            value={qtyToBuy}
+                            onChange={(e) =>
+                              setQtyToBuy(
+                                Math.min(
+                                  detailedProduct.quantity,
+                                  Math.max(1, Number(e.target.value))
+                                )
+                              )
+                            }
+                            className="w-16 px-2 py-1 text-sm border rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700 font-bold"
+                          />
+                          <span className="text-xs font-semibold px-2 py-1 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 rounded-lg">
+                            (Max {detailedProduct.quantity})
+                          </span>
+                          {detailedProduct.bulk_discounts?.length > 0 && (
+                            <button
+                              onClick={() => setShowOffers(!showOffers)}
+                              className="ml-1 flex items-center gap-1 text-orange-600 dark:text-orange-400 font-semibold text-xs uppercase tracking-wide hover:underline cursor-pointer"
+                            >
+                              <Tag size={14} />{' '}
+                              {showOffers ? 'Hide Offer' : 'View Offer'}
+                            </button>
+                          )}
                         </div>
-                     );
-                  })()}
-
-                  <div className="mt-4 text-sm text-gray-500 dark:text-gray-400 flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                      <span className="flex items-center gap-1.5"><Clock size={16} /> Posted {timeAgo(detailedProduct.created_at)}</span>
+                      )}
                     </div>
-                  </div>
+                  )
+                })()}
 
-                  {showOffers && detailedProduct.bulk_discounts?.length > 0 && detailedProduct.quantity > 1 && (
+                <div className="mt-4 text-sm text-gray-500 dark:text-gray-400 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <span className="flex items-center gap-1.5">
+                      <Clock size={16} /> Posted{' '}
+                      {timeAgo(detailedProduct.created_at)}
+                    </span>
+                  </div>
+                </div>
+
+                {showOffers &&
+                  detailedProduct.bulk_discounts?.length > 0 &&
+                  detailedProduct.quantity > 1 && (
                     <div className="mt-4 p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800/50 rounded-2xl space-y-2 relative overflow-hidden">
                       <h4 className="text-xs font-bold text-orange-800 dark:text-orange-300 uppercase tracking-widest flex items-center gap-1.5 mb-3">
                         <Tag size={14} /> Bulk Discounts available
                       </h4>
                       {detailedProduct.bulk_discounts.map((bd, i) => {
-                         const isAvailable = bd.min_quantity <= detailedProduct.quantity;
-                         return (
-                           <div key={i} className={`flex justify-between items-center text-sm ${isAvailable ? 'text-orange-900 dark:text-orange-200' : 'text-gray-400 dark:text-gray-500 opacity-60'}`}>
-                             <span className={`font-bold border-b border-dashed ${isAvailable ? 'border-orange-400' : 'border-gray-400'}`}>
-                               Only ₹{detailedProduct.price - bd.discount_per_item} / item
-                             </span>
-                             <span>for {bd.min_quantity} or more items</span>
-                           </div>
-                         );
+                        const isAvailable =
+                          bd.min_quantity <= detailedProduct.quantity
+                        return (
+                          <div
+                            key={i}
+                            className={`flex justify-between items-center text-sm ${isAvailable ? 'text-orange-900 dark:text-orange-200' : 'text-gray-400 dark:text-gray-500 opacity-60'}`}
+                          >
+                            <span
+                              className={`font-bold border-b border-dashed ${isAvailable ? 'border-orange-400' : 'border-gray-400'}`}
+                            >
+                              Only ₹
+                              {detailedProduct.price - bd.discount_per_item} /
+                              item
+                            </span>
+                            <span>for {bd.min_quantity} or more items</span>
+                          </div>
+                        )
                       })}
                     </div>
                   )}
-                  
-                  <p className="mt-6 text-gray-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-wrap break-words">
-                    {detailedProduct.description}
-                  </p>
+
+                <p className="mt-6 text-gray-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-wrap break-words">
+                  {detailedProduct.description}
+                </p>
 
                 {detailedProduct.contact_info && (
                   <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800/80 rounded-2xl flex flex-col gap-2">
-                    <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider mb-1">Contact Seller</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider mb-1">
+                      Contact Seller
+                    </p>
                     {detailedProduct.contact_info.includes(' | ') ? (
                       <>
-                        <div className="flex items-center gap-3 text-sm font-medium text-gray-800 dark:text-gray-200"><Phone size={16} className="text-teal-600"/> {detailedProduct.contact_info.split(' | ')[0].replace('Phone: ', '')}</div>
-                        <div className="flex items-center gap-3 text-sm font-medium text-gray-800 dark:text-gray-200"><Mail size={16} className="text-teal-600"/> {detailedProduct.contact_info.split(' | ')[1].replace('Email: ', '')}</div>
+                        <div className="flex items-center gap-3 text-sm font-medium text-gray-800 dark:text-gray-200">
+                          <Phone size={16} className="text-teal-600" />{' '}
+                          {detailedProduct.contact_info
+                            .split(' | ')[0]
+                            .replace('Phone: ', '')}
+                        </div>
+                        <div className="flex items-center gap-3 text-sm font-medium text-gray-800 dark:text-gray-200">
+                          <Mail size={16} className="text-teal-600" />{' '}
+                          {detailedProduct.contact_info
+                            .split(' | ')[1]
+                            .replace('Email: ', '')}
+                        </div>
                       </>
                     ) : (
-                      <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{detailedProduct.contact_info}</p>
+                      <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                        {detailedProduct.contact_info}
+                      </p>
                     )}
                   </div>
                 )}
               </div>
+            </div>
 
-              </div>
-
-              {/* Comments Panel */}
-              <div className={`w-full ${showCommentsPanel ? 'md:w-[30%] block' : 'md:hidden'} flex flex-col h-[50vh] md:h-full min-h-0 bg-gray-50 dark:bg-gray-900/50 transition-all duration-300 relative`}>
-                
-                {/* Comments Scrollable Area */}
-                <div className="flex-1 overflow-y-auto p-6">
-                  <div className="flex items-center justify-between mb-4">
+            {/* Comments Panel */}
+            <div
+              className={`w-full ${showCommentsPanel ? 'md:w-[30%] block' : 'md:hidden'} flex flex-col h-[50vh] md:h-full min-h-0 bg-gray-50 dark:bg-gray-900/50 transition-all duration-300 relative`}
+            >
+              {/* Comments Scrollable Area */}
+              <div className="flex-1 overflow-y-auto p-6">
+                <div className="flex items-center justify-between mb-4">
                   <h3 className="font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                     Comments & Offers
                     <span className="text-sm font-normal text-gray-500 bg-gray-200 dark:bg-gray-800 px-2 py-0.5 rounded-full">
-                      {detailedProduct.comments?.reduce((acc, c) => acc + 1 + (c.replies?.length || 0), 0) || 0}
+                      {detailedProduct.comments?.reduce(
+                        (acc, c) => acc + 1 + (c.replies?.length || 0),
+                        0
+                      ) || 0}
                     </span>
                   </h3>
                   {/* Close button for mobile inside comments panel */}
-                  <button onClick={() => setShowCommentsPanel(false)} className="md:hidden p-2 text-gray-400 hover:bg-gray-200 rounded-full">
+                  <button
+                    onClick={() => setShowCommentsPanel(false)}
+                    className="md:hidden p-2 text-gray-400 hover:bg-gray-200 rounded-full"
+                  >
                     <X size={18} />
                   </button>
                 </div>
 
                 <div className="space-y-6">
-                  {(!detailedProduct.comments || detailedProduct.comments.length === 0) && (
+                  {(!detailedProduct.comments ||
+                    detailedProduct.comments.length === 0) && (
                     <div className="text-center py-10 text-gray-400">
-                      <p className="text-sm">No comments yet. Be the first to start a conversation!</p>
+                      <p className="text-sm">
+                        No comments yet. Be the first to start a conversation!
+                      </p>
                     </div>
                   )}
 
-                  {detailedProduct.comments?.map(comment => (
+                  {detailedProduct.comments?.map((comment) => (
                     <div key={comment._id} className="flex gap-3">
                       <div className="w-10 h-10 rounded-full bg-teal-100 flex-shrink-0 overflow-hidden">
                         {comment.user?.image ? (
-                          <Image src={comment.user.image} width={40} height={40} alt="" />
+                          <Image
+                            src={comment.user.image}
+                            width={40}
+                            height={40}
+                            alt=""
+                          />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-teal-700 font-bold">
                             {comment.user?.name?.[0]?.toUpperCase() || '?'}
@@ -1741,19 +2093,30 @@ const Marketplace = () => {
                       <div className="flex-1">
                         <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl rounded-tl-none shadow-sm border border-gray-100 dark:border-gray-700">
                           <div className="flex items-center justify-between mb-1.5">
-                            <span className="font-semibold text-sm text-gray-900 dark:text-gray-100">{comment.user?.name || 'Unknown'}</span>
-                            <span className="text-xs text-gray-500">{timeAgo(comment.createdAt)}</span>
+                            <span className="font-semibold text-sm text-gray-900 dark:text-gray-100">
+                              {comment.user?.name || 'Unknown'}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {timeAgo(comment.createdAt)}
+                            </span>
                           </div>
-                          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap break-words">{comment.text}</p>
+                          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap break-words">
+                            {comment.text}
+                          </p>
                           {comment.offerPrice && (
                             <div className="mt-2 inline-flex border border-teal-200 bg-teal-50 dark:bg-teal-900/30 dark:border-teal-800 px-3 py-1.5 rounded-lg items-center gap-2">
-                              <Tag size={14} className="text-teal-600 dark:text-teal-400"/>
-                              <span className="text-xs font-semibold text-teal-800 dark:text-teal-300">Offered: {formatPrice(comment.offerPrice)}</span>
+                              <Tag
+                                size={14}
+                                className="text-teal-600 dark:text-teal-400"
+                              />
+                              <span className="text-xs font-semibold text-teal-800 dark:text-teal-300">
+                                Offered: {formatPrice(comment.offerPrice)}
+                              </span>
                             </div>
                           )}
                         </div>
-                        <button 
-                          onClick={() => setReplyingTo(comment._id)} 
+                        <button
+                          onClick={() => setReplyingTo(comment._id)}
                           className="text-xs font-semibold text-gray-500 mt-2 hover:text-teal-600 transition tracking-wide px-1"
                         >
                           REPLY
@@ -1762,24 +2125,36 @@ const Marketplace = () => {
                         {/* Replies */}
                         {comment.replies?.length > 0 && (
                           <div className="mt-4 space-y-4 pl-4 border-l-2 border-gray-200 dark:border-gray-700">
-                            {comment.replies.map(reply => (
+                            {comment.replies.map((reply) => (
                               <div key={reply._id} className="flex gap-3">
                                 <div className="w-8 h-8 rounded-full bg-blue-100 flex-shrink-0 overflow-hidden">
                                   {reply.user?.image ? (
-                                    <Image src={reply.user.image} width={32} height={32} alt="" />
+                                    <Image
+                                      src={reply.user.image}
+                                      width={32}
+                                      height={32}
+                                      alt=""
+                                    />
                                   ) : (
                                     <div className="w-full h-full flex items-center justify-center text-blue-700 font-bold text-xs">
-                                      {reply.user?.name?.[0]?.toUpperCase() || '?'}
+                                      {reply.user?.name?.[0]?.toUpperCase() ||
+                                        '?'}
                                     </div>
                                   )}
                                 </div>
                                 <div className="flex-1">
                                   <div className="bg-white dark:bg-gray-800 py-2.5 px-4 rounded-xl rounded-tl-none shadow-sm border border-gray-100 dark:border-gray-700">
                                     <div className="flex items-center justify-between mb-1">
-                                      <span className="font-semibold text-xs text-gray-900 dark:text-gray-100">{reply.user?.name || 'Unknown'}</span>
-                                      <span className="text-[10px] text-gray-500">{timeAgo(reply.createdAt)}</span>
+                                      <span className="font-semibold text-xs text-gray-900 dark:text-gray-100">
+                                        {reply.user?.name || 'Unknown'}
+                                      </span>
+                                      <span className="text-[10px] text-gray-500">
+                                        {timeAgo(reply.createdAt)}
+                                      </span>
                                     </div>
-                                    <p className="text-sm text-gray-700 dark:text-gray-300 break-words whitespace-pre-wrap">{reply.text}</p>
+                                    <p className="text-sm text-gray-700 dark:text-gray-300 break-words whitespace-pre-wrap">
+                                      {reply.text}
+                                    </p>
                                   </div>
                                 </div>
                               </div>
@@ -1800,21 +2175,35 @@ const Marketplace = () => {
                       <span className="text-gray-600 dark:text-gray-300 font-medium tracking-wide">
                         Replying to comment
                       </span>
-                      <button onClick={() => setReplyingTo(null)} className="text-gray-400 hover:text-red-500"><X size={14}/></button>
+                      <button
+                        onClick={() => setReplyingTo(null)}
+                        className="text-gray-400 hover:text-red-500"
+                      >
+                        <X size={14} />
+                      </button>
                     </div>
                   )}
-                  <form onSubmit={handlePostComment} className="flex flex-col gap-2">
+                  <form
+                    onSubmit={handlePostComment}
+                    className="flex flex-col gap-2"
+                  >
                     <textarea
                       value={commentText}
                       onChange={(e) => setCommentText(e.target.value)}
-                      placeholder={replyingTo ? "Write a reply..." : "Ask a question or leave a comment..."}
+                      placeholder={
+                        replyingTo
+                          ? 'Write a reply...'
+                          : 'Ask a question or leave a comment...'
+                      }
                       className="w-full text-sm bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none h-[80px]"
                       required
                     />
                     {!replyingTo && (
                       <div className="flex items-center justify-between mt-1">
                         <div className="flex items-center gap-2">
-                          <label className="text-xs font-semibold text-gray-500">Offer Price (₹)</label>
+                          <label className="text-xs font-semibold text-gray-500">
+                            Offer Price (₹)
+                          </label>
                           <input
                             type="number"
                             min="0"
@@ -1829,7 +2218,11 @@ const Marketplace = () => {
                           disabled={commentLoading}
                           className="bg-teal-600 hover:bg-teal-700 text-white font-bold px-6 py-2 rounded-xl text-sm transition shadow-md disabled:opacity-50"
                         >
-                          {commentLoading ? <Loader2 size={16} className="animate-spin" /> : 'Post'}
+                          {commentLoading ? (
+                            <Loader2 size={16} className="animate-spin" />
+                          ) : (
+                            'Post'
+                          )}
                         </button>
                       </div>
                     )}
@@ -1840,7 +2233,11 @@ const Marketplace = () => {
                           disabled={commentLoading}
                           className="bg-teal-600 hover:bg-teal-700 text-white font-bold px-6 py-2 rounded-xl text-sm transition shadow-md disabled:opacity-50"
                         >
-                          {commentLoading ? <Loader2 size={16} className="animate-spin" /> : 'Reply'}
+                          {commentLoading ? (
+                            <Loader2 size={16} className="animate-spin" />
+                          ) : (
+                            'Reply'
+                          )}
                         </button>
                       </div>
                     )}
@@ -1848,7 +2245,9 @@ const Marketplace = () => {
                 </div>
               ) : (
                 <div className="p-6 border-t border-gray-200 dark:border-gray-800 text-center bg-gray-50 dark:bg-gray-900/50">
-                  <p className="text-sm text-gray-500 mb-2">Login to ask questions or make offers.</p>
+                  <p className="text-sm text-gray-500 mb-2">
+                    Login to ask questions or make offers.
+                  </p>
                 </div>
               )}
             </div>
