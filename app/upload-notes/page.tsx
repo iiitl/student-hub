@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
+import { useSemesterAutofill } from '@/hooks/useSemesterAutofill'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -72,34 +73,12 @@ const UploadNotePage = () => {
     fetchSubjects()
   }, [])
 
-  useEffect(() => {
-    if (session?.user?.email) {
-      const email = session.user.email
-      const yearMatch = email.match(/\d{4}/)
-      const batchYear = yearMatch ? yearMatch[0] : ''
-
-      if (batchYear) {
-        const today = new Date()
-        const currentYear = today.getFullYear()
-        const currentMonth = today.getMonth() + 1
-        const joinYear = parseInt(batchYear)
-        const yearDiff = currentYear - joinYear
-
-        let calcSem = currentMonth >= 8 ? yearDiff * 2 + 1 : yearDiff * 2
-
-        if (calcSem < 1) calcSem = 1
-        if (calcSem > 8) calcSem = 8
-
-        if (formData.year === '' && formData.semester === '') {
-          setFormData((prev) => ({
-            ...prev,
-            year: batchYear,
-            semester: String(calcSem),
-          }))
-        }
-      }
-    }
-  }, [session, formData.year, formData.semester])
+  useSemesterAutofill(
+    session,
+    formData.year,
+    formData.semester,
+    setFormData
+  )
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
