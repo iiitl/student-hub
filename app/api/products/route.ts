@@ -43,12 +43,17 @@ export async function GET(req: NextRequest) {
       filter.$or = [{ is_sold: false }, { is_sold: true, show_when_sold: true }]
     }
 
+    function escapeRegex(str: string): string {
+      return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    }
+
     if (search.trim()) {
+      const escapedSearch = escapeRegex(search.trim())
       filter.$and = [
         {
           $or: [
-            { title: { $regex: search, $options: 'i' } },
-            { description: { $regex: search, $options: 'i' } },
+            { title: { $regex: escapedSearch, $options: 'i' } },
+            { description: { $regex: escapedSearch, $options: 'i' } },
           ],
         },
       ]
