@@ -127,8 +127,7 @@ const UploadPaperPage = () => {
         !formData.uploaded_file
       ) {
         const msg = 'Please fill in all required fields'
-        setError(msg)
-        addToast('Validation Error', msg, 'error')
+        addToast(msg)
         setIsLoading(false)
         return
       }
@@ -137,8 +136,7 @@ const UploadPaperPage = () => {
       const maxSize = 25 * 1024 * 1024 // 25MB in bytes
       if (formData.uploaded_file.size > maxSize) {
         const msg = 'File size must be less than 25MB'
-        setError(msg)
-        addToast('File Too Large', msg, 'error')
+        addToast(msg)
         setIsLoading(false)
         return
       }
@@ -152,8 +150,7 @@ const UploadPaperPage = () => {
       ]
       if (!allowedTypes.includes(formData.uploaded_file.type)) {
         const msg = 'Only PDF, PNG, JPG, JPEG, and WEBP files are allowed'
-        setError(msg)
-        addToast('Invalid File Type', msg, 'error')
+        addToast(msg)
         setIsLoading(false)
         return
       }
@@ -191,8 +188,7 @@ const UploadPaperPage = () => {
 
       // Success
       const successMsg = 'Paper uploaded successfully!'
-      setSuccess(successMsg)
-      addToast('Upload Successful', successMsg, 'success')
+      addToast(successMsg)
 
       // Reset form
       setFormData({
@@ -217,8 +213,7 @@ const UploadPaperPage = () => {
         err instanceof Error
           ? err.message
           : 'Failed to upload paper. Please try again.'
-      setError(errorMsg)
-      addToast('Upload Failed', errorMsg, 'error')
+      addToast(errorMsg)
     } finally {
       setIsLoading(false)
     }

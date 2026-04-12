@@ -28,7 +28,6 @@ export default function SignIn() {
     if (!isValidIIITLEmail(email)) {
       const msg = 'Only IIITL email addresses are allowed'
       addToast(msg)
-      addToast('Validation Error', msg, 'error')
       setLoading(false)
       return
     }
@@ -49,10 +48,8 @@ export default function SignIn() {
         if (result.error === 'Invalid Credentials') {
           const errorMsg = 'Invalid email or password'
           addToast(errorMsg)
-          addToast('Login Failed', errorMsg, 'error')
         } else {
           addToast(result.error)
-          addToast('Error', result.error, 'error')
         }
       } else if (result?.ok) {
         // Successful login
@@ -66,7 +63,6 @@ export default function SignIn() {
           ? error.message
           : 'Something went wrong. Please try again.'
       addToast(errorMessage)
-      addToast('Error', errorMessage, 'error')
     } finally {
       setLoading(false)
     }
@@ -80,7 +76,7 @@ export default function SignIn() {
     } catch {
       const msg = 'Failed to sign in with Google. Please try again.'
       addToast(msg)
-      addToast('Error', msg, 'error')
+    } finally { 
       setLoading(false)
     }
   }
