@@ -153,9 +153,9 @@ const UploadNotePage = () => {
         return
       }
 
-      const maxSize = 10 * 1024 * 1024
+      const maxSize = 25 * 1024 * 1024
       if (formData.uploaded_file.size > maxSize) {
-        setError('File size must not exceed 10MB')
+        setError('File size must not exceed 25MB')
         setIsLoading(false)
         return
       }
@@ -530,7 +530,7 @@ const UploadNotePage = () => {
                       Click to upload or drag & drop
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      PDF, PNG, JPG, JPEG, WEBP · Max 10 MB
+                      PDF, PNG, JPG, JPEG, WEBP · Max 25 MB
                     </p>
                   </>
                 )}
@@ -567,7 +567,7 @@ const UploadNotePage = () => {
               for Technical Club resources
             </li>
             <li>
-              Maximum file size: <span className="text-foreground">10 MB</span>
+              Maximum file size: <span className="text-foreground">25 MB</span>
             </li>
             <li>
               Supported formats:{' '}
