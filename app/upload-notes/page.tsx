@@ -2,6 +2,7 @@
 
 import { useToast } from '@/context/toast-provider'
 import React, { useState, useRef, useEffect } from 'react'
+import { useSemesterAutofill } from '@/hooks/useSemesterAutofill'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -29,6 +30,7 @@ const UploadNotePage = () => {
   const router = useRouter()
   const { status } = useSession()
   const { addToast } = useToast()
+  const { data: session, status } = useSession()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [formData, setFormData] = useState({
@@ -70,6 +72,13 @@ const UploadNotePage = () => {
     }
     fetchSubjects()
   }, [])
+
+  useSemesterAutofill(
+    session,
+    formData.year,
+    formData.semester,
+    setFormData
+  )
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))

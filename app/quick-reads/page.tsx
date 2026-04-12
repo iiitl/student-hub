@@ -37,17 +37,7 @@ const markdownComponents = {
     if (inline) {
       return (
         <code
-          style={{
-            backgroundColor: '#f0f0f0',
-            color: '#24292e',
-            padding: '0.2em 0.4em',
-            margin: '0 0.2em',
-            borderRadius: '3px',
-            fontFamily: 'monospace',
-            fontSize: '0.85em',
-            whiteSpace: 'normal',
-            fontStyle: 'normal',
-          }}
+          className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-1.5 py-0.5 mx-0.5 rounded-sm font-mono text-[0.85em]"
           {...props}
         >
           {children}
@@ -56,11 +46,7 @@ const markdownComponents = {
     }
     return (
       <code
-        style={{
-          fontFamily: 'monospace',
-          fontSize: '0.85em',
-          color: '#24292e',
-        }}
+        className="font-mono text-[0.85em] text-gray-900 dark:text-gray-100"
         {...props}
       >
         {children}
@@ -70,14 +56,7 @@ const markdownComponents = {
   pre({ node, children, ...props }: MarkdownComponentProps) {
     return (
       <pre
-        style={{
-          backgroundColor: '#f6f8fa',
-          padding: '16px',
-          overflow: 'auto',
-          borderRadius: '6px',
-          border: '1px solid #d0d7de',
-          marginBottom: '16px',
-        }}
+        className="bg-gray-50 dark:bg-gray-800/50 p-4 overflow-auto rounded-md border border-gray-200 dark:border-gray-700 mb-4"
         {...props}
       >
         {children}
@@ -86,7 +65,7 @@ const markdownComponents = {
   },
   p({ node, children, ...props }: MarkdownComponentProps) {
     return (
-      <p style={{ marginBottom: '0.5em', lineHeight: '1.6' }} {...props}>
+      <p className="mb-2 leading-relaxed" {...props}>
         {children}
       </p>
     )
@@ -95,16 +74,7 @@ const markdownComponents = {
     return (
       <a
         href={href}
-        style={{
-          color: '#0969da',
-          textDecoration: 'none',
-          cursor: 'pointer',
-          borderBottom: '1px solid #0969da',
-        }}
-        onMouseEnter={(e) =>
-          (e.currentTarget.style.textDecoration = 'underline')
-        }
-        onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
+        className="text-blue-600 dark:text-blue-400 no-underline border-b border-blue-600 dark:border-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:border-blue-800 dark:hover:border-blue-300"
         {...props}
       >
         {children}
@@ -113,45 +83,21 @@ const markdownComponents = {
   },
   h1({ node, children, ...props }: MarkdownComponentProps) {
     return (
-      <h1
-        style={{
-          fontSize: '2em',
-          fontWeight: 'bold',
-          marginBottom: '0.5em',
-          marginTop: '1em',
-        }}
-        {...props}
-      >
+      <h1 className="text-2xl font-bold mb-2 mt-4 text-gray-900 dark:text-gray-100" {...props}>
         {children}
       </h1>
     )
   },
   h2({ node, children, ...props }: MarkdownComponentProps) {
     return (
-      <h2
-        style={{
-          fontSize: '1.5em',
-          fontWeight: 'bold',
-          marginBottom: '0.4em',
-          marginTop: '0.8em',
-        }}
-        {...props}
-      >
+      <h2 className="text-xl font-bold mb-1.5 mt-3 text-gray-900 dark:text-gray-100" {...props}>
         {children}
       </h2>
     )
   },
   h3({ node, children, ...props }: MarkdownComponentProps) {
     return (
-      <h3
-        style={{
-          fontSize: '1.25em',
-          fontWeight: 'bold',
-          marginBottom: '0.3em',
-          marginTop: '0.6em',
-        }}
-        {...props}
-      >
+      <h3 className="text-lg font-bold mb-1 mt-2 text-gray-900 dark:text-gray-100" {...props}>
         {children}
       </h3>
     )
@@ -159,15 +105,7 @@ const markdownComponents = {
   blockquote({ node, children, ...props }: MarkdownComponentProps) {
     return (
       <blockquote
-        style={{
-          borderLeft: '4px solid #d1d9e0',
-          color: '#57606a',
-          paddingLeft: '16px',
-          marginLeft: '0',
-          marginRight: '0',
-          marginTop: '0',
-          marginBottom: '16px',
-        }}
+        className="border-l-4 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 pl-4 my-2"
         {...props}
       >
         {children}
@@ -642,15 +580,18 @@ export default function QuickReads() {
     <div className="container mx-auto p-4 md:p-8 max-w-7xl">
       {/* Toast */}
       {toast && (
-        <div className="fixed top-4 right-4 z-[60] max-w-sm animate-in slide-in-from-top-2 fade-in duration-300">
-          <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 text-yellow-800 dark:text-yellow-200 px-4 py-3 rounded-lg shadow-lg flex items-start gap-3">
-            <ClipboardList className="h-5 w-5 mt-0.5 shrink-0" />
-            <p className="text-sm font-medium">{toast}</p>
+        <div className="fixed top-20 right-6 z-[100] max-w-sm animate-in slide-in-from-top-2 fade-in duration-300">
+          <div className="bg-yellow-50 dark:bg-zinc-950 border border-yellow-200 dark:border-yellow-600/50 text-yellow-900 dark:text-yellow-50 px-4 py-3 rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgba(234,179,8,0.1)] flex items-start gap-3 backdrop-blur-md">
+            <div className="bg-yellow-100 dark:bg-yellow-500/20 p-1 rounded-md shrink-0 mt-0.5">
+              <ClipboardList className="h-4 w-4 text-yellow-700 dark:text-yellow-400" />
+            </div>
+            <p className="text-sm font-medium leading-relaxed mt-0.5">{toast}</p>
             <button
               onClick={() => setToast(null)}
-              className="ml-auto text-yellow-600 hover:text-yellow-800"
+              aria-label="Close toast"
+              className="ml-auto text-yellow-600 dark:text-yellow-500 hover:text-yellow-800 dark:hover:text-yellow-300 mt-0.5"
             >
-              ✕
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
           </div>
         </div>
@@ -811,14 +752,7 @@ export default function QuickReads() {
 
           {/* Editor / Preview pane */}
           {showPreview ? (
-            <div
-              className="max-w-none min-h-[400px]"
-              style={{
-                padding: '24px',
-                backgroundColor: '#ffffff',
-                color: '#24292e',
-              }}
-            >
+            <div className="max-w-none min-h-[400px] p-6 bg-white dark:bg-background text-gray-900 dark:text-gray-100">
               {editContent ? (
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
@@ -827,7 +761,7 @@ export default function QuickReads() {
                   {editContent}
                 </ReactMarkdown>
               ) : (
-                <p style={{ fontStyle: 'italic', color: '#6a737d' }}>
+                <p className="italic text-gray-500 dark:text-gray-400">
                   Nothing to preview.
                 </p>
               )}
@@ -860,8 +794,8 @@ export default function QuickReads() {
               <span
                 className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${
                   getVisibility() === 'college_only'
-                    ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:border-blue-800'
-                    : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:border-emerald-800'
+                    ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800'
+                    : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800'
                 }`}
               >
                 {getVisibility() === 'college_only' ? 'College Only' : 'Public'}
@@ -879,39 +813,12 @@ export default function QuickReads() {
           </div>
 
           {/* Rendered content */}
-          <div
-            className="max-w-none min-h-[300px]"
-            style={{
-              padding: '24px',
-              backgroundColor: '#ffffff',
-              color: '#24292e',
-            }}
-          >
+          <div className="max-w-none min-h-[300px] p-6 bg-white dark:bg-background text-gray-900 dark:text-gray-100">
             {getVisibility() === 'college_only' &&
             !session?.user?.email?.endsWith('@iiitl.ac.in') &&
             !canManage ? (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  height: '250px',
-                  color: '#b45309', // amber-700
-                  backgroundColor: '#fffbeb', // amber-50
-                  border: '1px solid #fde68a', // amber-200
-                  borderRadius: '0.5rem',
-                  margin: '1rem',
-                }}
-              >
-                <div
-                  style={{
-                    backgroundColor: '#fcd34d',
-                    padding: '16px',
-                    borderRadius: '50%',
-                    marginBottom: '16px',
-                  }}
-                >
+              <div className="flex flex-col items-center justify-center h-[250px] m-4 rounded-lg bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+                <div className="bg-amber-300 dark:bg-amber-700 p-4 rounded-full mb-4 text-amber-800 dark:text-amber-100">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="48"
@@ -927,22 +834,8 @@ export default function QuickReads() {
                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                   </svg>
                 </div>
-                <h3
-                  style={{
-                    fontSize: '1.25rem',
-                    fontWeight: 'bold',
-                    marginBottom: '8px',
-                  }}
-                >
-                  Restricted Access
-                </h3>
-                <p
-                  style={{
-                    fontSize: '0.875rem',
-                    maxWidth: '300px',
-                    textAlign: 'center',
-                  }}
-                >
+                <h3 className="text-xl font-bold mb-2">Restricted Access</h3>
+                <p className="text-sm max-w-[300px] text-center">
                   This file is marked as <strong>College Only</strong>. You must
                   be logged in with a valid @iiitl.ac.in email address to view
                   its contents.
@@ -956,20 +849,9 @@ export default function QuickReads() {
                 {content}
               </ReactMarkdown>
             ) : (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  height: '192px',
-                  color: '#a0aec0',
-                }}
-              >
-                <AlertCircle
-                  style={{ height: '32px', width: '32px', marginBottom: '8px' }}
-                />
-                <p style={{ fontSize: '0.875rem' }}>
+              <div className="flex flex-col items-center justify-center h-48 text-gray-400 dark:text-gray-500">
+                <AlertCircle className="h-8 w-8 mb-2" />
+                <p className="text-sm">
                   This file is empty.{' '}
                   {isLoggedIn && 'Click Edit to add content.'}
                 </p>
@@ -1012,10 +894,10 @@ export default function QuickReads() {
                     <span
                       className={`px-1.5 py-0.5 rounded font-bold ${
                         pc.changeType === 'add'
-                          ? 'bg-green-100 text-green-700'
+                          ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                           : pc.changeType === 'edit'
-                            ? 'bg-yellow-100 text-yellow-700'
-                            : 'bg-red-100 text-red-700'
+                            ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                            : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
                       }`}
                     >
                       {pc.changeType.toUpperCase()}
