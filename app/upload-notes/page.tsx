@@ -40,6 +40,9 @@ const UploadNotePage = () => {
     term: '',
     category: 'academic' as NoteCategory,
     uploaded_file: null as File | null,
+    wing: '',
+    targetAudience: '',
+    presenterName: '',
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -73,12 +76,7 @@ const UploadNotePage = () => {
     fetchSubjects()
   }, [])
 
-  useSemesterAutofill(
-    session,
-    formData.year,
-    formData.semester,
-    setFormData
-  )
+  useSemesterAutofill(session, formData.year, formData.semester, setFormData)
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -119,13 +117,17 @@ const UploadNotePage = () => {
     try {
       const finalSubject = isNewSubject ? customSubject : formData.subject
 
+      const isAcademic = formData.category === 'academic'
+
       if (
         !finalSubject ||
-        !formData.facultyName ||
-        !formData.year ||
-        !formData.semester ||
-        !formData.term ||
-        !formData.uploaded_file
+        !formData.uploaded_file ||
+        (isAcademic &&
+          (!formData.facultyName ||
+            !formData.year ||
+            !formData.semester ||
+            !formData.term)) ||
+        (!isAcademic && !formData.wing)
       ) {
         setError('Please fill in all required fields')
         setIsLoading(false)
@@ -152,14 +154,25 @@ const UploadNotePage = () => {
       }
 
       const submitFormData = new FormData()
-      submitFormData.append('facultyName', formData.facultyName)
       submitFormData.append('content', formData.content)
       submitFormData.append('subject', finalSubject)
-      submitFormData.append('year', formData.year)
-      submitFormData.append('semester', formData.semester)
-      submitFormData.append('term', formData.term)
       submitFormData.append('category', formData.category)
       submitFormData.append('uploaded_file', formData.uploaded_file)
+
+      if (isAcademic) {
+        submitFormData.append('facultyName', formData.facultyName)
+        submitFormData.append('year', formData.year)
+        submitFormData.append('semester', formData.semester)
+        submitFormData.append('term', formData.term)
+      } else {
+        submitFormData.append('wing', formData.wing)
+        if (formData.targetAudience) {
+          submitFormData.append('targetAudience', formData.targetAudience)
+        }
+        if (formData.presenterName) {
+          submitFormData.append('presenterName', formData.presenterName)
+        }
+      }
 
       const response = await fetch('/api/notes', {
         method: 'POST',
@@ -187,6 +200,9 @@ const UploadNotePage = () => {
         term: '',
         category: 'academic',
         uploaded_file: null,
+        wing: '',
+        targetAudience: '',
+        presenterName: '',
       })
       setCustomSubject('')
       setIsNewSubject(false)
@@ -338,112 +354,229 @@ const UploadNotePage = () => {
             )}
           </div>
 
-          {/* Faculty Name */}
-          <div className="space-y-2">
-            <label
-              htmlFor="facultyName"
-              className="flex items-center gap-2 text-sm font-medium"
-            >
-              <FileText className="w-4 h-4" />
-              Teaching Faculty Name *
-            </label>
-            <Input
-              id="facultyName"
-              type="text"
-              placeholder="e.g. Dr. Rajan Kumar"
-              value={formData.facultyName}
-              onChange={(e) => handleInputChange('facultyName', e.target.value)}
-              required
-            />
-          </div>
+          {/* Academic / Axios specific fields */}
+          {formData.category === 'academic' ? (
+            <>
+              {/* Faculty Name */}
+              <div className="space-y-2">
+                <label
+                  htmlFor="facultyName"
+                  className="flex items-center gap-2 text-sm font-medium"
+                >
+                  <FileText className="w-4 h-4" />
+                  Teaching Faculty Name *
+                </label>
+                <Input
+                  id="facultyName"
+                  type="text"
+                  placeholder="e.g. Dr. Rajan Kumar"
+                  value={formData.facultyName}
+                  onChange={(e) =>
+                    handleInputChange('facultyName', e.target.value)
+                  }
+                  required={formData.category === 'academic'}
+                />
+              </div>
 
-          {/* Description */}
-          <div className="space-y-2">
-            <label
-              htmlFor="content"
-              className="flex items-center gap-2 text-sm font-medium"
-            >
-              <BookOpen className="w-4 h-4" />
-              Description
-              <span className="text-muted-foreground text-xs font-normal">
-                (optional)
-              </span>
-            </label>
-            <Textarea
-              id="content"
-              placeholder="Brief description of the note content…"
-              value={formData.content}
-              onChange={(e) => handleInputChange('content', e.target.value)}
-              className="min-h-[80px] resize-y"
-            />
-          </div>
+              {/* Description */}
+              <div className="space-y-2">
+                <label
+                  htmlFor="content"
+                  className="flex items-center gap-2 text-sm font-medium"
+                >
+                  <BookOpen className="w-4 h-4" />
+                  Description
+                  <span className="text-muted-foreground text-xs font-normal">
+                    (optional)
+                  </span>
+                </label>
+                <Textarea
+                  id="content"
+                  placeholder="Brief description of the note content…"
+                  value={formData.content}
+                  onChange={(e) => handleInputChange('content', e.target.value)}
+                  className="min-h-[80px] resize-y"
+                />
+              </div>
 
-          {/* Batch + Semester */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <Calendar className="w-4 h-4" />
-                Batch (Joining Year) *
-              </label>
-              <Select
-                value={formData.year || ''}
-                onValueChange={(v) => handleSelectChange('year', v)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select year" />
-                </SelectTrigger>
-                <SelectContent>
-                  {[2026, 2025, 2024, 2023, 2022, 2021].map((y) => (
-                    <SelectItem key={y} value={String(y)}>
-                      {y}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+              {/* Batch + Semester */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm font-medium">
+                    <Calendar className="w-4 h-4" />
+                    Batch (Joining Year) *
+                  </label>
+                  <Select
+                    value={formData.year || ''}
+                    onValueChange={(v) => handleSelectChange('year', v)}
+                    required={formData.category === 'academic'}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select year" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[2026, 2025, 2024, 2023, 2022, 2021].map((y) => (
+                        <SelectItem key={y} value={String(y)}>
+                          {y}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <GraduationCap className="w-4 h-4" />
-                Semester *
-              </label>
-              <Select
-                value={formData.semester || ''}
-                onValueChange={(v) => handleSelectChange('semester', v)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select semester" />
-                </SelectTrigger>
-                <SelectContent>
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
-                    <SelectItem key={s} value={String(s)}>
-                      Semester {s}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm font-medium">
+                    <GraduationCap className="w-4 h-4" />
+                    Semester *
+                  </label>
+                  <Select
+                    value={formData.semester || ''}
+                    onValueChange={(v) => handleSelectChange('semester', v)}
+                    required={formData.category === 'academic'}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select semester" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
+                        <SelectItem key={s} value={String(s)}>
+                          Semester {s}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-          {/* Exam Type */}
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 text-sm font-medium">
-              <GraduationCap className="w-4 h-4" />
-              Exam Type *
-            </label>
-            <Select
-              value={formData.term || ''}
-              onValueChange={(v) => handleSelectChange('term', v)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select exam type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Mid">Mid Semester</SelectItem>
-                <SelectItem value="End">End Semester</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+              {/* Exam Type */}
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm font-medium">
+                  <GraduationCap className="w-4 h-4" />
+                  Exam Type *
+                </label>
+                <Select
+                  value={formData.term || ''}
+                  onValueChange={(v) => handleSelectChange('term', v)}
+                  required={formData.category === 'academic'}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select exam type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Mid">Mid Semester</SelectItem>
+                    <SelectItem value="End">End Semester</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Wing */}
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm font-medium">
+                  <GraduationCap className="w-4 h-4" />
+                  Wing *
+                </label>
+                <Select
+                  value={formData.wing || ''}
+                  onValueChange={(v) => handleSelectChange('wing', v)}
+                  required={formData.category === 'axios'}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select wing" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[
+                      'ML',
+                      'Web3',
+                      'Web',
+                      'FOSS',
+                      'InfoSec',
+                      'Design',
+                      'App',
+                      'CP',
+                    ].map((w) => (
+                      <SelectItem key={w} value={w}>
+                        {w}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Presenter Name */}
+              <div className="space-y-2">
+                <label
+                  htmlFor="presenterName"
+                  className="flex items-center gap-2 text-sm font-medium"
+                >
+                  <FileText className="w-4 h-4" />
+                  Presenter
+                  <span className="text-muted-foreground text-xs font-normal">
+                    (optional)
+                  </span>
+                </label>
+                <Input
+                  id="presenterName"
+                  type="text"
+                  placeholder="e.g. John Doe"
+                  value={formData.presenterName}
+                  onChange={(e) =>
+                    handleInputChange('presenterName', e.target.value)
+                  }
+                />
+              </div>
+
+              {/* Target Audience / Beneficial for */}
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm font-medium">
+                  <GraduationCap className="w-4 h-4" />
+                  Beneficial for
+                  <span className="text-muted-foreground text-xs font-normal">
+                    (optional)
+                  </span>
+                </label>
+                <Select
+                  value={formData.targetAudience}
+                  onValueChange={(value) =>
+                    handleSelectChange('targetAudience', value)
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select target audience" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1st Year">1st Year</SelectItem>
+                    <SelectItem value="2nd Year">2nd Year</SelectItem>
+                    <SelectItem value="3rd Year">3rd Year</SelectItem>
+                    <SelectItem value="4th Year">4th Year</SelectItem>
+                    <SelectItem value="All">All</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Description */}
+              <div className="space-y-2">
+                <label
+                  htmlFor="content_axios"
+                  className="flex items-center gap-2 text-sm font-medium"
+                >
+                  <BookOpen className="w-4 h-4" />
+                  Description
+                  <span className="text-muted-foreground text-xs font-normal">
+                    (optional)
+                  </span>
+                </label>
+                <Textarea
+                  id="content_axios"
+                  placeholder="Brief description of the note content…"
+                  value={formData.content}
+                  onChange={(e) => handleInputChange('content', e.target.value)}
+                  className="min-h-[80px] resize-y"
+                />
+              </div>
+            </>
+          )}
 
           {/* File Upload */}
           <div className="space-y-2">

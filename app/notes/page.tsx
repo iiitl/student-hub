@@ -107,6 +107,8 @@ const Notes = () => {
   const [selectedSemester, setSelectedSemester] = useState('All')
   const [selectedExam, setSelectedExam] = useState('All')
   const [selectedSubject, setSelectedSubject] = useState('All')
+  const [selectedWing, setSelectedWing] = useState('All')
+  const [selectedAudience, setSelectedAudience] = useState('All')
   const [showFilters, setShowFilters] = useState(false)
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -127,6 +129,9 @@ const Notes = () => {
     _id: string
     uploaded_by: string
     category?: string
+    wing?: string
+    targetAudience?: string
+    presenterName?: string
   }
 
   const transformNote = (note: RawNote): TypeNote => ({
@@ -148,6 +153,9 @@ const Notes = () => {
     category: (note.category === 'axios'
       ? 'axios'
       : 'academic') as NoteCategory,
+    wing: note.wing as any,
+    targetAudience: note.targetAudience as any,
+    presenterName: note.presenterName,
   })
 
   const fetchNotes = async () => {
@@ -209,6 +217,8 @@ const Notes = () => {
     setSelectedSemester('All')
     setSelectedSubject('All')
     setSelectedExam('All')
+    setSelectedWing('All')
+    setSelectedAudience('All')
     setSearchQuery('')
   }
 
@@ -245,24 +255,70 @@ const Notes = () => {
   )
   const exams = ['All', 'Mid', 'End']
 
+  const wings = useMemo(
+    () => [
+      'All',
+      ...[
+        ...new Set(categoryNotes.map((n) => n.wing || '').filter(Boolean)),
+      ].sort(),
+    ],
+    [categoryNotes]
+  )
+
+  const audiences = useMemo(
+    () => [
+      'All',
+      ...[
+        ...new Set(
+          categoryNotes.map((n) => n.targetAudience || '').filter(Boolean)
+        ),
+      ].sort(),
+    ],
+    [categoryNotes]
+  )
+
   const filteredNotes = useMemo(() => {
     return categoryNotes.filter((note) => {
-      if (selectedBatch !== 'All' && note.batch.toString() !== selectedBatch)
-        return false
-      if (
-        selectedSemester !== 'All' &&
-        note.semester.toString() !== selectedSemester
-      )
-        return false
+      if (activeCategory === 'academic') {
+        if (selectedBatch !== 'All' && note.batch.toString() !== selectedBatch)
+          return false
+        if (
+          selectedSemester !== 'All' &&
+          note.semester.toString() !== selectedSemester
+        )
+          return false
+        if (selectedExam !== 'All' && note.exam !== selectedExam) return false
+      } else if (activeCategory === 'axios') {
+        if (selectedWing !== 'All' && note.wing !== selectedWing) return false
+        if (
+          selectedAudience !== 'All' &&
+          note.targetAudience !== selectedAudience
+        )
+          return false
+      }
+
       if (selectedSubject !== 'All' && note.subject !== selectedSubject)
         return false
-      if (selectedExam !== 'All' && note.exam !== selectedExam) return false
-      if (
-        searchQuery.trim() &&
-        !note.subject.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !note.facultyName.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-        return false
+
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase()
+        const matchTitle = note.subject.toLowerCase().includes(query)
+        const matchFaculty = note.facultyName?.toLowerCase().includes(query)
+        const matchDescription = note.description?.toLowerCase().includes(query)
+        const matchPresenter = note.presenterName?.toLowerCase().includes(query)
+        const matchWing = note.wing?.toLowerCase().includes(query)
+
+        if (
+          !matchTitle &&
+          !matchFaculty &&
+          !matchDescription &&
+          !matchPresenter &&
+          !matchWing
+        ) {
+          return false
+        }
+      }
+
       return true
     })
   }, [
@@ -271,7 +327,10 @@ const Notes = () => {
     selectedSemester,
     selectedSubject,
     selectedExam,
+    selectedWing,
+    selectedAudience,
     searchQuery,
+    activeCategory,
   ])
 
   const hasActiveFilters =
@@ -279,6 +338,8 @@ const Notes = () => {
     selectedSemester !== 'All' ||
     selectedSubject !== 'All' ||
     selectedExam !== 'All' ||
+    selectedWing !== 'All' ||
+    selectedAudience !== 'All' ||
     searchQuery.trim() !== ''
 
   return (
@@ -348,7 +409,11 @@ const Notes = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
-                placeholder="Search by subject or faculty…"
+                placeholder={
+                  activeCategory === 'axios'
+                    ? 'Search by wing or subject…'
+                    : 'Search by subject or faculty…'
+                }
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 rounded-md border border-input bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all"
@@ -384,24 +449,43 @@ const Notes = () => {
                 options={subjects}
                 onChange={setSelectedSubject}
               />
-              <FilterDropdown
-                label="Batch"
-                value={selectedBatch}
-                options={batches}
-                onChange={setSelectedBatch}
-              />
-              <FilterDropdown
-                label="Semester"
-                value={selectedSemester}
-                options={semesters}
-                onChange={setSelectedSemester}
-              />
-              <FilterDropdown
-                label="Exam Type"
-                value={selectedExam}
-                options={exams}
-                onChange={setSelectedExam}
-              />
+              {activeCategory === 'academic' ? (
+                <>
+                  <FilterDropdown
+                    label="Batch"
+                    value={selectedBatch}
+                    options={batches}
+                    onChange={setSelectedBatch}
+                  />
+                  <FilterDropdown
+                    label="Semester"
+                    value={selectedSemester}
+                    options={semesters}
+                    onChange={setSelectedSemester}
+                  />
+                  <FilterDropdown
+                    label="Exam Type"
+                    value={selectedExam}
+                    options={exams}
+                    onChange={setSelectedExam}
+                  />
+                </>
+              ) : (
+                <>
+                  <FilterDropdown
+                    label="Wing"
+                    value={selectedWing}
+                    options={wings}
+                    onChange={setSelectedWing}
+                  />
+                  <FilterDropdown
+                    label="Beneficial for"
+                    value={selectedAudience}
+                    options={audiences}
+                    onChange={setSelectedAudience}
+                  />
+                </>
+              )}
             </div>
           )}
         </div>
