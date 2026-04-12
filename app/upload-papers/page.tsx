@@ -75,6 +75,35 @@ const UploadPaperPage = () => {
     fetchSubjects()
   }, [])
 
+  useEffect(() => {
+    if (session?.user?.email) {
+      const email = session.user.email
+      const yearMatch = email.match(/\d{4}/)
+      const batchYear = yearMatch ? yearMatch[0] : ''
+
+      if (batchYear) {
+        const today = new Date()
+        const currentYear = today.getFullYear()
+        const currentMonth = today.getMonth() + 1
+        const joinYear = parseInt(batchYear)
+        const yearDiff = currentYear - joinYear
+
+        let calcSem = currentMonth >= 8 ? yearDiff * 2 + 1 : yearDiff * 2
+
+        if (calcSem < 1) calcSem = 1
+        if (calcSem > 8) calcSem = 8
+
+        if (formData.year === '' && formData.semester === '') {
+          setFormData((prev) => ({
+            ...prev,
+            year: batchYear,
+            semester: String(calcSem),
+          }))
+        }
+      }
+    }
+  }, [session, formData.year, formData.semester])
+
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -131,10 +160,10 @@ const UploadPaperPage = () => {
         return
       }
 
-      // Validate file size (10MB max)
-      const maxSize = 10 * 1024 * 1024 // 10MB in bytes
+      // Validate file size (25MB max)
+      const maxSize = 25 * 1024 * 1024 // 25MB in bytes
       if (formData.uploaded_file.size > maxSize) {
-        setError('File size must not exceed 10MB')
+        setError('File size must be less than 25MB')
         setIsLoading(false)
         return
       }
@@ -466,7 +495,7 @@ const UploadPaperPage = () => {
                             : 'Click to upload file'}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          PDF, PNG, JPG, JPEG, WEBP (Max 10MB)
+                          PDF, PNG, JPG, JPEG, WEBP (Max 25MB)
                         </p>
                       </div>
                     </div>
@@ -514,7 +543,7 @@ const UploadPaperPage = () => {
               </h4>
               <ul className="space-y-1 ml-4">
                 <li>• Ensure the paper is clear and readable</li>
-                <li>• Maximum file size: 10MB</li>
+                <li>• Maximum file size: 25MB</li>
                 <li>• Supported formats: PDF, PNG, JPG, JPEG, WEBP</li>
                 <li>• All fields marked with * are required</li>
                 <li>
