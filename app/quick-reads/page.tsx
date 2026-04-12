@@ -588,6 +588,7 @@ export default function QuickReads() {
             <p className="text-sm font-medium leading-relaxed mt-0.5">{toast}</p>
             <button
               onClick={() => setToast(null)}
+              aria-label="Close toast"
               className="ml-auto text-yellow-600 dark:text-yellow-500 hover:text-yellow-800 dark:hover:text-yellow-300 mt-0.5"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
