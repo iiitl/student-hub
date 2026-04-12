@@ -67,11 +67,11 @@ export async function POST(req: NextRequest) {
       term = formData.get('term') as string
 
       const missingFields = []
-      if (!facultyName?.trim()) missingFields.push('facultyName')
       if (!subject?.trim()) missingFields.push('subject')
       if (!year) missingFields.push('year')
       if (!semester) missingFields.push('semester')
       if (!term?.trim()) missingFields.push('term')
+      
       if (missingFields.length > 0) {
         return NextResponse.json(
           { message: `Required fields missing: ${missingFields.join(', ')}` },

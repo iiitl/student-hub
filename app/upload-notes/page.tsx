@@ -364,7 +364,7 @@ const UploadNotePage = () => {
                   className="flex items-center gap-2 text-sm font-medium"
                 >
                   <FileText className="w-4 h-4" />
-                  Teaching Faculty Name *
+                  Teaching Faculty Name (Optional)
                 </label>
                 <Input
                   id="facultyName"
@@ -374,7 +374,6 @@ const UploadNotePage = () => {
                   onChange={(e) =>
                     handleInputChange('facultyName', e.target.value)
                   }
-                  required={formData.category === 'academic'}
                 />
               </div>
 

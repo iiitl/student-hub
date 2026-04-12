@@ -322,7 +322,7 @@ const EditNotePage = ({ params }: { params: Promise<{ id: string }> }) => {
                       className="flex items-center gap-2"
                     >
                       <FileText className="h-4 w-4" />
-                      Teaching Faculty Name *
+                      Teaching Faculty Name (Optional)
                     </Label>
                     <Input
                       id="facultyName"
@@ -333,7 +333,6 @@ const EditNotePage = ({ params }: { params: Promise<{ id: string }> }) => {
                         handleInputChange('facultyName', e.target.value)
                       }
                       className="w-full"
-                      required
                     />
                   </div>
 
