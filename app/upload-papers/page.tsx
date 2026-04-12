@@ -2,6 +2,7 @@
 
 import { useToast } from '@/context/toast-provider'
 import React, { useState, useRef, useEffect } from 'react'
+import { useSemesterAutofill } from '@/hooks/useSemesterAutofill'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -74,6 +75,13 @@ const UploadPaperPage = () => {
 
     fetchSubjects()
   }, [])
+
+  useSemesterAutofill(
+    session,
+    formData.year,
+    formData.semester,
+    setFormData
+  )
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
@@ -352,6 +360,7 @@ const UploadPaperPage = () => {
                     Batch(The Joining Year of the batch that gave the exam)*
                   </Label>
                   <Select
+                    value={formData.year || ''}
                     onValueChange={(value: string) =>
                       handleSelectChange('year', value)
                     }
@@ -377,6 +386,7 @@ const UploadPaperPage = () => {
                     Semester *
                   </Label>
                   <Select
+                    value={formData.semester || ''}
                     onValueChange={(value: string) =>
                       handleSelectChange('semester', value)
                     }

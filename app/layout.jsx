@@ -6,6 +6,7 @@ import Header from '@/components/header'
 import AuthProvider from '@/context/session-provider'
 import { Analytics } from '@vercel/analytics/next'
 import Script from 'next/script'
+import { ThemeProvider } from '@/components/theme-provider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -16,12 +17,13 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={
           inter.className + ' flex flex-col min-h-screen justify-between'
         }
       >
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
         <AuthProvider>
           <ToastProvider>
             <Header />
@@ -30,7 +32,7 @@ export default function RootLayout({ children }) {
             <Analytics />
           </ToastProvider>
         </AuthProvider>
-
+        </ThemeProvider>
         {/* Google Analytics */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-FRS93SLW90"
