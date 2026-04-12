@@ -21,7 +21,6 @@ export interface IProduct extends Document {
   description: string
   price: number
   quantity: number
-  bulk_discounts: { min_quantity: number; discount_per_item: number }[]
   image_url: string
   contact_info: string
   seller: Schema.Types.ObjectId
@@ -54,19 +53,7 @@ const ProductSchema: Schema<IProduct> = new Schema<IProduct>({
     default: 1,
     min: [0, 'Quantity cannot be negative'],
   },
-  bulk_discounts: {
-    type: [
-      {
-        min_quantity: { type: Number, required: true },
-        discount_per_item: { type: Number, required: true },
-      },
-    ],
-    default: [],
-    validate: [
-      (val: any[]) => val.length <= 10,
-      'Exceeds the limit of 10 bulk discount conditions',
-    ],
-  },
+
   image_url: {
     type: String,
     required: [true, 'Product image is required'],

@@ -124,7 +124,6 @@ export async function POST(req: NextRequest) {
     const priceRaw = formData.get('price') as string
     const contact_info = (formData.get('contact_info') as string)?.trim()
     const quantityRaw = formData.get('quantity') as string
-    const bulkDiscountsRaw = formData.get('bulk_discounts') as string
     const file = formData.get('image') as File | null
 
     // Validate required fields
@@ -161,38 +160,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    let bulk_discounts: { min_quantity: number; discount_per_item: number }[] =
-      []
-    if (bulkDiscountsRaw) {
-      try {
-        bulk_discounts = JSON.parse(bulkDiscountsRaw)
-        if (!Array.isArray(bulk_discounts)) throw new Error()
-        if (bulk_discounts.length > 10) {
-          return NextResponse.json(
-            { message: 'Cannot exceed 10 bulk discount conditions' },
-            { status: 400 }
-          )
-        }
-        for (const discount of bulk_discounts) {
-          if (
-            typeof discount.min_quantity !== 'number' ||
-            typeof discount.discount_per_item !== 'number' ||
-            discount.min_quantity < 2 ||
-            discount.discount_per_item <= 0
-          ) {
-            return NextResponse.json(
-              { message: 'Invalid bulk discount condition' },
-              { status: 400 }
-            )
-          }
-        }
-      } catch {
-        return NextResponse.json(
-          { message: 'Invalid bulk_discounts JSON format' },
-          { status: 400 }
-        )
-      }
-    }
 
     // Validate file type and size
     const allowedTypes = new Set([
@@ -257,7 +224,6 @@ export async function POST(req: NextRequest) {
       image_url: cloudinaryResult.secure_url,
       contact_info,
       quantity,
-      bulk_discounts,
       seller: userId,
     })
 

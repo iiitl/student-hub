@@ -57,7 +57,6 @@ export async function PUT(req: NextRequest, context: RouteContext) {
       price,
       contact_info,
       quantity,
-      bulk_discounts,
     } = body
 
     const updateData: Record<string, unknown> = {}
@@ -123,34 +122,6 @@ export async function PUT(req: NextRequest, context: RouteContext) {
       updateData.quantity = parsed
     }
 
-    if (bulk_discounts !== undefined) {
-      if (!Array.isArray(bulk_discounts)) {
-        return NextResponse.json(
-          { message: 'bulk_discounts must be an array' },
-          { status: 400 }
-        )
-      }
-      if (bulk_discounts.length > 10) {
-        return NextResponse.json(
-          { message: 'Cannot exceed 10 bulk discount conditions' },
-          { status: 400 }
-        )
-      }
-      for (const discount of bulk_discounts) {
-        if (
-          typeof discount.min_quantity !== 'number' ||
-          typeof discount.discount_per_item !== 'number' ||
-          discount.min_quantity < 2 ||
-          discount.discount_per_item <= 0
-        ) {
-          return NextResponse.json(
-            { message: 'Invalid bulk discount condition' },
-            { status: 400 }
-          )
-        }
-      }
-      updateData.bulk_discounts = bulk_discounts
-    }
 
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json(
