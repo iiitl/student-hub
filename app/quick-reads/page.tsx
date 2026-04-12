@@ -880,7 +880,9 @@ export default function QuickReads() {
                 <button
                   onClick={() => setIsStagingOpen(false)}
                   className="p-1 hover:bg-muted rounded"
+                  aria-label="Close staged changes panel"
                   title="Close staged changes panel"
+                >
                 >
                   <X className="h-4 w-4" />
                 </button>
