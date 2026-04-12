@@ -9,24 +9,59 @@ import ChatMessage from './ChatMessage'
 import { useChatMessages } from '@/hooks/useChatMessages'
 
 /**
- * Floating drawer UI rendering component for global contextual hub chat.
- * Toggled off when viewing the full standalone chat page to prevent redundancy.
+ * Floating drawer UI rendering component for the global IIITL hub chat.
  *
- * @returns An attached side-panel layout or null if pathing hides component.
+ * This component is mounted in the root layout (`app/layout.jsx`) and is
+ * therefore present on every page. To avoid duplicate API polling when the
+ * user navigates to the full-page chat (`/chat`), this wrapper checks the
+ * current route via `usePathname()` and returns `null` when `pathname`
+ * equals `'/chat'`. This ensures only `ChatPage` polls and renders on
+ * that route, preventing duplicated SSE connections and unsynchronised state.
+ *
+ * When visible, it renders `ChatWidgetInner` which provides the actual
+ * chat drawer UI with message display, input, and real-time updates.
+ *
+ * @returns The chat widget drawer, or `null` when on the `/chat` route.
  */
 export default function ChatWidget() {
+  /** Current Next.js route path — used to conditionally hide the widget. */
   const pathname = usePathname()
 
-  // Don't render (or poll) on full chat page
+  // Don't render (or poll / open SSE) on the dedicated full-page chat route.
   if (pathname === '/chat') return null
 
   return <ChatWidgetInner />
 }
 
+/**
+ * Inner implementation of the floating chat widget drawer.
+ *
+ * Separated from the outer `ChatWidget` so that the route check (`usePathname`)
+ * can short-circuit rendering before any hooks or effects execute, avoiding
+ * unnecessary SSE connections and API calls on the `/chat` page.
+ *
+ * **Features:**
+ * - Floating Action Button (FAB) to toggle the drawer open/closed.
+ * - Full-height side panel displaying message history, input area, and
+ *   status banners for reply/edit modes.
+ * - Mobile overlay backdrop to allow closing by tapping outside.
+ * - Read-only mode for non-IIITL users (no input area shown).
+ * - Auto-scroll to the latest message unless the user is in edit mode.
+ *
+ * @returns The complete chat drawer UI as a React element.
+ */
 function ChatWidgetInner() {
+  /** Session data from NextAuth; used to determine authentication status. */
   const { data: session } = useSession()
+
+  /** Controls the open/closed state of the side-panel drawer. */
   const [isOpen, setIsOpen] = useState(false)
 
+  /*
+   * Destructure all chat state and handlers from the shared hook.
+   * The `isOpen` flag is passed so the hook only activates SSE and
+   * fetching when the drawer is actually visible.
+   */
   const {
     messages,
     inputText,
@@ -45,15 +80,26 @@ function ChatWidgetInner() {
     inputRef,
   } = useChatMessages({ isOpen })
 
+  /** Ref to a sentinel div at the bottom of the message list for auto-scrolling. */
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // Scroll to bottom when new messages arrive if not editing
+  /**
+   * Auto-scroll effect: smoothly scrolls to the bottom of the message list
+   * when new messages arrive. Scroll is suppressed during edit mode so the
+   * user's viewport position is preserved while they modify a message.
+   */
   useEffect(() => {
     if (!editingMessage && messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
     }
   }, [messages, editingMessage])
 
+  /**
+   * Keyboard handler for the chat input field. Submits the message on
+   * Enter (without Shift) to mirror standard chat application behaviour.
+   *
+   * @param e - The keyboard event from the input element.
+   */
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
@@ -63,7 +109,7 @@ function ChatWidgetInner() {
 
   return (
     <>
-      {/* Floating Action Button */}
+      {/* Floating Action Button — only visible when the drawer is closed */}
       {!isOpen && (
         <Button
           onClick={() => setIsOpen(true)}
@@ -73,11 +119,11 @@ function ChatWidgetInner() {
         </Button>
       )}
 
-      {/* Side Panel Drawer */}
+      {/* Side Panel Drawer — slides in from the right edge */}
       <div
         className={`fixed top-0 right-0 h-full w-full sm:w-[400px] bg-background border-l shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
       >
-        {/* Header */}
+        {/* Header bar with live indicator and close button */}
         <div className="flex items-center justify-between p-4 border-b bg-card text-card-foreground">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -88,9 +134,10 @@ function ChatWidgetInner() {
           </Button>
         </div>
 
-        {/* Message Area */}
+        {/* Message Area — scrollable container for the message history */}
         <div className="flex-1 overflow-y-auto p-4 bg-muted/20">
           {messages.length === 0 ? (
+            /* Empty state placeholder shown when no messages exist yet */
             <div className="h-full flex flex-col justify-center items-center text-muted-foreground">
               <p>No messages yet. Be the first to say hi!</p>
             </div>
@@ -106,22 +153,23 @@ function ChatWidgetInner() {
                   onDelete={handleDeleteMessage}
                 />
               ))}
+              {/* Scroll sentinel — scrollIntoView targets this element */}
               <div ref={messagesEndRef} />
             </div>
           )}
         </div>
 
-        {/* Auth / Read-only warning */}
+        {/* Auth / Read-only warning — shown for non-IIITL domain users */}
         {!isIIITLUser && (
           <div className="bg-destructive/10 text-destructive text-xs py-2 px-4 text-center border-t">
             Read-only mode. You need an @iiitl.ac.in email to send messages.
           </div>
         )}
 
-        {/* Input Area */}
+        {/* Input Area — only rendered for authenticated IIITL domain users */}
         {session && isIIITLUser && (
           <div className="border-t bg-card flex flex-col">
-            {/* Status Banner for Replying/Editing */}
+            {/* Status Banner for Replying/Editing — contextual indicator */}
             {(replyingTo || editingMessage) && (
               <div className="p-2 bg-primary/10 border-b flex justify-between items-center text-xs px-4">
                 {replyingTo && (
@@ -149,6 +197,7 @@ function ChatWidgetInner() {
               </div>
             )}
 
+            {/* Text input + Send button row */}
             <div className="p-4 flex gap-2 items-center relative">
               <input
                 ref={inputRef}
@@ -170,6 +219,7 @@ function ChatWidgetInner() {
                 <Send size={18} className={isLoading ? 'opacity-50' : ''} />
               </Button>
             </div>
+            {/* Error message — displayed below the input on send failures */}
             {error && (
               <div className="px-4 pb-2 text-xs text-destructive text-center">
                 {error}
@@ -179,7 +229,7 @@ function ChatWidgetInner() {
         )}
       </div>
 
-      {/* Overlay to close panel when clicking outside on mobile */}
+      {/* Mobile overlay backdrop — tapping outside the drawer closes it */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/20 z-40 sm:hidden"
@@ -189,3 +239,4 @@ function ChatWidgetInner() {
     </>
   )
 }
+

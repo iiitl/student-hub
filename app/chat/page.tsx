@@ -8,9 +8,20 @@ import { useChatMessages } from '@/hooks/useChatMessages'
 import { useSession } from 'next-auth/react'
 
 /**
- * Full-page UI rendering component for the general Hub chat.
- * Implements styling boundaries while hooking into shared context management.
- * @returns A structurally enclosed interactive Chat component node.
+ * Full-page UI rendering component for the IIITL General Chat.
+ *
+ * This page component serves as a dedicated, immersive chat view that
+ * occupies the main content area of the layout. It uses the shared
+ * `useChatMessages` hook with `isOpen: true` (always active) to maintain
+ * a persistent SSE connection and display real-time message updates.
+ *
+ * When the user navigates to `/chat`, the `ChatWidget` component in the
+ * root layout detects the pathname and returns `null`, ensuring only this
+ * component manages the SSE connection and message state — preventing
+ * duplicate API calls and unsynchronised message lists.
+ *
+ * @returns A full-page chat layout with message list, input area, and
+ *          contextual reply/edit banners.
  */
 export default function ChatPage() {
   const { data: session } = useSession()
@@ -32,15 +43,26 @@ export default function ChatPage() {
     inputRef,
   } = useChatMessages({ isOpen: true })
 
+  /** Ref to a sentinel div at the bottom of the message list for auto-scrolling. */
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // Scroll to bottom when new messages arrive if not editing
+  /**
+   * Auto-scroll effect: smoothly scrolls the message list to the bottom
+   * whenever new messages arrive. Scroll is suppressed during edit mode
+   * to preserve the user's viewport position while they modify a message.
+   */
   useEffect(() => {
     if (!editingMessage && messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
     }
   }, [messages, editingMessage])
 
+  /**
+   * Keyboard handler for the chat input: submits the message on Enter
+   * (without Shift held) to match standard chat application UX patterns.
+   *
+   * @param e - The keyboard event from the input element.
+   */
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()

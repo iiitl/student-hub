@@ -8,15 +8,31 @@ import { chatEmitter } from '@/lib/eventEmitter'
 import mongoose from 'mongoose'
 
 /**
- * Authorizes and modifies specific content inside an already existing database message artifact.
+ * PATCH /api/chat/messages/:id
  *
- * @param req External Request object containing the intended replacement message payload.
- * @param params Destructured route params to acquire the object ID.
- * @returns Success response with updated populated object for frontend handling.
+ * Authorises and modifies the text content of an existing chat message.
+ * Only the original author (matched via session user ID) may edit a message,
+ * and the message must not have been soft-deleted.
+ *
+ * **Auth gates:**
+ * 1. User must be logged in with a valid `session.user.id`.
+ * 2. User's email must belong to the `@iiitl.ac.in` domain.
+ * 3. `session.user.id` must match the message's `sender` field (ownership).
+ *
+ * **Request body:**
+ * - `content` (string, required) — The replacement text for the message.
+ *
+ * **Side effect:** On success, an `UPDATE_MESSAGE` event is emitted on the
+ * shared `chatEmitter` to push the edit to all connected SSE clients.
+ *
+ * @param req    - The incoming Request containing `{ content }` JSON.
+ * @param params - Next.js dynamic route params (Promise-based in App Router).
+ * @returns A `NextResponse` with the fully populated updated message (200),
+ *          or an appropriate error response (400/401/403/404/500).
  */
 export async function PATCH(
   req: Request,
-  { params }: { params: Promise<{ id: string }> } // In Next 15+ we technically should await params if it's dynamic but let's check config, typically Next 14 handles it synchronously but App Router changed params to Promise in Next 15 depending on usage. Actually, Next 15 recommends `await params`. Let's do `const { id } = await params`.
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -49,12 +65,13 @@ export async function PATCH(
 
     await dbConnect()
 
+    /* ── Fetch the target message from the database ── */
     const message = await Message.findById(id)
     if (!message) {
       return NextResponse.json({ error: 'Message not found' }, { status: 404 })
     }
 
-    // Verify ownership
+    /* ── Ownership gate: only the original author may edit ── */
     if (message.sender.toString() !== session.user.id) {
       return NextResponse.json(
         { error: 'You can only edit your own messages' },
@@ -62,6 +79,7 @@ export async function PATCH(
       )
     }
 
+    /* ── Deleted messages are tombstones and cannot be resurrected ── */
     if (message.isDeleted) {
       return NextResponse.json(
         { error: 'Cannot edit a deleted message' },
@@ -69,10 +87,15 @@ export async function PATCH(
       )
     }
 
+    /* ── Apply the content update and mark as edited ── */
     message.content = content.trim()
     message.isEdited = true
     await message.save()
 
+    /*
+     * Re-populate sender and replyTo so the emitted SSE payload and the
+     * HTTP response both contain display-ready data.
+     */
     await message.populate('sender', 'name image email')
     if (message.replyTo) {
       await message.populate({
@@ -81,6 +104,7 @@ export async function PATCH(
       })
     }
 
+    /* Broadcast UPDATE_MESSAGE to all SSE clients via the shared emitter. */
     chatEmitter.emit('chatUpdate', {
       type: 'UPDATE_MESSAGE',
       message: message,
@@ -97,11 +121,26 @@ export async function PATCH(
 }
 
 /**
- * Triggers a soft deletion sequence on the specified Message object within properties, overriding the content payload.
+ * DELETE /api/chat/messages/:id
  *
- * @param req NextRequest object payload.
- * @param params Contains the active database-generated ID context string.
- * @returns Server-side confirmation of database alterations mapping success string.
+ * Performs a soft delete on the specified message. The message content
+ * is replaced with a tombstone string (`🚫 This message was deleted.`)
+ * and the `isDeleted` flag is set to `true`. The document is **not**
+ * removed from the database so that reply chains referencing it
+ * continue to render correctly (showing "Deleted message" inline).
+ *
+ * **Auth gates:**
+ * 1. User must be logged in with a valid `session.user.id`.
+ * 2. User's email must belong to the `@iiitl.ac.in` domain.
+ * 3. User must be the original sender **or** have the `admin` role.
+ *
+ * **Side effect:** On success, a `DELETE_MESSAGE` event is emitted on
+ * the shared `chatEmitter` to push the deletion to all SSE clients.
+ *
+ * @param req    - The incoming Request (body is not used).
+ * @param params - Next.js dynamic route params providing the message ID.
+ * @returns A `NextResponse` with `{ success: true }` (200), or an
+ *          appropriate error response (400/401/403/404/500).
  */
 export async function DELETE(
   req: Request,
@@ -130,13 +169,17 @@ export async function DELETE(
 
     await dbConnect()
 
+    /* ── Fetch the target message from the database ── */
     const message = await Message.findById(id)
     if (!message) {
       return NextResponse.json({ error: 'Message not found' }, { status: 404 })
     }
 
-    // Verify ownership or check if admin. But since roles are available on session, we can optionally allow admins.
-    // However, specifically the user should be the sender. Let's strictly enforce sender for now.
+    /*
+     * Ownership / admin gate: the user must either be the original sender
+     * or hold the 'admin' role. This allows moderators to clean up
+     * inappropriate content while normal users can only delete their own.
+     */
     if (
       message.sender.toString() !== session.user.id &&
       !session.user.roles?.includes('admin')
@@ -147,11 +190,19 @@ export async function DELETE(
       )
     }
 
-    // Soft delete
+    /*
+     * Soft delete: replace the content with a tombstone indicator and set
+     * the isDeleted flag. The document stays in the database so reply
+     * chains can still reference it (displaying "Deleted message").
+     */
     message.content = '🚫 This message was deleted.'
     message.isDeleted = true
     await message.save()
 
+    /*
+     * Re-populate sender and replyTo so the emitted SSE payload
+     * contains display-ready data for connected clients.
+     */
     await message.populate('sender', 'name image email')
     if (message.replyTo) {
       await message.populate({
@@ -160,6 +211,7 @@ export async function DELETE(
       })
     }
 
+    /* Broadcast DELETE_MESSAGE to all SSE clients via the shared emitter. */
     chatEmitter.emit('chatUpdate', {
       type: 'DELETE_MESSAGE',
       message: message,
