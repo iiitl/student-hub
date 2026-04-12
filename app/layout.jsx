@@ -30,6 +30,7 @@ export default function RootLayout({ children }) {
             <Header />
             {children}
             <Footer />
+            <ChatWidget />
             <Analytics />
           </ToastProvider>
         </AuthProvider>
