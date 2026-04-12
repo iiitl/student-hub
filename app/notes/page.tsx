@@ -1,7 +1,7 @@
 'use client'
 import React, { useEffect, useState, useMemo } from 'react'
 import NoteCard from '@/components/notes/note-card'
-import { TypeNote, NoteCategory } from '@/types/note'
+import { TypeNote, NoteCategory, AxiosWing, AxiosAudience } from '@/types/note'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import {
@@ -129,8 +129,8 @@ const Notes = () => {
     _id: string
     uploaded_by: string
     category?: string
-    wing?: string
-    targetAudience?: string
+    wing?: AxiosWing
+    targetAudience?: AxiosAudience
     presenterName?: string
   }
 
@@ -153,8 +153,8 @@ const Notes = () => {
     category: (note.category === 'axios'
       ? 'axios'
       : 'academic') as NoteCategory,
-    wing: note.wing as any,
-    targetAudience: note.targetAudience as any,
+    wing: note.wing,
+    targetAudience: note.targetAudience,
     presenterName: note.presenterName,
   })
 
