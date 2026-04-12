@@ -29,6 +29,11 @@ const nextConfig: NextConfig = {
         hostname: 'www.svgrepo.com',
         pathname: '/**', // Allows all SVG Icons
       },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '/**', // Allows all Cloudinary product images
+      },
     ],
   },
 }
