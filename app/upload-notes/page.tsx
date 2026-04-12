@@ -116,7 +116,7 @@ const UploadNotePage = () => {
         !formData.uploaded_file
       ) {
         const msg = 'Please fill in all required fields'
-        addToast(msg)
+        addToast(msg, 'error')
         setIsLoading(false)
         return
       }
@@ -124,7 +124,7 @@ const UploadNotePage = () => {
       const maxSize = 25 * 1024 * 1024
       if (formData.uploaded_file.size > maxSize) {
         const msg = 'File size must be less than 25MB'
-        addToast(msg)
+        addToast(msg, 'error')
         setIsLoading(false)
         return
       }
@@ -137,7 +137,7 @@ const UploadNotePage = () => {
       ]
       if (!allowedTypes.includes(formData.uploaded_file.type)) {
         const msg = 'Only PDF, PNG, JPG, JPEG, and WEBP files are allowed'
-        addToast(msg)
+        addToast(msg, 'error')
         setIsLoading(false)
         return
       }
@@ -169,7 +169,7 @@ const UploadNotePage = () => {
       if (!response.ok) throw new Error(data.message || 'Failed to upload note')
 
       const successMsg = 'Note uploaded successfully!'
-      addToast(successMsg)
+      addToast(successMsg, 'success')
       setFormData({
         facultyName: '',
         content: '',
@@ -189,7 +189,7 @@ const UploadNotePage = () => {
         err instanceof Error
           ? err.message
           : 'Failed to upload note. Please try again.'
-      addToast(errorMsg)
+      addToast(errorMsg, 'error')
     } finally {
       setIsLoading(false)
     }

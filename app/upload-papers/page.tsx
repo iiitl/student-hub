@@ -1,5 +1,6 @@
 'use client'
 
+import { useToast } from '@/context/toast-provider'
 import React, { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -19,8 +20,6 @@ import {
   Calendar,
   BookOpen,
   GraduationCap,
-  CheckCircle,
-  AlertCircle,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
@@ -28,7 +27,9 @@ import { useSession } from 'next-auth/react'
 const UploadPaperPage = () => {
   const router = useRouter()
   const { data: session, status } = useSession()
+  const { addToast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  
   const [formData, setFormData] = useState({
     facultyName: '',
     content: '',
@@ -39,8 +40,6 @@ const UploadPaperPage = () => {
     uploaded_file: null as File | null,
   })
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
 
   // Subject related state
   const [subjects, setSubjects] = useState<string[]>([])
@@ -105,15 +104,11 @@ const UploadPaperPage = () => {
       ...prev,
       uploaded_file: file,
     }))
-    // Clear error when user selects a new file
-    if (error) setError(null)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    setError(null)
-    setSuccess(null)
 
     try {
       // Validate form data
@@ -126,7 +121,7 @@ const UploadPaperPage = () => {
         !formData.term ||
         !formData.uploaded_file
       ) {
-        setError('Please fill in all required fields')
+        addToast('Please fill in all required fields', 'error')
         setIsLoading(false)
         return
       }
@@ -134,7 +129,7 @@ const UploadPaperPage = () => {
       // Validate file size (10MB max)
       const maxSize = 10 * 1024 * 1024 // 10MB in bytes
       if (formData.uploaded_file.size > maxSize) {
-        setError('File size must be less than 10MB')
+        addToast('File size must be less than 10MB', 'error')
         setIsLoading(false)
         return
       }
@@ -147,7 +142,7 @@ const UploadPaperPage = () => {
         'image/webp',
       ]
       if (!allowedTypes.includes(formData.uploaded_file.type)) {
-        setError('Only PDF, PNG, JPG, JPEG, and WEBP files are allowed')
+        addToast('Only PDF, PNG, JPG, JPEG, and WEBP files are allowed', 'error' )
         setIsLoading(false)
         return
       }
@@ -184,7 +179,7 @@ const UploadPaperPage = () => {
       }
 
       // Success
-      setSuccess('Paper uploaded successfully!')
+      addToast('Paper uploaded successfully!', 'success')
 
       // Reset form
       setFormData({
@@ -205,11 +200,10 @@ const UploadPaperPage = () => {
       }
     } catch (err) {
       console.error('Upload error:', err)
-      setError(
+      addToast(
         err instanceof Error
           ? err.message
-          : 'Failed to upload paper. Please try again.'
-      )
+          : 'Failed to upload paper. Please try again.', 'error' )
     } finally {
       setIsLoading(false)
     }
@@ -246,28 +240,6 @@ const UploadPaperPage = () => {
 
         <Card className="shadow-lg">
           <CardContent>
-            {/* Error Message */}
-            {error && (
-              <div className="mb-6 p-4 bg-destructive/10 border border-destructive rounded-lg flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
-                <div>
-                  <h4 className="font-medium text-destructive">Error</h4>
-                  <p className="text-sm text-destructive/90">{error}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Success Message */}
-            {success && (
-              <div className="mb-6 p-4 bg-green-500/10 border border-green-500 rounded-lg flex items-start gap-3">
-                <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
-                <div>
-                  <h4 className="font-medium text-green-500">Success</h4>
-                  <p className="text-sm text-green-500/90">{success}</p>
-                </div>
-              </div>
-            )}
-
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Subject Field */}
               <div className="space-y-2">
