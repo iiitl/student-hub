@@ -155,7 +155,7 @@ const UploadNotePage = () => {
 
       const maxSize = 25 * 1024 * 1024
       if (formData.uploaded_file.size > maxSize) {
-        setError('File size must not exceed 25MB')
+        setError('File size must be less than 25MB')
         setIsLoading(false)
         return
       }
