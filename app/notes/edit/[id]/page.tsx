@@ -281,6 +281,38 @@ const EditNotePage = ({ params }: { params: Promise<{ id: string }> }) => {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Subject Field */}
+              <div className="space-y-2">
+                <Label htmlFor="subject" className="flex items-center gap-2">
+                  <GraduationCap className="h-4 w-4" />
+                  Subject *
+                </Label>
+                <Input
+                  id="subject"
+                  type="text"
+                  placeholder="Enter the subject name"
+                  value={formData.subject}
+                  onChange={(e) => handleInputChange('subject', e.target.value)}
+                  className="w-full"
+                  required
+                />
+              </div>
+
+              {/* Content/Description Field */}
+              <div className="space-y-2">
+                <Label htmlFor="content" className="flex items-center gap-2">
+                  <BookOpen className="h-4 w-4" />
+                  Description (Optional)
+                </Label>
+                <Textarea
+                  id="content"
+                  placeholder="Describe the note content or any additional details..."
+                  value={formData.content}
+                  onChange={(e) => handleInputChange('content', e.target.value)}
+                  className="w-full min-h-[100px] resize-y"
+                />
+              </div>
+
               {formData.category === 'academic' ? (
                 <>
                   {/* Faculty Name Field */}
@@ -290,7 +322,7 @@ const EditNotePage = ({ params }: { params: Promise<{ id: string }> }) => {
                       className="flex items-center gap-2"
                     >
                       <FileText className="h-4 w-4" />
-                      Teaching Faculty Name (Optional)
+                      Teaching Faculty Name *
                     </Label>
                     <Input
                       id="facultyName"
@@ -301,6 +333,7 @@ const EditNotePage = ({ params }: { params: Promise<{ id: string }> }) => {
                         handleInputChange('facultyName', e.target.value)
                       }
                       className="w-full"
+                      required
                     />
                   </div>
 
