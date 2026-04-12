@@ -205,6 +205,9 @@ function ChatWidgetInner() {
                 placeholder={
                   editingMessage ? 'Edit your message...' : 'Type a message...'
                 }
+                aria-label={
+                  editingMessage ? 'Edit your message' : 'Type a message'
+                }
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyDown={handleKeyDown}
