@@ -1,6 +1,5 @@
 'use client'
 
-import { useToast } from '@/context/toast-provider'
 import React, { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -20,6 +19,8 @@ import {
   Calendar,
   BookOpen,
   GraduationCap,
+  CheckCircle,
+  AlertCircle,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
@@ -28,7 +29,6 @@ const UploadPaperPage = () => {
   const router = useRouter()
   const { data: session, status } = useSession()
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { addToast } = useToast()
   const [formData, setFormData] = useState({
     facultyName: '',
     content: '',
@@ -126,17 +126,15 @@ const UploadPaperPage = () => {
         !formData.term ||
         !formData.uploaded_file
       ) {
-        const msg = 'Please fill in all required fields'
-        addToast(msg)
+        setError('Please fill in all required fields')
         setIsLoading(false)
         return
       }
 
-      // Validate file size (25MB max)
-      const maxSize = 25 * 1024 * 1024 // 25MB in bytes
+      // Validate file size (10MB max)
+      const maxSize = 10 * 1024 * 1024 // 10MB in bytes
       if (formData.uploaded_file.size > maxSize) {
-        const msg = 'File size must be less than 25MB'
-        addToast(msg)
+        setError('File size must be less than 10MB')
         setIsLoading(false)
         return
       }
@@ -149,8 +147,7 @@ const UploadPaperPage = () => {
         'image/webp',
       ]
       if (!allowedTypes.includes(formData.uploaded_file.type)) {
-        const msg = 'Only PDF, PNG, JPG, JPEG, and WEBP files are allowed'
-        addToast(msg)
+        setError('Only PDF, PNG, JPG, JPEG, and WEBP files are allowed')
         setIsLoading(false)
         return
       }
@@ -187,8 +184,7 @@ const UploadPaperPage = () => {
       }
 
       // Success
-      const successMsg = 'Paper uploaded successfully!'
-      addToast(successMsg)
+      setSuccess('Paper uploaded successfully!')
 
       // Reset form
       setFormData({
@@ -209,11 +205,11 @@ const UploadPaperPage = () => {
       }
     } catch (err) {
       console.error('Upload error:', err)
-      const errorMsg =
+      setError(
         err instanceof Error
           ? err.message
           : 'Failed to upload paper. Please try again.'
-      addToast(errorMsg)
+      )
     } finally {
       setIsLoading(false)
     }
@@ -250,6 +246,28 @@ const UploadPaperPage = () => {
 
         <Card className="shadow-lg">
           <CardContent>
+            {/* Error Message */}
+            {error && (
+              <div className="mb-6 p-4 bg-destructive/10 border border-destructive rounded-lg flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-destructive">Error</h4>
+                  <p className="text-sm text-destructive/90">{error}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Success Message */}
+            {success && (
+              <div className="mb-6 p-4 bg-green-500/10 border border-green-500 rounded-lg flex items-start gap-3">
+                <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-green-500">Success</h4>
+                  <p className="text-sm text-green-500/90">{success}</p>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Subject Field */}
               <div className="space-y-2">
@@ -496,7 +514,7 @@ const UploadPaperPage = () => {
               </h4>
               <ul className="space-y-1 ml-4">
                 <li>• Ensure the paper is clear and readable</li>
-                <li>• Maximum file size: 25MB</li>
+                <li>• Maximum file size: 10MB</li>
                 <li>• Supported formats: PDF, PNG, JPG, JPEG, WEBP</li>
                 <li>• All fields marked with * are required</li>
                 <li>
