@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
     }
 
     //Validate files before buffering
-    const maxBytes = 25 * 1024 * 1024
+    const maxBytes = 10 * 1024 * 1024
     const allowed = new Set([
       'application/pdf',
       'image/png',
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
     }
     if ((file.size ?? 0) > maxBytes) {
       return NextResponse.json(
-        { message: 'File uploaded is too large' },
+        { message: 'File size must not exceed 10MB' },
         { status: 413 }
       )
     }

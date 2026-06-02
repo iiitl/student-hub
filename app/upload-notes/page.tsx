@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
+import { useSemesterAutofill } from '@/hooks/useSemesterAutofill'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -27,7 +28,7 @@ import { NoteCategory } from '@/types/note'
 
 const UploadNotePage = () => {
   const router = useRouter()
-  const { status } = useSession()
+  const { data: session, status } = useSession()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [formData, setFormData] = useState({
@@ -71,6 +72,13 @@ const UploadNotePage = () => {
     }
     fetchSubjects()
   }, [])
+
+  useSemesterAutofill(
+    session,
+    formData.year,
+    formData.semester,
+    setFormData
+  )
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))

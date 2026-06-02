@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
+import { useSemesterAutofill } from '@/hooks/useSemesterAutofill'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -75,6 +76,13 @@ const UploadPaperPage = () => {
     fetchSubjects()
   }, [])
 
+  useSemesterAutofill(
+    session,
+    formData.year,
+    formData.semester,
+    setFormData
+  )
+
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -131,10 +139,10 @@ const UploadPaperPage = () => {
         return
       }
 
-      // Validate file size (25MB max)
-      const maxSize = 25 * 1024 * 1024 // 25MB in bytes
+      // Validate file size (10MB max)
+      const maxSize = 10 * 1024 * 1024 // 10MB in bytes
       if (formData.uploaded_file.size > maxSize) {
-        setError('File size must be less than 25MB')
+        setError('File size must not exceed 10MB')
         setIsLoading(false)
         return
       }
@@ -370,6 +378,7 @@ const UploadPaperPage = () => {
                     Batch(The Joining Year of the batch that gave the exam)*
                   </Label>
                   <Select
+                    value={formData.year || ''}
                     onValueChange={(value: string) =>
                       handleSelectChange('year', value)
                     }
@@ -395,6 +404,7 @@ const UploadPaperPage = () => {
                     Semester *
                   </Label>
                   <Select
+                    value={formData.semester || ''}
                     onValueChange={(value: string) =>
                       handleSelectChange('semester', value)
                     }
@@ -466,7 +476,7 @@ const UploadPaperPage = () => {
                             : 'Click to upload file'}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          PDF, PNG, JPG, JPEG, WEBP (Max 25MB)
+                          PDF, PNG, JPG, JPEG, WEBP (Max 10MB)
                         </p>
                       </div>
                     </div>
@@ -514,7 +524,7 @@ const UploadPaperPage = () => {
               </h4>
               <ul className="space-y-1 ml-4">
                 <li>• Ensure the paper is clear and readable</li>
-                <li>• Maximum file size: 25MB</li>
+                <li>• Maximum file size: 10MB</li>
                 <li>• Supported formats: PDF, PNG, JPG, JPEG, WEBP</li>
                 <li>• All fields marked with * are required</li>
                 <li>

@@ -1,4 +1,5 @@
 'use client'
+import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 import { FaSun, FaMoon } from 'react-icons/fa'
 
@@ -7,32 +8,25 @@ interface ThemeToggleProps {
 }
 
 export default function ThemeToggle({ text }: ThemeToggleProps) {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const { theme, resolvedTheme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+  const activeTheme = resolvedTheme ?? theme
 
   useEffect(() => {
-    const storedTheme = localStorage.getItem('theme')
-    if (storedTheme === 'dark') {
-      setTheme('dark')
-      document.documentElement.classList.add('dark')
-    }
+    setMounted(true)
   }, [])
 
-  useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark')
-      localStorage.setItem('theme', 'dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-      localStorage.setItem('theme', 'light')
-    }
-  }, [theme])
+  if (!mounted) {
+    return <button className="p-2 bg-primary flex items-center justify-center gap-3 text-white rounded cursor-pointer opacity-0">{text}</button>
+  }
+
 
   return (
     <button
       className="p-2 bg-primary flex items-center justify-center gap-3 text-white rounded cursor-pointer"
-      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+      onClick={() => setTheme(activeTheme === 'dark' ? 'light' : 'dark')}
     >
-      {theme === 'dark' ? <FaSun /> : <FaMoon />} {text}
+      {activeTheme === 'dark' ? <FaSun /> : <FaMoon />} {text}
     </button>
   )
 }
