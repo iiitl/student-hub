@@ -83,21 +83,30 @@ const markdownComponents = {
   },
   h1({ node, children, ...props }: MarkdownComponentProps) {
     return (
-      <h1 className="text-2xl font-bold mb-2 mt-4 text-gray-900 dark:text-gray-100" {...props}>
+      <h1
+        className="text-2xl font-bold mb-2 mt-4 text-gray-900 dark:text-gray-100"
+        {...props}
+      >
         {children}
       </h1>
     )
   },
   h2({ node, children, ...props }: MarkdownComponentProps) {
     return (
-      <h2 className="text-xl font-bold mb-1.5 mt-3 text-gray-900 dark:text-gray-100" {...props}>
+      <h2
+        className="text-xl font-bold mb-1.5 mt-3 text-gray-900 dark:text-gray-100"
+        {...props}
+      >
         {children}
       </h2>
     )
   },
   h3({ node, children, ...props }: MarkdownComponentProps) {
     return (
-      <h3 className="text-lg font-bold mb-1 mt-2 text-gray-900 dark:text-gray-100" {...props}>
+      <h3
+        className="text-lg font-bold mb-1 mt-2 text-gray-900 dark:text-gray-100"
+        {...props}
+      >
         {children}
       </h3>
     )
@@ -585,13 +594,28 @@ export default function QuickReads() {
             <div className="bg-yellow-100 dark:bg-yellow-500/20 p-1 rounded-md shrink-0 mt-0.5">
               <ClipboardList className="h-4 w-4 text-yellow-700 dark:text-yellow-400" />
             </div>
-            <p className="text-sm font-medium leading-relaxed mt-0.5">{toast}</p>
+            <p className="text-sm font-medium leading-relaxed mt-0.5">
+              {toast}
+            </p>
             <button
               onClick={() => setToast(null)}
               aria-label="Close toast"
               className="ml-auto text-yellow-600 dark:text-yellow-500 hover:text-yellow-800 dark:hover:text-yellow-300 mt-0.5"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
             </button>
           </div>
         </div>

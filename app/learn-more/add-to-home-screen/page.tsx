@@ -29,7 +29,10 @@ export default function AddToHomeScreenLearnMorePage() {
           <h2 className="text-xl font-semibold">How to install on Android</h2>
           <ol className="mt-3 space-y-2 text-sm text-muted-foreground list-decimal pl-5">
             <li>Open StudentHub in Chrome.</li>
-            <li>Tap &quot;Add to Home screen&quot; or &quot;Install app&quot; when prompted.</li>
+            <li>
+              Tap &quot;Add to Home screen&quot; or &quot;Install app&quot; when
+              prompted.
+            </li>
             <li>Confirm and the app icon will appear on your home screen.</li>
           </ol>
         </section>
