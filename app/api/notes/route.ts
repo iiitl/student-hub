@@ -2,15 +2,13 @@ import dbConnect from '@/lib/dbConnect'
 import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs/promises'
 import path from 'path'
-import { uploadOnCloudinary } from '@/helpers/cloudinary'
-import Paper from '@/model/paper'
+import { uploadOnCloudinary, deleteOnCloudinary } from '@/helpers/cloudinary'
+import Note from '@/model/note'
 import { verifyJwt } from '@/lib/auth-utils'
 import Log from '@/model/logs'
 import { tmpdir } from 'os'
 import { randomUUID } from 'crypto'
 import User from '@/model/User'
-
-//TODO: fix all Lints to proper types.
 
 export const config = {
   api: {
@@ -48,12 +46,14 @@ export async function POST(req: NextRequest) {
     }
 
     const term = formData.get('term') as string
+    const categoryRaw = formData.get('category') as string | null
+    const category: 'academic' | 'axios' =
+      categoryRaw === 'axios' ? 'axios' : 'academic'
     const file = formData.get('uploaded_file') as File | null
 
-    if (!subject || !year || !semester || !term || !file) {
+    if (!subject || !facultyName || !year || !semester || !term || !file) {
       const missingFields = []
-      // if (!facultyName?.trim()) missingFields.push('facultyName') // Optional now
-      // if (!content?.trim()) missingFields.push('content') // Optional now
+      if (!facultyName?.trim()) missingFields.push('facultyName')
       if (!subject?.trim()) missingFields.push('subject')
       if (!year) missingFields.push('year')
       if (!semester) missingFields.push('semester')
@@ -66,8 +66,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    //Validate files before buffering
-    const maxBytes = 10 * 1024 * 1024
+    const maxBytes = 25 * 1024 * 1024
     const allowed = new Set([
       'application/pdf',
       'image/png',
@@ -82,31 +81,31 @@ export async function POST(req: NextRequest) {
     }
     if ((file.size ?? 0) > maxBytes) {
       return NextResponse.json(
-        { message: 'File size must not exceed 10MB' },
+        { message: 'File uploaded is too large' },
         { status: 413 }
       )
     }
 
-    // Convert File → Buffer
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    // Step 1: Save to os temp, sanitize name, with cleanup
     const safeExt = path
       .extname(file.name || '')
       .replace(/[^.\w]/g, '')
       .slice(0, 10)
     const tempFilePath = path.join(
       tmpdir(),
-      `paper-${Date.now()}-${randomUUID()}${safeExt}`
+      `note-${Date.now()}-${randomUUID()}${safeExt}`
     )
     await fs.writeFile(tempFilePath, buffer)
 
-    //Upload to cloudinary
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let cloudinaryResult: any
+    let cloudinaryResult: { secure_url: string; public_id: string } | null =
+      null
     try {
-      cloudinaryResult = await uploadOnCloudinary(tempFilePath)
+      cloudinaryResult = (await uploadOnCloudinary(tempFilePath)) as {
+        secure_url: string
+        public_id: string
+      } | null
     } finally {
       await fs.unlink(tempFilePath).catch(() => {})
     }
@@ -118,52 +117,59 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    //Create paper object in database
-    const paper = await Paper.create({
-      facultyName,
-      content,
-      subject,
-      semester,
-      term,
-      year,
-      document_url: cloudinaryResult.secure_url,
-      file_name: file.name,
-      file_type: file.type,
-      uploaded_by: userId,
-    })
+    let note
+    try {
+      note = await Note.create({
+        facultyName,
+        content,
+        subject,
+        year,
+        semester,
+        term,
+        category,
+        document_url: cloudinaryResult.secure_url,
+        storage_asset_id: cloudinaryResult.public_id,
+        file_name: file.name,
+        file_type: file.type,
+        uploaded_by: userId,
+      })
+    } catch (dbError) {
+      // DB write failed — clean up the already-uploaded Cloudinary asset
+      await deleteOnCloudinary(cloudinaryResult.public_id).catch(() => {})
+      throw dbError
+    }
 
-    //Create log for paper object
-    const logs = await Log.create({
+    // Log failure must not surface as a 500 — the note was already saved
+    await Log.create({
       user: userId,
-      action: 'Paper upload succeeded',
-      paper: paper._id,
+      action: 'Note upload succeeded',
+      note: note._id,
+    }).catch((logError: unknown) => {
+      console.error('Note upload log failed:', logError)
     })
 
     return NextResponse.json(
-      { message: 'Paper uploaded successfully', paper, logs },
+      { message: 'Note uploaded successfully', note },
       { status: 201 }
     )
   } catch (error: unknown) {
-    // console.error("Upload error:",error)
-
-    //Create log for error
     await Log.create({
       user: null,
-      action: 'Paper upload failed',
+      action: 'Note upload failed',
       error: 'Failed to upload file to Cloudinary',
       details: error instanceof Error ? error.stack : 'Unknown error',
     })
 
-    //Validation error separate calling
     if (error instanceof Error && error.name === 'ValidationError') {
       return NextResponse.json(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        { message: 'Validation failed', errors: (error as any).errors },
+        {
+          message: 'Validation failed',
+          errors: (error as Error & { errors?: unknown }).errors,
+        },
         { status: 400 }
       )
     }
 
-    //Error calling
     return NextResponse.json(
       {
         message: 'Internal server error ',
@@ -174,7 +180,6 @@ export async function POST(req: NextRequest) {
   }
 }
 
-//Get paper based on query and page limit (Public - no auth required)
 export async function GET(req: NextRequest) {
   try {
     await dbConnect()
@@ -190,10 +195,9 @@ export async function GET(req: NextRequest) {
     const subjectFilter = searchParams.get('subject')
     const termFilter = searchParams.get('term')
     const yearFilter = searchParams.get('year')
+    const categoryFilter = searchParams.get('category')
 
-    //For pipeline so we don't have to write params again and again
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const match: any = {}
+    const match: Record<string, unknown> = {}
     if (subjectFilter) {
       match.subject = { $regex: `^${subjectFilter}$`, $options: 'i' }
     }
@@ -204,11 +208,16 @@ export async function GET(req: NextRequest) {
       const y = parseInt(yearFilter, 10)
       if (!Number.isNaN(y)) match.year = y
     }
+    if (
+      categoryFilter &&
+      (categoryFilter === 'academic' || categoryFilter === 'axios')
+    ) {
+      match.category = categoryFilter
+    }
     if (search && query) {
       match[search] = { $regex: query, $options: 'i' }
     }
 
-    //Pipeline with some user info to keep track of who uploaded what
     const pipeline = [
       {
         $match: match,
@@ -236,34 +245,26 @@ export async function GET(req: NextRequest) {
         },
       },
     ]
-    if (!pipeline) {
-      return NextResponse.json(
-        { message: 'Error in creating pipeline' },
-        { status: 400 }
-      )
+
+    const NoteModel = Note as unknown as {
+      aggregatePaginate: (agg: unknown, opts: unknown) => Promise<unknown>
     }
+    const notes = await NoteModel.aggregatePaginate(Note.aggregate(pipeline), {
+      page,
+      limit,
+      sort: { [sortBy]: sortType },
+      customLabels: { docs: 'notes' },
+    })
 
-    //Final to aggregate limited queries within a page
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const papers = await (Paper as any).aggregatePaginate(
-      Paper.aggregate(pipeline),
-      {
-        page,
-        limit,
-        sort: { [sortBy]: sortType },
-        customLabels: { docs: 'papers' },
-      }
-    )
-
-    if (!papers) {
+    if (!notes) {
       return NextResponse.json(
-        { message: 'Error in fetching papers' },
+        { message: 'Error in fetching notes' },
         { status: 400 }
       )
     }
 
     return NextResponse.json(
-      { message: 'Papers fetched succesfully', papers },
+      { message: 'Notes fetched succesfully', notes },
       { status: 200 }
     )
   } catch (error: unknown) {
@@ -277,12 +278,10 @@ export async function GET(req: NextRequest) {
   }
 }
 
-//Delete paper (Only uploader or technical club admin)
 export async function DELETE(req: NextRequest) {
   try {
     await dbConnect()
 
-    // Verify authentication
     const authResponse = await verifyJwt(req)
     if (authResponse.status !== 200) {
       return authResponse
@@ -291,64 +290,75 @@ export async function DELETE(req: NextRequest) {
     const authData = await authResponse.json()
     const userId = authData.userId as string
 
-    // Get paper ID from query params
     const { searchParams } = new URL(req.url)
-    const paperId = searchParams.get('id')
+    const noteId = searchParams.get('id')
 
-    if (!paperId) {
+    if (!noteId) {
       return NextResponse.json(
-        { message: 'Paper ID is required' },
+        { message: 'Note ID is required' },
         { status: 400 }
       )
     }
 
-    // Fetch the paper
-    const paper = await Paper.findById(paperId)
-    if (!paper) {
-      return NextResponse.json({ message: 'Paper not found' }, { status: 404 })
+    const note = await Note.findById(noteId)
+    if (!note) {
+      return NextResponse.json({ message: 'Note not found' }, { status: 404 })
     }
 
-    // Fetch user details to check email
     const user = await User.findById(userId)
     if (!user) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 })
     }
 
-    // Check authorization: uploader, any admin, or technicalclub@iiitl.ac.in
-    const isUploader = paper.uploaded_by.toString() === userId
-    const isAdmin = Array.isArray(user.roles) && user.roles.includes('admin')
+    const isUploader = note.uploaded_by.toString() === userId
     const isTechnicalClub = user.email === 'technicalclub@iiitl.ac.in'
 
-    if (!isUploader && !isAdmin && !isTechnicalClub) {
+    if (!isUploader && !isTechnicalClub) {
       return NextResponse.json(
-        { message: 'You are not authorized to delete this paper' },
+        { message: 'You are not authorized to delete this note' },
         { status: 403 }
       )
     }
 
-    // Delete the paper
-    await Paper.findByIdAndDelete(paperId)
+    // Remove the backing Cloudinary file first
+    if (note.storage_asset_id) {
+      try {
+        await deleteOnCloudinary(note.storage_asset_id)
+      } catch (cloudinaryErr) {
+        // Log but don't block deletion — DB row still gets removed
+        console.error('Cloudinary file deletion failed:', cloudinaryErr)
+        await Log.create({
+          user: userId,
+          action: 'Note Cloudinary file deletion failed',
+          note: noteId,
+          details:
+            cloudinaryErr instanceof Error
+              ? cloudinaryErr.message
+              : 'Unknown error',
+        })
+      }
+    }
 
-    // Create log
+    await Note.findByIdAndDelete(noteId)
+
     await Log.create({
       user: userId,
-      action: 'Paper deleted',
-      paper: paperId,
-      details: `Paper "${paper.facultyName}" deleted by ${user.email}`,
+      action: 'Note deleted',
+      note: noteId,
+      details: `Note "${note.facultyName}" deleted by ${user.email}`,
     })
 
     return NextResponse.json(
-      { message: 'Paper deleted successfully' },
+      { message: 'Note deleted successfully' },
       { status: 200 }
     )
   } catch (error: unknown) {
     console.error('Delete error:', error)
 
-    // Create log for error
     await Log.create({
       user: null,
-      action: 'Paper deletion failed',
-      error: 'Failed to delete paper',
+      action: 'Note deletion failed',
+      error: 'Failed to delete note',
       details: error instanceof Error ? error.stack : 'Unknown error',
     })
 
@@ -362,12 +372,10 @@ export async function DELETE(req: NextRequest) {
   }
 }
 
-//Update paper (Only uploader or technical club admin)
 export async function PATCH(req: NextRequest) {
   try {
     await dbConnect()
 
-    // Verify authentication
     const authResponse = await verifyJwt(req)
     if (authResponse.status !== 200) {
       return authResponse
@@ -376,48 +384,41 @@ export async function PATCH(req: NextRequest) {
     const authData = await authResponse.json()
     const userId = authData.userId as string
 
-    // Get paper ID from query params
     const { searchParams } = new URL(req.url)
-    const paperId = searchParams.get('id')
+    const noteId = searchParams.get('id')
 
-    if (!paperId) {
+    if (!noteId) {
       return NextResponse.json(
-        { message: 'Paper ID is required' },
+        { message: 'Note ID is required' },
         { status: 400 }
       )
     }
 
-    // Get update data from request body
     const body = await req.json()
-    const { facultyName, content, subject, year, semester, term } = body
+    const { facultyName, content, subject, year, semester, term, category } =
+      body
 
-    // Fetch the paper
-    const paper = await Paper.findById(paperId)
-    if (!paper) {
-      return NextResponse.json({ message: 'Paper not found' }, { status: 404 })
+    const note = await Note.findById(noteId)
+    if (!note) {
+      return NextResponse.json({ message: 'Note not found' }, { status: 404 })
     }
 
-    // Fetch user details to check email
     const user = await User.findById(userId)
     if (!user) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 })
     }
 
-    // Check authorization: uploader, any admin, or technicalclub@iiitl.ac.in
-    const isUploader = paper.uploaded_by.toString() === userId
-    const isAdmin = Array.isArray(user.roles) && user.roles.includes('admin')
+    const isUploader = note.uploaded_by.toString() === userId
     const isTechnicalClub = user.email === 'technicalclub@iiitl.ac.in'
 
-    if (!isUploader && !isAdmin && !isTechnicalClub) {
+    if (!isUploader && !isTechnicalClub) {
       return NextResponse.json(
-        { message: 'You are not authorized to edit this paper' },
+        { message: 'You are not authorized to edit this note' },
         { status: 403 }
       )
     }
 
-    // Prepare update object
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const updateData: any = {}
+    const updateData: Record<string, unknown> = {}
     if (facultyName) updateData.facultyName = facultyName
     if (content) updateData.content = content
     if (subject) updateData.subject = subject
@@ -439,20 +440,23 @@ export async function PATCH(req: NextRequest) {
       updateData.semester = semesterNum
     }
     if (term) {
-      const validTerms = [
-        'Mid',
-        'End',
-        'Class_test_1',
-        'Class_test_2',
-        'Class_test_3',
-      ]
+      const validTerms = ['Mid', 'End']
       if (!validTerms.includes(term)) {
         return NextResponse.json({ message: 'Invalid term' }, { status: 400 })
       }
       updateData.term = term
     }
+    if (category) {
+      const validCategories = ['academic', 'axios']
+      if (!validCategories.includes(category)) {
+        return NextResponse.json(
+          { message: 'Invalid category' },
+          { status: 400 }
+        )
+      }
+      updateData.category = category
+    }
 
-    // Add to update history
     updateData.$push = {
       updated_by: {
         user: userId,
@@ -460,40 +464,38 @@ export async function PATCH(req: NextRequest) {
       },
     }
 
-    // Update the paper
-    const updatedPaper = await Paper.findByIdAndUpdate(paperId, updateData, {
+    const updatedNote = await Note.findByIdAndUpdate(noteId, updateData, {
       new: true,
       runValidators: true,
     })
 
-    // Create log
     await Log.create({
       user: userId,
-      action: 'Paper updated',
-      paper: paperId,
-      details: `Paper "${paper.facultyName}" updated by ${user.email}`,
+      action: 'Note updated',
+      note: noteId,
+      details: `Note "${note.facultyName}" updated by ${user.email}`,
     })
 
     return NextResponse.json(
-      { message: 'Paper updated successfully', paper: updatedPaper },
+      { message: 'Note updated successfully', note: updatedNote },
       { status: 200 }
     )
   } catch (error: unknown) {
     console.error('Update error:', error)
 
-    // Create log for error
     await Log.create({
       user: null,
-      action: 'Paper update failed',
-      error: 'Failed to update paper',
+      action: 'Note update failed',
+      error: 'Failed to update note',
       details: error instanceof Error ? error.stack : 'Unknown error',
     })
 
-    // Validation error separate handling
     if (error instanceof Error && error.name === 'ValidationError') {
       return NextResponse.json(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        { message: 'Validation failed', errors: (error as any).errors },
+        {
+          message: 'Validation failed',
+          errors: (error as Error & { errors?: unknown }).errors,
+        },
         { status: 400 }
       )
     }
