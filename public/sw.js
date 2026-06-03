@@ -55,6 +55,16 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
+  // Network-first for page navigations to avoid serving stale HTML
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request).catch(() =>
+        caches.open(CACHE_NAME).then((cache) => cache.match(request))
+      )
+    )
+    return
+  }
+
   // For page navigations and static assets: stale-while-revalidate
   event.respondWith(
     caches.open(CACHE_NAME).then((cache) =>
