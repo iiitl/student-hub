@@ -41,4 +41,4 @@ yarn-error.log*
 next-env.d.ts
 
 # Gen ai tools
-graphify-out
+/graphify-out
