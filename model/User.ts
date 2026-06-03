@@ -11,6 +11,7 @@ export interface IUser extends Document {
   passwordSet: boolean
   emailVerified: boolean
   roles: string[]
+  landingPage?: string
 }
 
 const UserSchema: Schema<IUser> = new Schema<IUser>(
@@ -67,6 +68,11 @@ const UserSchema: Schema<IUser> = new Schema<IUser>(
       default: ['user'],
       required: true,
       index: true, // Create a single index
+    },
+    landingPage: {
+      type: String,
+      default: '/',
+      trim: true,
     },
   },
   {
