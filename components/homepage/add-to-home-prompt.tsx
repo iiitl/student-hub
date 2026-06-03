@@ -67,7 +67,11 @@ export default function AddToHomePrompt() {
   }, [])
 
   const handleClose = () => {
-    localStorage.setItem(DISMISS_KEY, String(Date.now() + DISMISS_DURATION_MS))
+    try {
+      localStorage.setItem(DISMISS_KEY, String(Date.now() + DISMISS_DURATION_MS))
+    } catch {
+      // localStorage unavailable – dismissal won't persist, but UI still closes
+    }
     setIsVisible(false)
   }
 
