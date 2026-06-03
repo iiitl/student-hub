@@ -19,8 +19,8 @@ export default function AddToHomeScreenLearnMorePage() {
             <li>Launches StudentHub in a standalone app view.</li>
             <li>Reduces browser UI distractions for a cleaner experience.</li>
             <li>
-              Opens the page you choose in your profile under "Home Screen
-              Launch Page".
+              Opens the page you choose in your profile under &quot;Home Screen
+              Launch Page&quot;.
             </li>
           </ul>
         </section>
@@ -29,7 +29,7 @@ export default function AddToHomeScreenLearnMorePage() {
           <h2 className="text-xl font-semibold">How to install on Android</h2>
           <ol className="mt-3 space-y-2 text-sm text-muted-foreground list-decimal pl-5">
             <li>Open StudentHub in Chrome.</li>
-            <li>Tap "Add to Home screen" or "Install app" when prompted.</li>
+            <li>Tap &quot;Add to Home screen&quot; or &quot;Install app&quot; when prompted.</li>
             <li>Confirm and the app icon will appear on your home screen.</li>
           </ol>
         </section>
@@ -39,8 +39,8 @@ export default function AddToHomeScreenLearnMorePage() {
           <ol className="mt-3 space-y-2 text-sm text-muted-foreground list-decimal pl-5">
             <li>Open StudentHub in Safari.</li>
             <li>Tap the Share icon (square with an upward arrow).</li>
-            <li>Scroll and tap "Add to Home Screen".</li>
-            <li>Tap "Add" to finish.</li>
+            <li>Scroll and tap &quot;Add to Home Screen&quot;.</li>
+            <li>Tap &quot;Add&quot; to finish.</li>
           </ol>
         </section>
 
