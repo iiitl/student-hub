@@ -1,6 +1,7 @@
 import { cert, getApps, initializeApp } from 'firebase-admin/app'
-import { getDatabase } from 'firebase-admin/database'
 import { getFirestore } from 'firebase-admin/firestore'
+
+const MESS_APP_NAME = 'mess-ease'
 
 type ServiceAccount = {
   project_id: string
@@ -24,38 +25,23 @@ function parseServiceAccount(raw: string): ServiceAccount {
   }
 }
 
-export function getFirebaseAdminDb(
-  databaseURL: string,
-  credentialJson: string
-) {
-  if (!getApps().length) {
-    const serviceAccount = parseServiceAccount(credentialJson)
-
-    initializeApp({
-      credential: cert({
-        projectId: serviceAccount.project_id,
-        clientEmail: serviceAccount.client_email,
-        privateKey: serviceAccount.private_key,
-      }),
-      databaseURL,
-    })
-  }
-
-  return getDatabase()
-}
-
 export function getFirebaseAdminFirestore(credentialJson: string) {
-  if (!getApps().length) {
-    const serviceAccount = parseServiceAccount(credentialJson)
+  const existing = getApps().find((app) => app.name === MESS_APP_NAME)
+  if (existing) {
+    return getFirestore(existing)
+  }
 
-    initializeApp({
+  const serviceAccount = parseServiceAccount(credentialJson)
+  const app = initializeApp(
+    {
       credential: cert({
         projectId: serviceAccount.project_id,
         clientEmail: serviceAccount.client_email,
         privateKey: serviceAccount.private_key,
       }),
-    })
-  }
+    },
+    MESS_APP_NAME
+  )
 
-  return getFirestore()
+  return getFirestore(app)
 }

@@ -2,8 +2,10 @@ import { NextResponse } from 'next/server'
 import { getFirebaseAdminFirestore } from '@/lib/firebase-admin'
 import { normalizeMessMenuPayload } from '@/lib/mess-menu'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 86400
 export const runtime = 'nodejs'
+
+const ERROR_CACHE_CONTROL = 'no-store, max-age=0'
 
 function isJsonCredential(input: string): boolean {
   const trimmed = input.trim()
@@ -19,7 +21,10 @@ export async function GET() {
         success: false,
         message: 'MESS_DB_CREDENTIAL is not configured',
       },
-      { status: 500 }
+      {
+        status: 500,
+        headers: { 'Cache-Control': ERROR_CACHE_CONTROL },
+      }
     )
   }
 
@@ -31,7 +36,10 @@ export async function GET() {
           message:
             'MESS_DB_CREDENTIAL must be a Firebase service-account JSON string',
         },
-        { status: 500 }
+        {
+          status: 500,
+          headers: { 'Cache-Control': ERROR_CACHE_CONTROL },
+        }
       )
     }
 
@@ -44,7 +52,10 @@ export async function GET() {
           success: false,
           message: 'MainMenu/menu not found in Cloud Firestore',
         },
-        { status: 404 }
+        {
+          status: 404,
+          headers: { 'Cache-Control': ERROR_CACHE_CONTROL },
+        }
       )
     }
 
@@ -57,7 +68,12 @@ export async function GET() {
         menu,
         fetchedAt: new Date().toISOString(),
       },
-      { status: 200 }
+      {
+        status: 200,
+        headers: {
+          'Cache-Control': 's-maxage=86400, stale-while-revalidate=86400',
+        },
+      }
     )
   } catch (error) {
     console.error('Failed to load mess menu:', error)
@@ -66,7 +82,10 @@ export async function GET() {
         success: false,
         message: 'Unable to load mess menu right now',
       },
-      { status: 500 }
+      {
+        status: 500,
+        headers: { 'Cache-Control': ERROR_CACHE_CONTROL },
+      }
     )
   }
 }
