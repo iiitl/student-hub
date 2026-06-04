@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 /**
  * PWA launch entry point.
  * - Authenticated users: redirect to their configured landing page.
- * - Unauthenticated users: redirect to home page.
+ * - Unauthenticated users: redirect to Mess Menu.
  *
  * This page is set as `start_url` in manifest.json so that when the
  * app is launched from the home screen it always goes through here.
@@ -20,18 +20,18 @@ export default function PwaLaunch() {
     if (status === 'loading') return
 
     if (status === 'unauthenticated') {
-      router.replace('/')
+      router.replace('/mess-menu')
       return
     }
 
     // Authenticated – fetch the user's preferred landing page
     fetch('/api/user/landing-page')
-      .then((res) => (res.ok ? res.json() : { landingPage: '/' }))
+      .then((res) => (res.ok ? res.json() : { landingPage: '/mess-menu' }))
       .then(({ landingPage }) => {
-        router.replace(landingPage || '/')
+        router.replace(landingPage || '/mess-menu')
       })
       .catch(() => {
-        router.replace('/')
+        router.replace('/mess-menu')
       })
   }, [status, router])
 
