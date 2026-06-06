@@ -6,6 +6,7 @@ import User from '@/model/User'
 // Allowed landing page paths
 const ALLOWED_PATHS = [
   '/',
+  '/mess-menu',
   '/quick-reads',
   '/notes',
   '/papers',

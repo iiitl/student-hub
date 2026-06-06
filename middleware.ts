@@ -75,6 +75,7 @@ export async function middleware(request: NextRequest) {
     '/api/quick-reads',
     '/api/quick_read_categories',
     '/api/chat/messages',
+    '/api/mess-menu',
   ]
   const isPublicEndpoint = publicApiEndpoints.some(
     (endpoint) => path.startsWith(endpoint) && request.method === 'GET'
@@ -155,6 +156,7 @@ export async function middleware(request: NextRequest) {
     '/api/quick-reads',
     '/api/quick_read_categories',
     '/api/chat/messages',
+    '/api/mess-menu',
   ]
   const isPublicGetRequest = publicGetEndpoints.some(
     (endpoint) => path.startsWith(endpoint) && request.method === 'GET'
