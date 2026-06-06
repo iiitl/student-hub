@@ -12,6 +12,8 @@ export interface IUser extends Document {
   emailVerified: boolean
   roles: string[]
   landingPage?: string
+  llmProvider?: string
+  llmApiKey?: string
 }
 
 const UserSchema: Schema<IUser> = new Schema<IUser>(
@@ -73,6 +75,14 @@ const UserSchema: Schema<IUser> = new Schema<IUser>(
       type: String,
       default: '/',
       trim: true,
+    },
+    llmProvider: {
+      type: String,
+      trim: true,
+    },
+    llmApiKey: {
+      type: String,
+      select: false, // Never include in queries by default
     },
   },
   {

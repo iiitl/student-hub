@@ -1,16 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
-import {
-  Download,
-  Eye,
-  FileText,
-  Calendar,
-  GraduationCap,
-  Trash2,
-  Edit,
-  Info,
-} from 'lucide-react'
+import { Download, Eye, Trash2, Edit, Info, Sparkles } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { TypeQuestionPaper } from '@/types/question-paper'
@@ -84,6 +75,10 @@ const QuestionPaperCard = ({
     router.push(`/papers/edit/${questionPaper.id}`)
   }
 
+  const handleSolve = () => {
+    window.open(`/papers/solve/${questionPaper.id}`, '_blank')
+  }
+
   return (
     <Card className="w-full flex flex-col md:flex-row p-4 justify-between items-start md:items-center bg-border/20 shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out gap-4">
       <div className="flex-1 min-w-0 w-full md:w-auto">
@@ -137,6 +132,14 @@ const QuestionPaperCard = ({
           aria-label={`View ${questionPaper.subject} question paper`}
         >
           <Eye className="h-4 w-4" />
+        </button>
+        <button
+          onClick={handleSolve}
+          title="Solve with AI"
+          className="cursor-pointer bg-violet-500 text-white px-4 py-2 rounded hover:bg-violet-600 transition-colors duration-200 flex items-center justify-center"
+          aria-label={`Solve ${questionPaper.subject} question paper with AI`}
+        >
+          <Sparkles className="h-4 w-4" />
         </button>
         {canEdit && (
           <>
