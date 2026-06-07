@@ -15,8 +15,22 @@ import {
   Trash2,
   Loader2,
   Crown,
+  Home,
+  Check,
 } from 'lucide-react'
 import Image from 'next/image'
+
+const LANDING_PAGE_OPTIONS = [
+  { label: 'Home', value: '/' },
+  { label: 'Quick Reads', value: '/quick-reads' },
+  { label: 'Notes', value: '/notes' },
+  { label: 'Question Papers', value: '/papers' },
+  { label: 'Marketplace', value: '/marketplace' },
+  { label: 'Chat', value: '/chat' },
+  { label: 'Newcomers', value: '/newcomers' },
+  { label: 'Contributors', value: '/contributors' },
+  { label: 'Mess Menu', value: '/mess-menu' },
+]
 
 const SUPER_ADMIN_EMAIL = 'technicalclub@iiitl.ac.in'
 
@@ -31,6 +45,9 @@ export default function Profile() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [passwordSet, setPasswordSet] = useState<boolean | null>(null)
+  const [landingPage, setLandingPage] = useState<string>('/')
+  const [landingSaving, setLandingSaving] = useState(false)
+  const [landingSaved, setLandingSaved] = useState(false)
 
   // Admin management state
   const [adminEmail, setAdminEmail] = useState('')
@@ -57,6 +74,37 @@ export default function Profile() {
       router.push('/auth/signin?callbackUrl=/profile')
     }
   }, [status, router])
+
+  // Fetch the user's preferred landing page
+  useEffect(() => {
+    if (status === 'authenticated') {
+      fetch('/api/user/landing-page')
+        .then((res) => (res.ok ? res.json() : { landingPage: '/' }))
+        .then(({ landingPage }) => setLandingPage(landingPage || '/'))
+        .catch(() => {})
+    }
+  }, [status])
+
+  const handleLandingPageChange = async (value: string) => {
+    setLandingPage(value)
+    setLandingSaving(true)
+    setLandingSaved(false)
+    try {
+      const res = await fetch('/api/user/landing-page', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ landingPage: value }),
+      })
+      if (res.ok) {
+        setLandingSaved(true)
+        setTimeout(() => setLandingSaved(false), 2000)
+      }
+    } catch {
+      // silently fail – preference is non-critical
+    } finally {
+      setLandingSaving(false)
+    }
+  }
 
   // Check if the user has a password set
   useEffect(() => {
@@ -332,6 +380,39 @@ export default function Profile() {
                 </div>
               </Link>
             )}
+
+            {/* PWA Launch Page Preference */}
+            <div className="flex items-start p-4 bg-muted/30 rounded-md gap-3">
+              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/30 flex items-center justify-center flex-shrink-0">
+                <Home className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium">Home Screen Launch Page</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                  Page to open when launching from your home screen
+                </p>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={landingPage}
+                    onChange={(e) => handleLandingPageChange(e.target.value)}
+                    disabled={landingSaving}
+                    className="flex-1 rounded-md border border-input bg-background px-3 py-1.5 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50"
+                  >
+                    {LANDING_PAGE_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                  {landingSaved && (
+                    <span className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400">
+                      <Check className="h-4 w-4" />
+                      Saved
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
 
             <button
               onClick={handleSignOut}
