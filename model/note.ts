@@ -7,13 +7,17 @@ export interface INoteUpdate {
 }
 
 export interface INote extends Document {
-  facultyName: string
+  facultyName?: string
   content?: string
   subject: string
-  year: number
-  semester: number
-  term: string
+  year?: number
+  semester?: number
+  term?: string
   category: 'academic' | 'axios'
+  // Axios-specific
+  wing?: 'ML' | 'Web3' | 'Web' | 'FOSS' | 'InfoSec' | 'Design' | 'App' | 'CP'
+  targetAudience?: '1st Year' | '2nd Year' | '3rd Year' | '4th Year' | 'All'
+  presenterName?: string
   document_url: string
   storage_asset_id: string
   file_name: string
@@ -26,7 +30,6 @@ const NoteSchema: Schema<INote> = new Schema<INote>(
   {
     facultyName: {
       type: String,
-      required: [true, 'Faculty name is mandatory for notes'],
       trim: true,
       maxlength: [100, 'Faculty name must be withing 100 characters'],
     },
@@ -41,7 +44,6 @@ const NoteSchema: Schema<INote> = new Schema<INote>(
     },
     year: {
       type: Number,
-      required: [true, 'Year of note is necessary'],
       validate: {
         validator: (v: number) =>
           Number.isInteger(v) && v >= 2015 && v <= new Date().getFullYear(),
@@ -50,7 +52,6 @@ const NoteSchema: Schema<INote> = new Schema<INote>(
     },
     semester: {
       type: Number,
-      required: [true, 'Semester is required'],
       validate: {
         validator: (v: number) => Number.isInteger(v) && v >= 1 && v <= 8,
         message: 'Semester must be an integer between 1 and 8',
@@ -59,13 +60,26 @@ const NoteSchema: Schema<INote> = new Schema<INote>(
     term: {
       type: String,
       enum: ['Mid', 'End'],
-      required: [true, 'Exam type (term) is required'],
       set: (v: string) => v.charAt(0).toUpperCase() + v.slice(1).toLowerCase(),
     },
     category: {
       type: String,
       enum: ['academic', 'axios'],
       default: 'academic',
+    },
+    // Axios-specific fields
+    wing: {
+      type: String,
+      enum: ['ML', 'Web3', 'Web', 'FOSS', 'InfoSec', 'Design', 'App', 'CP'],
+    },
+    targetAudience: {
+      type: String,
+      enum: ['1st Year', '2nd Year', '3rd Year', '4th Year', 'All'],
+    },
+    presenterName: {
+      type: String,
+      trim: true,
+      maxlength: [100, 'Presenter name must be within 100 characters'],
     },
     document_url: {
       type: String,
@@ -107,6 +121,23 @@ const NoteSchema: Schema<INote> = new Schema<INote>(
 )
 
 NoteSchema.plugin(aggregatePaginate)
+
+// Conditional validation: academic notes require year, semester, term
+// Axios notes require wing
+NoteSchema.pre('validate', function (next) {
+  if (this.category === 'academic') {
+    if (!this.year) {
+      this.invalidate('year', 'Year is required for academic notes')
+    }
+    if (!this.semester) {
+      this.invalidate('semester', 'Semester is required for academic notes')
+    }
+    if (!this.term) {
+      this.invalidate('term', 'Exam type is required for academic notes')
+    }
+  }
+  next()
+})
 
 const Note: Model<INote> =
   mongoose.models.Note || mongoose.model<INote>('Note', NoteSchema)

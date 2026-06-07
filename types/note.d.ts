@@ -1,5 +1,22 @@
 export type NoteCategory = 'academic' | 'axios'
 
+export type AxiosWing =
+  | 'ML'
+  | 'Web3'
+  | 'Web'
+  | 'FOSS'
+  | 'InfoSec'
+  | 'Design'
+  | 'App'
+  | 'CP'
+
+export type AxiosAudience =
+  | '1st Year'
+  | '2nd Year'
+  | '3rd Year'
+  | '4th Year'
+  | 'All'
+
 export type TypeNote = {
   subject: string
   subjectCode: string
@@ -15,4 +32,8 @@ export type TypeNote = {
   description?: string
   facultyName: string
   category?: NoteCategory
+  // Axios-specific fields
+  wing?: AxiosWing
+  targetAudience?: AxiosAudience
+  presenterName?: string
 }
