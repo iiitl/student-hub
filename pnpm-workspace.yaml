@@ -1,0 +1,8 @@
+allowBuilds:
+  '@parcel/watcher': true
+  '@tailwindcss/oxide': true
+  bcrypt: true
+  esbuild: true
+  sharp: true
+  simple-git-hooks: true
+  unrs-resolver: true

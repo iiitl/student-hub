@@ -198,130 +198,135 @@ export default function ChatMessage({
         </div>
       )}
 
-      {/* Message row — flex-row-reverse for own messages to right-align */}
+      {/* Wrapper: flex container with conditional justify (left/right alignment) */}
       <div
-        className={`flex w-full mb-4 group ${isMe ? 'flex-row-reverse' : 'flex-row'} items-end gap-2`}
+        className={`flex w-full mb-4 group ${isMe ? 'justify-end' : 'justify-start'}`}
       >
-        {/* Avatar — only shown for messages from other users */}
-        {!isMe && (
-          <div className="flex-shrink-0 mb-1">
-            {sender?.image ? (
-              <Image
-                src={sender.image}
-                alt={sender.name || 'User'}
-                width={32}
-                height={32}
-                className="w-8 h-8 rounded-full border border-border/50 object-cover"
-              />
-            ) : (
-              /* Fallback avatar: first character of name on a coloured circle */
-              <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-xs uppercase">
-                {sender?.name?.charAt(0) || '?'}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Message Content Container */}
+        {/* Inner container: avatar + message bubble (with layout mirroring via flex-row-reverse) */}
         <div
-          className={`flex flex-col relative max-w-[75%] ${isMe ? 'items-end' : 'items-start'}`}
+          className={`flex gap-3 max-w-[70%] ${isMe ? 'flex-row-reverse' : 'flex-row'} items-start`}
         >
-          {/* Sender name label — only displayed for other users' messages */}
+          {/* Avatar — only shown for messages from other users */}
           {!isMe && (
-            <span className="text-xs text-muted-foreground ml-1 mb-1 font-medium">
-              {sender?.name}
-            </span>
-          )}
-
-          {/* Reply Context — shows the parent message snippet when this is a reply */}
-          {message.replyTo && (
-            <div
-              className={`text-xs p-2 rounded-t-lg mb-[-4px] z-0 opacity-80 mt-1 border-l-2 border-r-2 ${isMe ? 'border-r bg-primary/10 text-primary border-primary/40 rounded-tr-lg pr-3 pl-2' : 'border-l bg-muted text-muted-foreground border-muted-foreground/40 rounded-tl-lg pl-3 pr-2'}`}
-            >
-              <div className="font-semibold text-[10px] mb-1">
-                Replying to{' '}
-                {typeof message.replyTo.sender === 'object' &&
-                message.replyTo.sender !== null
-                  ? (message.replyTo.sender as Sender).name
-                  : 'someone'}
-              </div>
-              <div className="truncate opacity-75 max-w-[150px]">
-                {typeof message.replyTo.content === 'string' &&
-                message.replyTo.content === '🚫 This message was deleted.'
-                  ? 'Deleted message'
-                  : typeof message.replyTo.content === 'string'
-                    ? message.replyTo.content
-                    : ''}
-              </div>
+            <div className="flex-shrink-0 mt-5">
+              {sender?.image ? (
+                <Image
+                  src={sender.image}
+                  alt={sender.name || 'User'}
+                  width={32}
+                  height={32}
+                  className="w-8 h-8 rounded-full border border-border/50 object-cover"
+                />
+              ) : (
+                /* Fallback avatar: first character of name on a coloured circle */
+                <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-xs uppercase">
+                  {sender?.name?.charAt(0) || '?'}
+                </div>
+              )}
             </div>
           )}
 
-          {/* Message Bubble + Hover Action Controls */}
+          {/* Message Bubble Content Container */}
           <div
-            className={`flex items-center gap-1 relative z-10 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}
+            className={`flex flex-col relative min-w-0 ${isMe ? 'items-end' : 'items-start'}`}
           >
-            {/* The actual message text bubble */}
-            <div
-              className={`p-3 rounded-2xl shadow-sm text-sm break-words relative w-full ${isMe ? 'bg-primary text-primary-foreground rounded-br-sm' : 'bg-muted rounded-bl-sm border border-border/40 text-foreground'} ${message.isDeleted ? 'opacity-60 italic' : ''}`}
-            >
-              {message.content}
-            </div>
-
-            {/*
-             * Quick Actions dropdown — only visible on hover via opacity transition.
-             * The entire dropdown is hidden for deleted messages since no meaningful
-             * actions (reply, edit, delete) apply to a tombstone message.
-             */}
-            {!message.isDeleted && (
-              <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center shrink-0 px-1 gap-1">
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="p-1 rounded-full hover:bg-muted text-muted-foreground outline-none">
-                    <MoreHorizontal size={16} />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align={isMe ? 'end' : 'start'}
-                    side="top"
-                    onCloseAutoFocus={(e) => e.preventDefault()}
-                  >
-                    {/* Reply — available to all users on non-deleted messages */}
-                    <DropdownMenuItem onClick={() => onReply(message)}>
-                      <Reply className="mr-2 h-4 w-4" />
-                      <span>Reply</span>
-                    </DropdownMenuItem>
-
-                    {/* Edit & Delete — only available to the message author */}
-                    {isMe && (
-                      <>
-                        <DropdownMenuItem onClick={() => onEdit(message)}>
-                          <Edit2 className="mr-2 h-4 w-4" />
-                          <span>Edit</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={handleDeleteClick}
-                          className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                          disabled={isDeleting}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          <span>Delete</span>
-                        </DropdownMenuItem>
-                      </>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            )}
-          </div>
-
-          {/* Footer Info (Timestamp & Edited indicator) */}
-          <div className="flex items-center gap-1 mt-1 px-1">
-            {message.isEdited && !message.isDeleted && (
-              <span className="text-[10px] text-muted-foreground/60">
-                (edited)
+            {/* Sender name label — only displayed for other users' messages */}
+            {!isMe && (
+              <span className="text-xs text-muted-foreground ml-1 mb-1 font-medium">
+                {sender?.name}
               </span>
             )}
-            <span className="text-[10px] text-muted-foreground/60">
-              {formatTime(message.timestamp)}
-            </span>
+
+            {/* Reply Context — shows the parent message snippet when this is a reply */}
+            {message.replyTo && (
+              <div
+                className={`text-xs p-2 rounded-t-lg mb-[-4px] z-0 opacity-80 mt-1 border-l-2 border-r-2 ${isMe ? 'border-r bg-primary/10 text-primary border-primary/40 rounded-tr-lg pr-3 pl-2' : 'border-l bg-muted text-muted-foreground border-muted-foreground/40 rounded-tl-lg pl-3 pr-2'}`}
+              >
+                <div className="font-semibold text-[10px] mb-1">
+                  Replying to{' '}
+                  {typeof message.replyTo.sender === 'object' &&
+                  message.replyTo.sender !== null
+                    ? (message.replyTo.sender as Sender).name
+                    : 'someone'}
+                </div>
+                <div className="truncate opacity-75 max-w-[200px]">
+                  {typeof message.replyTo.content === 'string' &&
+                  message.replyTo.content === '🚫 This message was deleted.'
+                    ? 'Deleted message'
+                    : typeof message.replyTo.content === 'string'
+                      ? message.replyTo.content
+                      : ''}
+                </div>
+              </div>
+            )}
+
+            {/* Message Bubble + Hover Action Controls */}
+            <div
+              className={`flex items-center gap-2 relative z-10 w-fit max-w-full ${isMe ? 'flex-row-reverse' : 'flex-row'}`}
+            >
+              {/* The actual message text bubble */}
+              <div
+                className={`p-3 rounded-2xl shadow-sm text-sm break-words relative w-fit max-w-full ${isMe ? 'bg-primary text-primary-foreground rounded-br-sm' : 'bg-muted rounded-bl-sm border border-border/40 text-foreground'} ${message.isDeleted ? 'opacity-60 italic' : ''}`}
+              >
+                {message.content}
+              </div>
+
+              {/*
+               * Quick Actions dropdown — only visible on hover via opacity transition.
+               * The entire dropdown is hidden for deleted messages since no meaningful
+               * actions (reply, edit, delete) apply to a tombstone message.
+               */}
+              {!message.isDeleted && (
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center shrink-0 px-1 gap-1">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="p-1 rounded-full hover:bg-muted text-muted-foreground outline-none">
+                      <MoreHorizontal size={16} />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align={isMe ? 'end' : 'start'}
+                      side="top"
+                      onCloseAutoFocus={(e) => e.preventDefault()}
+                    >
+                      {/* Reply — available to all users on non-deleted messages */}
+                      <DropdownMenuItem onClick={() => onReply(message)}>
+                        <Reply className="mr-2 h-4 w-4" />
+                        <span>Reply</span>
+                      </DropdownMenuItem>
+
+                      {/* Edit & Delete — only available to the message author */}
+                      {isMe && (
+                        <>
+                          <DropdownMenuItem onClick={() => onEdit(message)}>
+                            <Edit2 className="mr-2 h-4 w-4" />
+                            <span>Edit</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={handleDeleteClick}
+                            className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                            disabled={isDeleting}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            <span>Delete</span>
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              )}
+            </div>
+
+            {/* Footer Info (Timestamp & Edited indicator) */}
+            <div className="flex items-center gap-1 mt-1 px-1">
+              {message.isEdited && !message.isDeleted && (
+                <span className="text-[10px] text-muted-foreground/60">
+                  (edited)
+                </span>
+              )}
+              <span className="text-[10px] text-muted-foreground/60">
+                {formatTime(message.timestamp)}
+              </span>
+            </div>
           </div>
         </div>
       </div>

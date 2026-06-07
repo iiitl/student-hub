@@ -85,7 +85,7 @@ export default function ChatPage() {
         </div>
 
         {/* Message Area */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-muted/10">
+        <div className="flex-1 overflow-y-auto py-4 md:py-8 px-2 md:px-3 bg-muted/10">
           {messages.length === 0 ? (
             <div className="h-full flex flex-col justify-center items-center text-muted-foreground">
               <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-4">
@@ -94,7 +94,7 @@ export default function ChatPage() {
               <p>No messages yet. Be the first to say hi!</p>
             </div>
           ) : (
-            <div className="flex flex-col space-y-2 max-w-4xl mx-auto w-full">
+            <div className="flex flex-col space-y-2 w-full">
               {messages.map((msg) => (
                 <ChatMessage
                   key={msg._id}
@@ -120,10 +120,10 @@ export default function ChatPage() {
 
         {/* Input Area */}
         {session && isIIITLUser && (
-          <div className="border-t bg-card flex flex-col max-w-4xl mx-auto w-full">
+          <div className="border-t bg-card flex flex-col w-full">
             {/* Status Banner for Replying/Editing */}
             {(replyingTo || editingMessage) && (
-              <div className="p-3 bg-primary/10 border-b flex justify-between items-center text-sm px-6">
+              <div className="p-3 bg-primary/10 border-b flex justify-between items-center text-sm px-4 md:px-5">
                 {replyingTo && (
                   <span className="font-medium text-primary">
                     Replying to{' '}
@@ -150,7 +150,7 @@ export default function ChatPage() {
               </div>
             )}
 
-            <div className="p-4 md:p-6 flex gap-3 items-center relative">
+            <div className="py-4 md:py-6 px-2 md:px-3 flex gap-3 items-center relative">
               <input
                 ref={inputRef}
                 type="text"

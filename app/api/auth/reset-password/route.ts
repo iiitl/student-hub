@@ -8,19 +8,23 @@ import { hashSensitiveData } from '@/lib/security'
 import mongoose from 'mongoose'
 
 export async function POST(request: NextRequest) {
-  const session = await mongoose.startSession()
-  session.startTransaction()
+  await dbConnect()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const client = mongoose.connection.client as any
+  const isStandalone = client?.topology?.description?.type === 'Single'
+  const session = isStandalone ? null : await mongoose.startSession()
+  if (session) {
+    session.startTransaction()
+  }
 
   try {
-    await dbConnect()
-
     // Sanitize inputs
     let { token, password } = await request.json()
     token = typeof token === 'string' ? token.trim() : null
     password = typeof password === 'string' ? password : null
 
     if (!token || !password) {
-      await session.abortTransaction()
+      if (session) await session.abortTransaction()
       return NextResponse.json(
         { message: 'Token and password are required' },
         { status: 400 }
@@ -29,7 +33,7 @@ export async function POST(request: NextRequest) {
 
     const validationError = validatePassword(password)
     if (validationError) {
-      await session.abortTransaction()
+      if (session) await session.abortTransaction()
       return NextResponse.json({ message: validationError }, { status: 400 })
     }
 
@@ -42,7 +46,7 @@ export async function POST(request: NextRequest) {
     }).session(session)
 
     if (!resetRequest) {
-      await session.abortTransaction()
+      if (session) await session.abortTransaction()
       return NextResponse.json(
         { message: 'Invalid or expired token' },
         { status: 400 }
@@ -57,7 +61,7 @@ export async function POST(request: NextRequest) {
     if (resetRequest.attempts > MAX_ATTEMPTS) {
       resetRequest.used = true
       await resetRequest.save({ session })
-      await session.abortTransaction()
+      if (session) await session.abortTransaction()
       return NextResponse.json(
         { message: 'Too many attempts. Please request a new reset link.' },
         { status: 400 }
@@ -68,7 +72,7 @@ export async function POST(request: NextRequest) {
       session
     )
     if (!user) {
-      await session.abortTransaction()
+      if (session) await session.abortTransaction()
       return NextResponse.json({ message: 'User not found' }, { status: 404 })
     }
 
@@ -79,14 +83,18 @@ export async function POST(request: NextRequest) {
     resetRequest.used = true
     await resetRequest.save({ session })
 
-    await session.commitTransaction()
+    if (session) {
+      await session.commitTransaction()
+    }
 
     return NextResponse.json(
       { message: 'Password reset successful' },
       { status: 200 }
     )
   } catch (error) {
-    await session.abortTransaction()
+    if (session) {
+      await session.abortTransaction()
+    }
 
     // Log error details
     console.error(
@@ -99,6 +107,8 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   } finally {
-    session.endSession()
+    if (session) {
+      session.endSession()
+    }
   }
 }

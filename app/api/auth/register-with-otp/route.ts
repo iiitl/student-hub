@@ -19,16 +19,20 @@ export async function POST(request: NextRequest) {
 
   while (retries < MAX_RETRIES) {
     try {
-      session = await mongoose.startSession()
-      session.startTransaction()
-
       await dbConnect()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const client = mongoose.connection.client as any
+      const isStandalone = client?.topology?.description?.type === 'Single'
+      session = isStandalone ? null : await mongoose.startSession()
+      if (session) {
+        session.startTransaction()
+      }
 
       const { name, email, password, otp } = await request.json()
 
       // Basic validation
       if (!name || !email || !password || !otp) {
-        await session.abortTransaction()
+        if (session) await session.abortTransaction()
         return NextResponse.json(
           { message: 'Name, email, password, and OTP are required' },
           { status: 400 }
@@ -38,25 +42,25 @@ export async function POST(request: NextRequest) {
       // Validate inputs
       const nameError = validateName(name)
       if (nameError) {
-        await session.abortTransaction()
+        if (session) await session.abortTransaction()
         return NextResponse.json({ message: nameError }, { status: 400 })
       }
 
       const emailError = validateEmail(email)
       if (emailError) {
-        await session.abortTransaction()
+        if (session) await session.abortTransaction()
         return NextResponse.json({ message: emailError }, { status: 400 })
       }
 
       const passwordError = validatePassword(password)
       if (passwordError) {
-        await session.abortTransaction()
+        if (session) await session.abortTransaction()
         return NextResponse.json({ message: passwordError }, { status: 400 })
       }
 
       const otpError = validateOTP(otp)
       if (otpError) {
-        await session.abortTransaction()
+        if (session) await session.abortTransaction()
         return NextResponse.json({ message: otpError }, { status: 400 })
       }
 
@@ -65,7 +69,7 @@ export async function POST(request: NextRequest) {
 
       // Validate IIITL domain
       if (!sanitizedEmail.endsWith('@iiitl.ac.in')) {
-        await session.abortTransaction()
+        if (session) await session.abortTransaction()
         return NextResponse.json(
           { message: 'Only IIITL email addresses are allowed' },
           { status: 400 }
@@ -78,7 +82,7 @@ export async function POST(request: NextRequest) {
       }).session(session)
 
       if (existingUser) {
-        await session.abortTransaction()
+        if (session) await session.abortTransaction()
         // If user exists and was created with Google, we should not allow them to register
         const responseData = {
           message: 'An account with this email already exists',
@@ -97,7 +101,7 @@ export async function POST(request: NextRequest) {
       }).session(session)
 
       if (!otpDoc) {
-        await session.abortTransaction()
+        if (session) await session.abortTransaction()
         return NextResponse.json(
           { message: 'Invalid or expired OTP. Please verify your OTP first.' },
           { status: 400 }
@@ -126,7 +130,9 @@ export async function POST(request: NextRequest) {
       await OTP.deleteOne({ _id: otpDoc._id }).session(session)
 
       // Commit the transaction
-      await session.commitTransaction()
+      if (session) {
+        await session.commitTransaction()
+      }
 
       return NextResponse.json(
         {
