@@ -6,8 +6,14 @@ import mongoose from 'mongoose'
 
 export async function POST(request: NextRequest) {
   await dbConnect()
-  const session = await mongoose.startSession()
-  session.startTransaction()
+  
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const client = mongoose.connection.client as any
+  const isStandalone = client?.topology?.description?.type === 'Single'
+  const session = isStandalone ? null : await mongoose.startSession()
+  if (session) {
+    session.startTransaction()
+  }
 
   try {
     const body = await request.json()
@@ -16,13 +22,13 @@ export async function POST(request: NextRequest) {
     // Validate email
     const emailError = validateEmail(email)
     if (emailError) {
-      await session.abortTransaction()
+      if (session) await session.abortTransaction()
       return NextResponse.json({ message: emailError }, { status: 400 })
     }
 
     // Basic validation
     if (!otp) {
-      await session.abortTransaction()
+      if (session) await session.abortTransaction()
       return NextResponse.json({ message: 'OTP is required' }, { status: 400 })
     }
 
@@ -46,7 +52,7 @@ export async function POST(request: NextRequest) {
       }).session(session)
 
       if (expiredOtp) {
-        await session.abortTransaction()
+        if (session) await session.abortTransaction()
         return NextResponse.json(
           { message: 'OTP has expired. Please request a new one.' },
           { status: 400 }
@@ -60,14 +66,14 @@ export async function POST(request: NextRequest) {
       }).session(session)
 
       if (verifiedOtp) {
-        await session.abortTransaction()
+        if (session) await session.abortTransaction()
         return NextResponse.json(
           { message: 'OTP has already been used. Please request a new one.' },
           { status: 400 }
         )
       }
 
-      await session.abortTransaction()
+      if (session) await session.abortTransaction()
       return NextResponse.json({ message: 'Invalid OTP' }, { status: 400 })
     }
 
@@ -84,7 +90,9 @@ export async function POST(request: NextRequest) {
       { session }
     )
 
-    await session.commitTransaction()
+    if (session) {
+      await session.commitTransaction()
+    }
 
     return NextResponse.json(
       {
@@ -94,7 +102,9 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     )
   } catch (error) {
-    await session.abortTransaction()
+    if (session) {
+      await session.abortTransaction()
+    }
     console.error(
       'Error verifying OTP:',
       error instanceof Error ? error.message : 'Unknown error'
@@ -104,6 +114,8 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   } finally {
-    await session.endSession()
+    if (session) {
+      await session.endSession()
+    }
   }
 }
