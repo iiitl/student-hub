@@ -14,20 +14,16 @@ export type HeaderLinkItem = HeaderLink | HeaderLinkGroup
 // Grouped links for dropdown navigation
 export const headerLinks: HeaderLinkItem[] = [
   { name: 'Quick Reads', url: '/quick-reads' },
-  {
-    name: 'Study Material',
-    items: [
-      { name: 'Notes', url: '/notes' },
-      { name: 'Question Papers', url: '/papers' },
-    ],
-  },
-  { name: 'Marketplace', url: '/marketplace' },
-  { name: 'Chat', url: '/chat' },
+  { name: 'Notes', url: '/notes' },
+  { name: 'Question Papers', url: '/papers' },
   {
     name: 'Community',
     items: [
       { name: 'Newcomers', url: '/newcomers' },
       { name: 'Contributors', url: '/contributors' },
+      { name: 'Marketplace', url: '/marketplace' },
+      { name: 'Chat', url: '/chat' },
+      { name: 'Mess Menu', url: '/mess-menu' },
     ],
   },
 ]
