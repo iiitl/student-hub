@@ -29,6 +29,7 @@ const LANDING_PAGE_OPTIONS = [
   { label: 'Chat', value: '/chat' },
   { label: 'Newcomers', value: '/newcomers' },
   { label: 'Contributors', value: '/contributors' },
+  { label: 'Mess Menu', value: '/mess-menu' },
 ]
 
 const SUPER_ADMIN_EMAIL = 'technicalclub@iiitl.ac.in'
