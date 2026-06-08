@@ -570,8 +570,7 @@ const Marketplace = () => {
     // session.user may have id or _id
     return (
       sellerId === session.user.id ||
-      sellerId === session.user._id ||
-      sellerId === session.user.email // fallback match
+      sellerId === session.user._id
     )
   }
 
@@ -809,11 +808,8 @@ const Marketplace = () => {
                     placeholder="Email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 rounded-xl border text-sm bg-white dark:bg-[#0a1128] text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 transition-all ${
-                      formErrors.email
-                        ? 'border-red-400 focus:ring-red-300'
-                        : 'border-gray-200 dark:border-blue-900/40 focus:ring-blue-500/60'
-                    }`}
+                    disabled
+                    className="w-full px-4 py-3 rounded-xl border text-sm bg-gray-100 dark:bg-[#0a1128] text-gray-600 dark:text-gray-500 placeholder-gray-400 dark:placeholder-gray-600 border-gray-200 dark:border-blue-900/40 cursor-not-allowed opacity-60"
                   />
                   {formErrors.email && (
                     <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
@@ -880,10 +876,10 @@ const Marketplace = () => {
                 }}
                 className="appearance-none px-4 py-3 pr-10 rounded-xl bg-white dark:bg-[#0c1630] border border-gray-200 dark:border-blue-900/40 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/60 text-sm cursor-pointer"
               >
-                <option value="created_at:-1">Newest first</option>
-                <option value="created_at:1">Oldest first</option>
-                <option value="price:1">Price: Low to High</option>
-                <option value="price:-1">Price: High to Low</option>
+                <option value="created_at:desc">Newest first</option>
+                <option value="created_at:asc">Oldest first</option>
+                <option value="price:asc">Price: Low to High</option>
+                <option value="price:desc">Price: High to Low</option>
               </select>
               <ChevronDown
                 size={14}
