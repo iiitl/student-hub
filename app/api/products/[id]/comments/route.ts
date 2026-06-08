@@ -71,8 +71,8 @@ export async function POST(req: NextRequest, context: RouteContext) {
       }
 
       const parentComment = product.comments.find(
-        (c: any) => c._id && c._id.toString() === parentCommentId
-      ) as any
+        (c: IComment) => c._id && c._id.toString() === parentCommentId
+      ) as IComment
       if (!parentComment) {
         return NextResponse.json(
           { message: 'Parent comment not found' },
@@ -93,7 +93,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
         createdAt: new Date(),
         replies: [],
       }
-      product.comments.push(newComment as any)
+      product.comments.push(newComment)
     }
 
     await product.save()

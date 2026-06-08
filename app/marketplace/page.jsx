@@ -291,7 +291,6 @@ const Marketplace = () => {
       err.email = 'Enter a valid email address'
     if (!formData.image) err.image = 'Product image is required'
 
-
     setFormErrors(err)
     return Object.keys(err).length === 0
   }
@@ -568,10 +567,7 @@ const Marketplace = () => {
     // seller can be populated object or plain id string
     const sellerId = typeof seller === 'object' ? seller._id : seller
     // session.user may have id or _id
-    return (
-      sellerId === session.user.id ||
-      sellerId === session.user._id
-    )
+    return sellerId === session.user.id || sellerId === session.user._id
   }
 
   // ─── render ──────────────────────────────────────────────────────────────
@@ -654,7 +650,9 @@ const Marketplace = () => {
                   ) : (
                     <div className="flex flex-col items-center justify-center py-8 text-gray-400">
                       <ImageIcon size={28} className="mb-2" />
-                      <p className="text-sm font-medium">Click to upload image</p>
+                      <p className="text-sm font-medium">
+                        Click to upload image
+                      </p>
                       <p className="text-xs mt-0.5">
                         PNG, JPEG, WebP, GIF • Max 10 MB
                       </p>
@@ -775,7 +773,6 @@ const Marketplace = () => {
                   )}
                 </div>
               </div>
-
 
               {/* Contact — Phone + Email */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1017,12 +1014,11 @@ const Marketplace = () => {
                           : product.contact_info}
                       </p>
 
-                      {product.seller &&
-                        typeof product.seller === 'object' && (
-                          <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1 truncate">
-                            by {product.seller.name || product.seller.email}
-                          </p>
-                        )}
+                      {product.seller && typeof product.seller === 'object' && (
+                        <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1 truncate">
+                          by {product.seller.name || product.seller.email}
+                        </p>
+                      )}
 
                       {/* Owner actions */}
                       {owner && (
@@ -1031,16 +1027,11 @@ const Marketplace = () => {
                             <>
                               <button
                                 disabled={!!busy}
-                                onClick={() =>
-                                  handleMarkAvailable(product._id)
-                                }
+                                onClick={() => handleMarkAvailable(product._id)}
                                 className="flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-medium transition-all bg-green-50 text-green-600 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50 disabled:opacity-50"
                               >
                                 {busy === 'available' ? (
-                                  <Loader2
-                                    size={12}
-                                    className="animate-spin"
-                                  />
+                                  <Loader2 size={12} className="animate-spin" />
                                 ) : (
                                   <CheckCircle size={12} />
                                 )}
@@ -1049,16 +1040,11 @@ const Marketplace = () => {
                               <button
                                 id={`delete-btn-${product._id}`}
                                 disabled={!!busy}
-                                onClick={() =>
-                                  setDeletePromptId(product._id)
-                                }
+                                onClick={() => setDeletePromptId(product._id)}
                                 className="flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-medium transition-all bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 disabled:opacity-50"
                               >
                                 {busy === 'delete' ? (
-                                  <Loader2
-                                    size={12}
-                                    className="animate-spin"
-                                  />
+                                  <Loader2 size={12} className="animate-spin" />
                                 ) : (
                                   <Trash2 size={12} />
                                 )}
@@ -1086,10 +1072,7 @@ const Marketplace = () => {
                                 className="flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-medium transition-all bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 disabled:opacity-50"
                               >
                                 {busy === 'sold' ? (
-                                  <Loader2
-                                    size={12}
-                                    className="animate-spin"
-                                  />
+                                  <Loader2 size={12} className="animate-spin" />
                                 ) : (
                                   <CheckCircle size={12} />
                                 )}
@@ -1098,16 +1081,11 @@ const Marketplace = () => {
                               <button
                                 id={`delete-btn-${product._id}`}
                                 disabled={!!busy}
-                                onClick={() =>
-                                  setDeletePromptId(product._id)
-                                }
+                                onClick={() => setDeletePromptId(product._id)}
                                 className="flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-medium transition-all bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 disabled:opacity-50"
                               >
                                 {busy === 'delete' ? (
-                                  <Loader2
-                                    size={12}
-                                    className="animate-spin"
-                                  />
+                                  <Loader2 size={12} className="animate-spin" />
                                 ) : (
                                   <Trash2 size={12} />
                                 )}
@@ -1242,8 +1220,7 @@ const Marketplace = () => {
                   {/* Quantity */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Available Quantity{' '}
-                      <span className="text-red-500">*</span>
+                      Available Quantity <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="number"
@@ -1260,7 +1237,6 @@ const Marketplace = () => {
                     />
                   </div>
                 </div>
-
 
                 {/* Contact */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1582,7 +1558,8 @@ const Marketplace = () => {
                         </span>
                         <p className="text-4xl font-extrabold text-blue-800 dark:text-yellow-400 leading-none">
                           {formatPrice(finalPrice)}
-                        </p>                      </div>
+                        </p>{' '}
+                      </div>
 
                       {detailedProduct.quantity > 1 && (
                         <div className="flex items-center flex-wrap gap-2 mt-2 sm:mt-0">
@@ -1621,7 +1598,6 @@ const Marketplace = () => {
                     </span>
                   </div>
                 </div>
-
 
                 <p className="mt-6 text-gray-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-wrap break-words">
                   {detailedProduct.description}

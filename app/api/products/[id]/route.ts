@@ -51,13 +51,7 @@ export async function PUT(req: NextRequest, context: RouteContext) {
     }
 
     const body = await req.json()
-    const {
-      title,
-      description,
-      price,
-      contact_info,
-      quantity,
-    } = body
+    const { title, description, price, contact_info, quantity } = body
 
     const updateData: Record<string, unknown> = {}
 
@@ -121,7 +115,6 @@ export async function PUT(req: NextRequest, context: RouteContext) {
       }
       updateData.quantity = parsed
     }
-
 
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json(

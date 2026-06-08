@@ -160,7 +160,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-
     // Validate file type and size
     const allowedTypes = new Set([
       'image/png',

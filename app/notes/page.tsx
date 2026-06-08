@@ -109,7 +109,7 @@ const Notes = () => {
   const [selectedSubject, setSelectedSubject] = useState('All')
   const [showFilters, setShowFilters] = useState(false)
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   useEffect(() => {
     fetchNotes()
   }, [])
