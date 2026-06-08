@@ -17,9 +17,12 @@ export default function ThemeToggle({ text }: ThemeToggleProps) {
   }, [])
 
   if (!mounted) {
-    return <button className="p-2 bg-primary flex items-center justify-center gap-3 text-white rounded cursor-pointer opacity-0">{text}</button>
+    return (
+      <button className="p-2 bg-primary flex items-center justify-center gap-3 text-white rounded cursor-pointer opacity-0">
+        {text}
+      </button>
+    )
   }
-
 
   return (
     <button

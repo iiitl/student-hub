@@ -6,7 +6,7 @@ import mongoose from 'mongoose'
 
 export async function POST(request: NextRequest) {
   await dbConnect()
-  
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const client = mongoose.connection.client as any
   const isStandalone = client?.topology?.description?.type === 'Single'

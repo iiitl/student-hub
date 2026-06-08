@@ -1,7 +1,9 @@
 import React, { useEffect } from 'react'
 import { Session } from 'next-auth'
 
-export function useSemesterAutofill<T extends { year: string; semester: string }>(
+export function useSemesterAutofill<
+  T extends { year: string; semester: string },
+>(
   session: Session | null,
   year: string,
   semester: string,

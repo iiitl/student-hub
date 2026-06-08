@@ -73,12 +73,7 @@ const UploadNotePage = () => {
     fetchSubjects()
   }, [])
 
-  useSemesterAutofill(
-    session,
-    formData.year,
-    formData.semester,
-    setFormData
-  )
+  useSemesterAutofill(session, formData.year, formData.semester, setFormData)
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
