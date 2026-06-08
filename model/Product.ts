@@ -2,14 +2,14 @@ import mongoose, { Schema, Document, Model } from 'mongoose'
 
 export interface IReply {
   _id?: mongoose.Types.ObjectId
-  user: Schema.Types.ObjectId
+  user: mongoose.Types.ObjectId
   text: string
   createdAt: Date
 }
 
 export interface IComment {
   _id?: mongoose.Types.ObjectId
-  user: Schema.Types.ObjectId
+  user: mongoose.Types.ObjectId
   text: string
   offerPrice?: number
   createdAt: Date
