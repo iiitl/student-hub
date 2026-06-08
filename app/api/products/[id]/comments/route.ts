@@ -1,7 +1,7 @@
 import dbConnect from '@/lib/dbConnect'
 import { NextRequest, NextResponse } from 'next/server'
 import mongoose from 'mongoose'
-import Product, { IComment } from '@/model/Product'
+import Product, { IComment, IReply } from '@/model/Product'
 import User from '@/model/User'
 import { verifyJwt } from '@/lib/auth-utils'
 
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
       product.comments = []
     }
 
-    const newReply = {
+    const newReply: IReply = {
       user: new mongoose.Types.ObjectId(userId),
       text: String(text).trim().substring(0, 500),
       createdAt: new Date(),

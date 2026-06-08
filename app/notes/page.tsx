@@ -109,7 +109,6 @@ const Notes = () => {
   const [selectedSubject, setSelectedSubject] = useState('All')
   const [showFilters, setShowFilters] = useState(false)
 
-   
   useEffect(() => {
     fetchNotes()
   }, [])
