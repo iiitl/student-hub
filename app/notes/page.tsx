@@ -186,8 +186,9 @@ const Notes = () => {
   }
 
   const extractSemesterNumber = (
-    term: string
+    term: string | undefined
   ): 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 => {
+    if (!term) return 1
     const match = term.match(/semester[- ]?(\d)/i)
     if (match) {
       const num = parseInt(match[1])
@@ -196,7 +197,10 @@ const Notes = () => {
     return 1
   }
 
-  const normalizeExamType = (term: string): 'Mid' | 'End' | 'Both' => {
+  const normalizeExamType = (
+    term: string | undefined
+  ): 'Mid' | 'End' | 'Both' => {
+    if (!term) return 'Mid'
     const t = term.toLowerCase()
     if (t.includes('end')) return 'End'
     if (t.includes('mid')) return 'Mid'

@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import { Download, Eye, Trash2, Edit, Info } from 'lucide-react'
+import { Download, Eye, Trash2, Edit, Info, Lightbulb } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { TypeNote } from '@/types/note'
@@ -59,6 +59,10 @@ const NoteCard = ({ note, onDelete }: NoteCardProps) => {
 
   const handleEdit = () => {
     router.push(`/notes/edit/${note.id}`)
+  }
+
+  const handleExplain = () => {
+    window.open(`/notes/explain/${note.id}`, '_blank')
   }
 
   const isAxios = note.category === 'axios'
@@ -141,6 +145,14 @@ const NoteCard = ({ note, onDelete }: NoteCardProps) => {
           title="View"
         >
           <Eye className="h-4 w-4" />
+        </button>
+        <button
+          onClick={handleExplain}
+          title="Explain with AI"
+          className="cursor-pointer bg-amber-500 text-white px-3 py-1.5 rounded hover:bg-amber-600 transition-colors duration-200 flex items-center justify-center"
+          aria-label={`Explain ${note.subject} note with AI`}
+        >
+          <Lightbulb className="h-4 w-4" />
         </button>
         {canEdit && (
           <>
