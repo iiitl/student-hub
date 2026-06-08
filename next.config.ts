@@ -57,6 +57,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '/**', // Allows all Cloudinary product images
+      },
+      {
+        protocol: 'https',
         hostname: 'lh3.googleusercontent.com',
         pathname: '/**', // Allows Google profile images
       },
