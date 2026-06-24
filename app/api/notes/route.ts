@@ -30,40 +30,80 @@ export async function POST(req: NextRequest) {
 
     const formData = await req.formData()
 
-    const facultyName = formData.get('facultyName') as string
     const content = formData.get('content') as string
     const subject = formData.get('subject') as string
-    const yearRaw = formData.get('year') as string
-    const year = parseInt(yearRaw ?? '', 10)
-    if (Number.isNaN(year)) {
-      return NextResponse.json({ message: 'Invalid year' }, { status: 400 })
-    }
-
-    const semesterRaw = formData.get('semester') as string
-    const semester = parseInt(semesterRaw ?? '', 10)
-    if (Number.isNaN(semester)) {
-      return NextResponse.json({ message: 'Invalid semester' }, { status: 400 })
-    }
-
-    const term = formData.get('term') as string
     const categoryRaw = formData.get('category') as string | null
     const category: 'academic' | 'axios' =
       categoryRaw === 'axios' ? 'axios' : 'academic'
     const file = formData.get('uploaded_file') as File | null
+    if (!file) {
+      return NextResponse.json({ message: 'File is required' }, { status: 400 })
+    }
 
-    if (!subject || !facultyName || !year || !semester || !term || !file) {
+    // Fields that differ by category
+    let facultyName: string | undefined
+    let year: number | undefined
+    let semester: number | undefined
+    let term: string | undefined
+    let wing: string | undefined
+    let targetAudience: string | undefined
+    let presenterName: string | undefined
+
+    if (category === 'academic') {
+      facultyName = formData.get('facultyName') as string
+      const yearRaw = formData.get('year') as string
+      year = parseInt(yearRaw ?? '', 10)
+      if (Number.isNaN(year)) {
+        return NextResponse.json({ message: 'Invalid year' }, { status: 400 })
+      }
+      const semesterRaw = formData.get('semester') as string
+      semester = parseInt(semesterRaw ?? '', 10)
+      if (Number.isNaN(semester)) {
+        return NextResponse.json(
+          { message: 'Invalid semester' },
+          { status: 400 }
+        )
+      }
+      term = formData.get('term') as string
+
       const missingFields = []
-      if (!facultyName?.trim()) missingFields.push('facultyName')
       if (!subject?.trim()) missingFields.push('subject')
       if (!year) missingFields.push('year')
       if (!semester) missingFields.push('semester')
       if (!term?.trim()) missingFields.push('term')
-      if (!file) missingFields.push('file')
+      
+      if (missingFields.length > 0) {
+        return NextResponse.json(
+          { message: `Required fields missing: ${missingFields.join(', ')}` },
+          { status: 400 }
+        )
+      }
+    } else {
+      // axios category
+      presenterName = (formData.get('presenterName') as string) || undefined
+      wing = formData.get('wing') as string
+      targetAudience = (formData.get('targetAudience') as string) || undefined
 
-      return NextResponse.json(
-        { message: `Required fields missing: ${missingFields.join(', ')}` },
-        { status: 400 }
-      )
+      const validWings = [
+        'ML',
+        'Web3',
+        'Web',
+        'FOSS',
+        'InfoSec',
+        'Design',
+        'App',
+        'CP',
+      ]
+      const missingFields = []
+      if (!subject?.trim()) missingFields.push('subject / topic')
+      if (!wing?.trim() || !validWings.includes(wing))
+        missingFields.push('wing')
+      if (missingFields.length > 0) {
+        return NextResponse.json(
+          { message: `Required fields missing: ${missingFields.join(', ')}` },
+          { status: 400 }
+        )
+      }
     }
 
     const maxBytes = 25 * 1024 * 1024
@@ -120,12 +160,11 @@ export async function POST(req: NextRequest) {
     let note
     try {
       note = await Note.create({
-        facultyName,
+        ...(category === 'academic'
+          ? { facultyName, year, semester, term }
+          : { presenterName, wing, targetAudience }),
         content,
         subject,
-        year,
-        semester,
-        term,
         category,
         document_url: cloudinaryResult.secure_url,
         storage_asset_id: cloudinaryResult.public_id,
@@ -395,8 +434,18 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { facultyName, content, subject, year, semester, term, category } =
-      body
+    const {
+      facultyName,
+      content,
+      subject,
+      year,
+      semester,
+      term,
+      category,
+      wing,
+      targetAudience,
+      presenterName,
+    } = body
 
     const note = await Note.findById(noteId)
     if (!note) {
@@ -456,6 +505,24 @@ export async function PATCH(req: NextRequest) {
       }
       updateData.category = category
     }
+    if (wing) {
+      const validWings = [
+        'ML',
+        'Web3',
+        'Web',
+        'FOSS',
+        'InfoSec',
+        'Design',
+        'App',
+        'CP',
+      ]
+      if (!validWings.includes(wing)) {
+        return NextResponse.json({ message: 'Invalid wing' }, { status: 400 })
+      }
+      updateData.wing = wing
+    }
+    if (targetAudience) updateData.targetAudience = targetAudience
+    if (presenterName) updateData.presenterName = presenterName
 
     updateData.$push = {
       updated_by: {
