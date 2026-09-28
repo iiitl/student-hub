@@ -75,8 +75,10 @@ const REQUEST_SIZE_OVERRIDES: Record<string, number> = {
 }
 
 function getMaxRequestSize(path: string): number {
-  const override = Object.entries(REQUEST_SIZE_OVERRIDES).find(([prefix]) =>
-    path.startsWith(prefix)
+  // Match on a path-segment boundary so '/api/papers' doesn't also catch an
+  // unrelated route like '/api/paperssomething'.
+  const override = Object.entries(REQUEST_SIZE_OVERRIDES).find(
+    ([prefix]) => path === prefix || path.startsWith(prefix + '/')
   )
   return override ? override[1] : MAX_REQUEST_SIZE
 }

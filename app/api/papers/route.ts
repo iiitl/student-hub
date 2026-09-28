@@ -111,6 +111,14 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Fail fast on file count before doing any per-file validation work.
+    if (files.length > MAX_MERGE_FILES) {
+      return NextResponse.json(
+        { message: `You can upload at most ${MAX_MERGE_FILES} files at once` },
+        { status: 413 }
+      )
+    }
+
     //Validate files before buffering
     const maxBytes = 10 * 1024 * 1024
     const allowed = new Set([
@@ -122,13 +130,13 @@ export async function POST(req: NextRequest) {
     for (const f of files) {
       if (!allowed.has(f.type)) {
         return NextResponse.json(
-          { message: 'Unsupported file format' },
+          { message: `File "${f.name}" has an unsupported file format` },
           { status: 415 }
         )
       }
       if ((f.size ?? 0) > maxBytes) {
         return NextResponse.json(
-          { message: 'File size must not exceed 10MB' },
+          { message: `File "${f.name}" exceeds the 10MB per-file limit` },
           { status: 413 }
         )
       }
@@ -145,12 +153,6 @@ export async function POST(req: NextRequest) {
       fileType = files[0].type
     } else {
       // Multiple files selected: merge them into a single PDF (one page per image).
-      if (files.length > MAX_MERGE_FILES) {
-        return NextResponse.json(
-          { message: `You can merge at most ${MAX_MERGE_FILES} pages at once` },
-          { status: 413 }
-        )
-      }
       if (files.some((f) => !MERGEABLE_IMAGE_TYPES.has(f.type))) {
         return NextResponse.json(
           {

@@ -147,10 +147,20 @@ const UploadPaperPage = () => {
         return
       }
 
+      // Fail fast on file count before per-file checks.
+      if (formData.uploaded_files.length > MAX_MERGE_FILES) {
+        setError(`You can upload at most ${MAX_MERGE_FILES} files at once`)
+        setIsLoading(false)
+        return
+      }
+
       // Validate file size (10MB max per file)
       const maxSize = 10 * 1024 * 1024 // 10MB in bytes
-      if (formData.uploaded_files.some((f) => f.size > maxSize)) {
-        setError('Each file size must not exceed 10MB')
+      const oversizedFile = formData.uploaded_files.find(
+        (f) => f.size > maxSize
+      )
+      if (oversizedFile) {
+        setError(`File "${oversizedFile.name}" exceeds the 10MB per-file limit`)
         setIsLoading(false)
         return
       }
@@ -162,8 +172,13 @@ const UploadPaperPage = () => {
         'image/jpeg',
         'image/webp',
       ]
-      if (formData.uploaded_files.some((f) => !allowedTypes.includes(f.type))) {
-        setError('Only PDF, PNG, JPG, JPEG, and WEBP files are allowed')
+      const unsupportedFile = formData.uploaded_files.find(
+        (f) => !allowedTypes.includes(f.type)
+      )
+      if (unsupportedFile) {
+        setError(
+          `File "${unsupportedFile.name}" has an unsupported format. Only PDF, PNG, JPG, JPEG, and WEBP files are allowed`
+        )
         setIsLoading(false)
         return
       }
@@ -178,11 +193,6 @@ const UploadPaperPage = () => {
           setError(
             'When uploading multiple pages, all files must be PNG or JPEG images (PDF and WEBP are only supported for a single-page upload)'
           )
-          setIsLoading(false)
-          return
-        }
-        if (formData.uploaded_files.length > MAX_MERGE_FILES) {
-          setError(`You can merge at most ${MAX_MERGE_FILES} pages at once`)
           setIsLoading(false)
           return
         }
