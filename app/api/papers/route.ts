@@ -2,6 +2,7 @@ import dbConnect from '@/lib/dbConnect'
 import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs/promises'
 import path from 'path'
+import { PDFDocument } from 'pdf-lib'
 import { uploadOnCloudinary } from '@/helpers/cloudinary'
 import Paper from '@/model/paper'
 import { verifyJwt } from '@/lib/auth-utils'
@@ -9,13 +10,55 @@ import Log from '@/model/logs'
 import { tmpdir } from 'os'
 import { randomUUID } from 'crypto'
 import User from '@/model/User'
+import { MAX_MERGE_FILES, MAX_MERGE_TOTAL_BYTES } from '@/lib/upload-constants'
 
 //TODO: fix all Lints to proper types.
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
+export const runtime = 'nodejs'
+
+// pdf-lib can only embed PNG/JPEG natively, so multi-image merging is limited
+// to those formats (WEBP is still fine for single-file uploads).
+const MERGEABLE_IMAGE_TYPES = new Set(['image/png', 'image/jpeg'])
+
+class ImageDecodeError extends Error {}
+
+// Combines two or more images into a single in-memory PDF (one image per page).
+async function mergeImagesToPdf(files: File[]): Promise<Buffer> {
+  const pdfDoc = await PDFDocument.create()
+
+  for (const file of files) {
+    const bytes = await file.arrayBuffer()
+
+    let image
+    try {
+      if (file.type === 'image/png') {
+        image = await pdfDoc.embedPng(bytes)
+      } else if (file.type === 'image/jpeg') {
+        image = await pdfDoc.embedJpg(bytes)
+      } else {
+        throw new ImageDecodeError(
+          `Unsupported image type for PDF merge: ${file.type}`
+        )
+      }
+    } catch (err) {
+      // Preserve the specific message above; only wrap pdf-lib's own
+      // decode failures (e.g. bytes that don't match their declared MIME
+      // type) with a message that names the offending file.
+      if (err instanceof ImageDecodeError) throw err
+      throw new ImageDecodeError(`Could not read image file: ${file.name}`)
+    }
+
+    const page = pdfDoc.addPage([image.width, image.height])
+    page.drawImage(image, {
+      x: 0,
+      y: 0,
+      width: image.width,
+      height: image.height,
+    })
+  }
+
+  const pdfBytes = await pdfDoc.save()
+  return Buffer.from(pdfBytes)
 }
 
 export async function POST(req: NextRequest) {
@@ -48,9 +91,11 @@ export async function POST(req: NextRequest) {
     }
 
     const term = formData.get('term') as string
-    const file = formData.get('uploaded_file') as File | null
+    const files = formData
+      .getAll('uploaded_file')
+      .filter((f): f is File => f instanceof File && f.size > 0)
 
-    if (!subject || !year || !semester || !term || !file) {
+    if (!subject || !year || !semester || !term || files.length === 0) {
       const missingFields = []
       // if (!facultyName?.trim()) missingFields.push('facultyName') // Optional now
       // if (!content?.trim()) missingFields.push('content') // Optional now
@@ -58,11 +103,19 @@ export async function POST(req: NextRequest) {
       if (!year) missingFields.push('year')
       if (!semester) missingFields.push('semester')
       if (!term?.trim()) missingFields.push('term')
-      if (!file) missingFields.push('file')
+      if (files.length === 0) missingFields.push('file')
 
       return NextResponse.json(
         { message: `Required fields missing: ${missingFields.join(', ')}` },
         { status: 400 }
+      )
+    }
+
+    // Fail fast on file count before doing any per-file validation work.
+    if (files.length > MAX_MERGE_FILES) {
+      return NextResponse.json(
+        { message: `You can upload at most ${MAX_MERGE_FILES} files at once` },
+        { status: 413 }
       )
     }
 
@@ -74,26 +127,84 @@ export async function POST(req: NextRequest) {
       'image/jpeg',
       'image/webp',
     ])
-    if (!allowed.has(file.type)) {
-      return NextResponse.json(
-        { message: 'Unsupported file format' },
-        { status: 415 }
-      )
-    }
-    if ((file.size ?? 0) > maxBytes) {
-      return NextResponse.json(
-        { message: 'File size must not exceed 10MB' },
-        { status: 413 }
-      )
+    for (const f of files) {
+      if (!allowed.has(f.type)) {
+        return NextResponse.json(
+          { message: `File "${f.name}" has an unsupported file format` },
+          { status: 415 }
+        )
+      }
+      if ((f.size ?? 0) > maxBytes) {
+        return NextResponse.json(
+          { message: `File "${f.name}" exceeds the 10MB per-file limit` },
+          { status: 413 }
+        )
+      }
     }
 
-    // Convert File → Buffer
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
+    let buffer: Buffer
+    let fileName: string
+    let fileType: string
+
+    if (files.length === 1) {
+      const bytes = await files[0].arrayBuffer()
+      buffer = Buffer.from(bytes)
+      fileName = files[0].name
+      fileType = files[0].type
+    } else {
+      // Multiple files selected: merge them into a single PDF (one page per image).
+      if (files.some((f) => !MERGEABLE_IMAGE_TYPES.has(f.type))) {
+        return NextResponse.json(
+          {
+            message:
+              'When uploading multiple files, all of them must be PNG or JPEG images',
+          },
+          { status: 415 }
+        )
+      }
+      const totalBytes = files.reduce((sum, f) => sum + f.size, 0)
+      if (totalBytes > MAX_MERGE_TOTAL_BYTES) {
+        return NextResponse.json(
+          {
+            message: `Combined size of files to merge must not exceed ${
+              MAX_MERGE_TOTAL_BYTES / (1024 * 1024)
+            }MB`,
+          },
+          { status: 413 }
+        )
+      }
+
+      try {
+        buffer = await mergeImagesToPdf(files)
+      } catch (err) {
+        if (err instanceof ImageDecodeError) {
+          return NextResponse.json({ message: err.message }, { status: 415 })
+        }
+        throw err
+      }
+
+      // Not redundant with the totalBytes check above: pdf-lib re-encodes
+      // PNGs as flate-compressed image XObjects rather than keeping their
+      // original (often better) compression, so the merged PDF can end up
+      // larger than the sum of the source images.
+      if (buffer.length > MAX_MERGE_TOTAL_BYTES) {
+        return NextResponse.json(
+          {
+            message: `Merged PDF exceeds the ${
+              MAX_MERGE_TOTAL_BYTES / (1024 * 1024)
+            }MB limit`,
+          },
+          { status: 413 }
+        )
+      }
+
+      fileName = 'merged-paper.pdf'
+      fileType = 'application/pdf'
+    }
 
     // Step 1: Save to os temp, sanitize name, with cleanup
     const safeExt = path
-      .extname(file.name || '')
+      .extname(fileName || '')
       .replace(/[^.\w]/g, '')
       .slice(0, 10)
     const tempFilePath = path.join(
@@ -127,8 +238,8 @@ export async function POST(req: NextRequest) {
       term,
       year,
       document_url: cloudinaryResult.secure_url,
-      file_name: file.name,
-      file_type: file.type,
+      file_name: fileName,
+      file_type: fileType,
       uploaded_by: userId,
     })
 

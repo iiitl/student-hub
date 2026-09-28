@@ -4,6 +4,7 @@ import { getToken } from 'next-auth/jwt'
 import { Ratelimit } from '@upstash/ratelimit'
 import { kv } from '@vercel/kv'
 import { isKnownBot } from './lib/security'
+import { MAX_MERGE_TOTAL_BYTES } from './lib/upload-constants'
 
 // Check if rate limiting should be enabled
 const isRateLimitingEnabled = () => {
@@ -62,8 +63,25 @@ const rateLimiterMap = rateLimiters
     }
   : {}
 
-// Maximum request size (10MB)
+// Maximum request size (10MB) for most endpoints
 const MAX_REQUEST_SIZE = 10 * 1024 * 1024
+
+// /api/papers accepts multiple images merged into one PDF, so it needs
+// headroom above the default cap: MAX_MERGE_TOTAL_BYTES (the payload budget
+// enforced in app/api/papers/route.ts) plus ~5MB for multipart/form-data
+// boundaries and the other form fields.
+const REQUEST_SIZE_OVERRIDES: Record<string, number> = {
+  '/api/papers': MAX_MERGE_TOTAL_BYTES + 5 * 1024 * 1024,
+}
+
+function getMaxRequestSize(path: string): number {
+  // Match on a path-segment boundary so '/api/papers' doesn't also catch an
+  // unrelated route like '/api/paperssomething'.
+  const override = Object.entries(REQUEST_SIZE_OVERRIDES).find(
+    ([prefix]) => path === prefix || path.startsWith(prefix + '/')
+  )
+  return override ? override[1] : MAX_REQUEST_SIZE
+}
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname
@@ -89,11 +107,13 @@ export async function middleware(request: NextRequest) {
 
   // Check request size
   const contentLength = request.headers.get('content-length')
-  if (contentLength && parseInt(contentLength) > MAX_REQUEST_SIZE) {
+  const maxRequestSize = getMaxRequestSize(path)
+  if (contentLength && parseInt(contentLength) > maxRequestSize) {
     return NextResponse.json(
       {
-        message:
-          'File size exceeds the maximum limit of 10MB. Please upload a smaller file.',
+        message: `File size exceeds the maximum limit of ${
+          maxRequestSize / (1024 * 1024)
+        }MB. Please upload a smaller file.`,
       },
       { status: 413 }
     )
