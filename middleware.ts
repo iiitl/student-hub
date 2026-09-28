@@ -4,6 +4,7 @@ import { getToken } from 'next-auth/jwt'
 import { Ratelimit } from '@upstash/ratelimit'
 import { kv } from '@vercel/kv'
 import { isKnownBot } from './lib/security'
+import { MAX_MERGE_TOTAL_BYTES } from './lib/upload-constants'
 
 // Check if rate limiting should be enabled
 const isRateLimitingEnabled = () => {
@@ -65,11 +66,12 @@ const rateLimiterMap = rateLimiters
 // Maximum request size (10MB) for most endpoints
 const MAX_REQUEST_SIZE = 10 * 1024 * 1024
 
-// /api/papers accepts multiple images (up to 10MB each) merged into one PDF,
-// so it needs headroom above the default cap. Keep in sync with
-// MAX_MERGE_TOTAL_BYTES in app/api/papers/route.ts.
+// /api/papers accepts multiple images merged into one PDF, so it needs
+// headroom above the default cap: MAX_MERGE_TOTAL_BYTES (the payload budget
+// enforced in app/api/papers/route.ts) plus ~5MB for multipart/form-data
+// boundaries and the other form fields.
 const REQUEST_SIZE_OVERRIDES: Record<string, number> = {
-  '/api/papers': 35 * 1024 * 1024,
+  '/api/papers': MAX_MERGE_TOTAL_BYTES + 5 * 1024 * 1024,
 }
 
 function getMaxRequestSize(path: string): number {

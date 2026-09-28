@@ -25,6 +25,7 @@ import {
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
+import { MAX_MERGE_FILES, MAX_MERGE_TOTAL_BYTES } from '@/lib/upload-constants'
 
 const UploadPaperPage = () => {
   const router = useRouter()
@@ -169,10 +170,6 @@ const UploadPaperPage = () => {
 
       // When multiple files are selected, they'll be merged into a single PDF
       // (one page per image) — pdf-lib can only embed PNG/JPEG.
-      // Keep these in sync with MAX_MERGE_FILES / MAX_MERGE_TOTAL_BYTES in
-      // app/api/papers/route.ts.
-      const MAX_MERGE_FILES = 10
-      const MAX_MERGE_TOTAL_BYTES = 30 * 1024 * 1024
       if (formData.uploaded_files.length > 1) {
         const mergeableTypes = ['image/png', 'image/jpeg']
         if (

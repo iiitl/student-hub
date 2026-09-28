@@ -10,28 +10,15 @@ import Log from '@/model/logs'
 import { tmpdir } from 'os'
 import { randomUUID } from 'crypto'
 import User from '@/model/User'
+import { MAX_MERGE_FILES, MAX_MERGE_TOTAL_BYTES } from '@/lib/upload-constants'
 
 //TODO: fix all Lints to proper types.
 
 export const runtime = 'nodejs'
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-}
-
 // pdf-lib can only embed PNG/JPEG natively, so multi-image merging is limited
 // to those formats (WEBP is still fine for single-file uploads).
 const MERGEABLE_IMAGE_TYPES = new Set(['image/png', 'image/jpeg'])
-
-// Upper bound on page count so a single request can't force unbounded
-// in-memory buffering while pdf-lib assembles the PDF.
-const MAX_MERGE_FILES = 10
-
-// Aggregate budget for a multi-file merge, independent of the 10MB-per-file
-// cap (that cap alone would let a 10-page upload balloon past 100MB).
-const MAX_MERGE_TOTAL_BYTES = 30 * 1024 * 1024
 
 class ImageDecodeError extends Error {}
 
@@ -53,9 +40,11 @@ async function mergeImagesToPdf(files: File[]): Promise<Buffer> {
           `Unsupported image type for PDF merge: ${file.type}`
         )
       }
-    } catch {
-      // Covers both the explicit throw above and pdf-lib failing to decode
-      // bytes that don't actually match their declared MIME type.
+    } catch (err) {
+      // Preserve the specific message above; only wrap pdf-lib's own
+      // decode failures (e.g. bytes that don't match their declared MIME
+      // type) with a message that names the offending file.
+      if (err instanceof ImageDecodeError) throw err
       throw new ImageDecodeError(`Could not read image file: ${file.name}`)
     }
 
@@ -192,6 +181,10 @@ export async function POST(req: NextRequest) {
         throw err
       }
 
+      // Not redundant with the totalBytes check above: pdf-lib re-encodes
+      // PNGs as flate-compressed image XObjects rather than keeping their
+      // original (often better) compression, so the merged PDF can end up
+      // larger than the sum of the source images.
       if (buffer.length > MAX_MERGE_TOTAL_BYTES) {
         return NextResponse.json(
           {
