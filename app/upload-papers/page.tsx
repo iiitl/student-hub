@@ -117,6 +117,11 @@ const UploadPaperPage = () => {
       ...prev,
       uploaded_files: prev.uploaded_files.filter((_, i) => i !== index),
     }))
+    // The native input still holds the old FileList, so without clearing it
+    // re-selecting the same file wouldn't fire onChange.
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -164,6 +169,10 @@ const UploadPaperPage = () => {
 
       // When multiple files are selected, they'll be merged into a single PDF
       // (one page per image) — pdf-lib can only embed PNG/JPEG.
+      // Keep these in sync with MAX_MERGE_FILES / MAX_MERGE_TOTAL_BYTES in
+      // app/api/papers/route.ts.
+      const MAX_MERGE_FILES = 10
+      const MAX_MERGE_TOTAL_BYTES = 30 * 1024 * 1024
       if (formData.uploaded_files.length > 1) {
         const mergeableTypes = ['image/png', 'image/jpeg']
         if (
@@ -171,6 +180,24 @@ const UploadPaperPage = () => {
         ) {
           setError(
             'When uploading multiple pages, all files must be PNG or JPEG images (PDF and WEBP are only supported for a single-page upload)'
+          )
+          setIsLoading(false)
+          return
+        }
+        if (formData.uploaded_files.length > MAX_MERGE_FILES) {
+          setError(`You can merge at most ${MAX_MERGE_FILES} pages at once`)
+          setIsLoading(false)
+          return
+        }
+        const totalBytes = formData.uploaded_files.reduce(
+          (sum, f) => sum + f.size,
+          0
+        )
+        if (totalBytes > MAX_MERGE_TOTAL_BYTES) {
+          setError(
+            `Combined size of files to merge must not exceed ${
+              MAX_MERGE_TOTAL_BYTES / (1024 * 1024)
+            }MB`
           )
           setIsLoading(false)
           return
@@ -484,7 +511,6 @@ const UploadPaperPage = () => {
                     multiple
                     onChange={handleFileChange}
                     className="hidden"
-                    required
                   />
                   <label htmlFor="file" className="cursor-pointer">
                     <div className="flex flex-col items-center gap-2">
@@ -512,7 +538,7 @@ const UploadPaperPage = () => {
                   <ul className="space-y-1">
                     {formData.uploaded_files.map((f, index) => (
                       <li
-                        key={`${f.name}-${index}`}
+                        key={`${f.name}-${f.size}-${f.lastModified}-${index}`}
                         className="flex items-center justify-between text-xs bg-muted/50 rounded px-2 py-1"
                       >
                         <span className="text-green-600 truncate">

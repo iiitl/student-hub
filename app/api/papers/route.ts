@@ -25,16 +25,39 @@ export const config = {
 // to those formats (WEBP is still fine for single-file uploads).
 const MERGEABLE_IMAGE_TYPES = new Set(['image/png', 'image/jpeg'])
 
+// Upper bound on page count so a single request can't force unbounded
+// in-memory buffering while pdf-lib assembles the PDF.
+const MAX_MERGE_FILES = 10
+
+// Aggregate budget for a multi-file merge, independent of the 10MB-per-file
+// cap (that cap alone would let a 10-page upload balloon past 100MB).
+const MAX_MERGE_TOTAL_BYTES = 30 * 1024 * 1024
+
+class ImageDecodeError extends Error {}
+
 // Combines two or more images into a single in-memory PDF (one image per page).
 async function mergeImagesToPdf(files: File[]): Promise<Buffer> {
   const pdfDoc = await PDFDocument.create()
 
   for (const file of files) {
     const bytes = await file.arrayBuffer()
-    const image =
-      file.type === 'image/png'
-        ? await pdfDoc.embedPng(bytes)
-        : await pdfDoc.embedJpg(bytes)
+
+    let image
+    try {
+      if (file.type === 'image/png') {
+        image = await pdfDoc.embedPng(bytes)
+      } else if (file.type === 'image/jpeg') {
+        image = await pdfDoc.embedJpg(bytes)
+      } else {
+        throw new ImageDecodeError(
+          `Unsupported image type for PDF merge: ${file.type}`
+        )
+      }
+    } catch {
+      // Covers both the explicit throw above and pdf-lib failing to decode
+      // bytes that don't actually match their declared MIME type.
+      throw new ImageDecodeError(`Could not read image file: ${file.name}`)
+    }
 
     const page = pdfDoc.addPage([image.width, image.height])
     page.drawImage(image, {
@@ -133,6 +156,12 @@ export async function POST(req: NextRequest) {
       fileType = files[0].type
     } else {
       // Multiple files selected: merge them into a single PDF (one page per image).
+      if (files.length > MAX_MERGE_FILES) {
+        return NextResponse.json(
+          { message: `You can merge at most ${MAX_MERGE_FILES} pages at once` },
+          { status: 413 }
+        )
+      }
       if (files.some((f) => !MERGEABLE_IMAGE_TYPES.has(f.type))) {
         return NextResponse.json(
           {
@@ -142,7 +171,38 @@ export async function POST(req: NextRequest) {
           { status: 415 }
         )
       }
-      buffer = await mergeImagesToPdf(files)
+      const totalBytes = files.reduce((sum, f) => sum + f.size, 0)
+      if (totalBytes > MAX_MERGE_TOTAL_BYTES) {
+        return NextResponse.json(
+          {
+            message: `Combined size of files to merge must not exceed ${
+              MAX_MERGE_TOTAL_BYTES / (1024 * 1024)
+            }MB`,
+          },
+          { status: 413 }
+        )
+      }
+
+      try {
+        buffer = await mergeImagesToPdf(files)
+      } catch (err) {
+        if (err instanceof ImageDecodeError) {
+          return NextResponse.json({ message: err.message }, { status: 415 })
+        }
+        throw err
+      }
+
+      if (buffer.length > MAX_MERGE_TOTAL_BYTES) {
+        return NextResponse.json(
+          {
+            message: `Merged PDF exceeds the ${
+              MAX_MERGE_TOTAL_BYTES / (1024 * 1024)
+            }MB limit`,
+          },
+          { status: 413 }
+        )
+      }
+
       fileName = 'merged-paper.pdf'
       fileType = 'application/pdf'
     }

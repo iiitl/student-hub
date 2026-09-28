@@ -62,8 +62,22 @@ const rateLimiterMap = rateLimiters
     }
   : {}
 
-// Maximum request size (10MB)
+// Maximum request size (10MB) for most endpoints
 const MAX_REQUEST_SIZE = 10 * 1024 * 1024
+
+// /api/papers accepts multiple images (up to 10MB each) merged into one PDF,
+// so it needs headroom above the default cap. Keep in sync with
+// MAX_MERGE_TOTAL_BYTES in app/api/papers/route.ts.
+const REQUEST_SIZE_OVERRIDES: Record<string, number> = {
+  '/api/papers': 35 * 1024 * 1024,
+}
+
+function getMaxRequestSize(path: string): number {
+  const override = Object.entries(REQUEST_SIZE_OVERRIDES).find(([prefix]) =>
+    path.startsWith(prefix)
+  )
+  return override ? override[1] : MAX_REQUEST_SIZE
+}
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname
@@ -89,11 +103,13 @@ export async function middleware(request: NextRequest) {
 
   // Check request size
   const contentLength = request.headers.get('content-length')
-  if (contentLength && parseInt(contentLength) > MAX_REQUEST_SIZE) {
+  const maxRequestSize = getMaxRequestSize(path)
+  if (contentLength && parseInt(contentLength) > maxRequestSize) {
     return NextResponse.json(
       {
-        message:
-          'File size exceeds the maximum limit of 10MB. Please upload a smaller file.',
+        message: `File size exceeds the maximum limit of ${
+          maxRequestSize / (1024 * 1024)
+        }MB. Please upload a smaller file.`,
       },
       { status: 413 }
     )
