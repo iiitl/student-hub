@@ -37,7 +37,7 @@ const UploadPaperPage = () => {
     year: '',
     semester: '',
     term: '',
-    uploaded_file: null as File | null,
+    uploaded_files: [] as File[],
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -103,13 +103,20 @@ const UploadPaperPage = () => {
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null
+    const files = Array.from(e.target.files || [])
     setFormData((prev) => ({
       ...prev,
-      uploaded_file: file,
+      uploaded_files: files,
     }))
-    // Clear error when user selects a new file
+    // Clear error when user selects new files
     if (error) setError(null)
+  }
+
+  const handleRemoveFile = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      uploaded_files: prev.uploaded_files.filter((_, i) => i !== index),
+    }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -127,17 +134,17 @@ const UploadPaperPage = () => {
         !formData.year ||
         !formData.semester ||
         !formData.term ||
-        !formData.uploaded_file
+        formData.uploaded_files.length === 0
       ) {
         setError('Please fill in all required fields')
         setIsLoading(false)
         return
       }
 
-      // Validate file size (10MB max)
+      // Validate file size (10MB max per file)
       const maxSize = 10 * 1024 * 1024 // 10MB in bytes
-      if (formData.uploaded_file.size > maxSize) {
-        setError('File size must not exceed 10MB')
+      if (formData.uploaded_files.some((f) => f.size > maxSize)) {
+        setError('Each file size must not exceed 10MB')
         setIsLoading(false)
         return
       }
@@ -149,10 +156,25 @@ const UploadPaperPage = () => {
         'image/jpeg',
         'image/webp',
       ]
-      if (!allowedTypes.includes(formData.uploaded_file.type)) {
+      if (formData.uploaded_files.some((f) => !allowedTypes.includes(f.type))) {
         setError('Only PDF, PNG, JPG, JPEG, and WEBP files are allowed')
         setIsLoading(false)
         return
+      }
+
+      // When multiple files are selected, they'll be merged into a single PDF
+      // (one page per image) — pdf-lib can only embed PNG/JPEG.
+      if (formData.uploaded_files.length > 1) {
+        const mergeableTypes = ['image/png', 'image/jpeg']
+        if (
+          formData.uploaded_files.some((f) => !mergeableTypes.includes(f.type))
+        ) {
+          setError(
+            'When uploading multiple pages, all files must be PNG or JPEG images (PDF and WEBP are only supported for a single-page upload)'
+          )
+          setIsLoading(false)
+          return
+        }
       }
 
       // Create FormData object
@@ -163,7 +185,9 @@ const UploadPaperPage = () => {
       submitFormData.append('year', formData.year)
       submitFormData.append('semester', formData.semester)
       submitFormData.append('term', formData.term)
-      submitFormData.append('uploaded_file', formData.uploaded_file)
+      formData.uploaded_files.forEach((f) =>
+        submitFormData.append('uploaded_file', f)
+      )
 
       // Make API call
       const response = await fetch('/api/papers', {
@@ -197,7 +221,7 @@ const UploadPaperPage = () => {
         year: '',
         semester: '',
         term: '',
-        uploaded_file: null,
+        uploaded_files: [],
       })
       setCustomSubject('')
       setIsNewSubject(false)
@@ -457,6 +481,7 @@ const UploadPaperPage = () => {
                     id="file"
                     type="file"
                     accept=".pdf,.png,.jpg,.jpeg,.webp"
+                    multiple
                     onChange={handleFileChange}
                     className="hidden"
                     required
@@ -466,22 +491,44 @@ const UploadPaperPage = () => {
                       <Upload className="h-8 w-8 text-muted-foreground" />
                       <div>
                         <p className="text-sm font-medium">
-                          {formData.uploaded_file
-                            ? formData.uploaded_file.name
-                            : 'Click to upload file'}
+                          {formData.uploaded_files.length > 0
+                            ? `${formData.uploaded_files.length} file${
+                                formData.uploaded_files.length > 1 ? 's' : ''
+                              } selected`
+                            : 'Click to upload file(s)'}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          PDF, PNG, JPG, JPEG, WEBP (Max 10MB)
+                          Single file: PDF, PNG, JPG, JPEG, WEBP (Max 10MB each)
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Multiple pages: select 2+ PNG/JPG images to merge into
+                          one PDF
                         </p>
                       </div>
                     </div>
                   </label>
                 </div>
-                {formData.uploaded_file && (
-                  <p className="text-xs text-green-600">
-                    ✓ File selected: {formData.uploaded_file.name} (
-                    {(formData.uploaded_file.size / 1024 / 1024).toFixed(2)} MB)
-                  </p>
+                {formData.uploaded_files.length > 0 && (
+                  <ul className="space-y-1">
+                    {formData.uploaded_files.map((f, index) => (
+                      <li
+                        key={`${f.name}-${index}`}
+                        className="flex items-center justify-between text-xs bg-muted/50 rounded px-2 py-1"
+                      >
+                        <span className="text-green-600 truncate">
+                          ✓ {f.name} ({(f.size / 1024 / 1024).toFixed(2)} MB)
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveFile(index)}
+                          className="text-muted-foreground hover:text-destructive ml-2"
+                          aria-label={`Remove ${f.name}`}
+                        >
+                          Remove
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </div>
 
@@ -519,8 +566,12 @@ const UploadPaperPage = () => {
               </h4>
               <ul className="space-y-1 ml-4">
                 <li>• Ensure the paper is clear and readable</li>
-                <li>• Maximum file size: 10MB</li>
+                <li>• Maximum file size: 10MB per file</li>
                 <li>• Supported formats: PDF, PNG, JPG, JPEG, WEBP</li>
+                <li>
+                  • Multi-page papers: select all page images (PNG/JPG) at once
+                  and they&apos;ll be merged into a single PDF automatically
+                </li>
                 <li>• All fields marked with * are required</li>
                 <li>
                   • Your uploaded paper will be reviewed before publication
