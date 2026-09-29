@@ -3,13 +3,12 @@ import React, { useEffect, useState } from 'react'
 import QuestionPaperCard from '@/components/papers/question-paper-card'
 import { TypeQuestionPaper } from '@/types/question-paper'
 import PaperFilterDropdown from '@/components/papers/paper-filter-dropdown'
-import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import GenerateMockDialog from '@/components/papers/generate-mock-dialog'
 
 const QuestionPapers = () => {
-  const { data: session } = useSession()
   const router = useRouter()
   const [selectedBatch, setSelectedBatch] = useState<string>('All')
   const [selectedSemester, setSelectedSemester] = useState<string>('All')
@@ -27,7 +26,7 @@ const QuestionPapers = () => {
   const [batches, setBatches] = useState<string[]>(['All'])
   const [semesters, setSemesters] = useState<string[]>(['All'])
   const [subjects, setSubjects] = useState<string[]>(['All'])
-  const [exams, setExams] = useState<string[]>([
+  const [exams] = useState<string[]>([
     'Mid',
     'End',
     'All',
@@ -113,9 +112,10 @@ const QuestionPapers = () => {
 
   // Helper function to extract semester number from term
   const extractSemesterNumber = (
-    term: string
+    term: string | undefined
   ): 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 => {
     // If term contains "semester-X", extract X
+    if (!term) return 1
     const match = term.match(/semester[- ]?(\d)/i)
     if (match) {
       const num = parseInt(match[1])
@@ -126,7 +126,7 @@ const QuestionPapers = () => {
 
   // Helper function to normalize exam type
   const normalizeExamType = (
-    term: string
+    term: string | undefined
   ):
     | 'Mid'
     | 'End'
@@ -134,6 +134,7 @@ const QuestionPapers = () => {
     | 'Class_test_1'
     | 'Class_test_2'
     | 'Class_test_3' => {
+    if (!term) return 'Mid'
     const lowerTerm = term.toLowerCase()
     if (lowerTerm.includes('mid')) return 'Mid'
     if (lowerTerm.includes('end')) return 'End'
@@ -188,13 +189,16 @@ const QuestionPapers = () => {
     <div className="w-full flex flex-col items-center justify-center">
       <div className="flex flex-col sm:flex-row sm:relative sm:justify-center items-center w-full max-w-7xl px-5 mt-6 mb-2 gap-3 sm:gap-0">
         <h1 className="text-3xl font-semibold text-center">Question Papers</h1>
-        <Button
-          onClick={() => router.push('/upload-papers')}
-          className="sm:absolute sm:right-5 flex items-center gap-2"
-        >
-          <Upload className="h-4 w-4" />
-          Upload Paper
-        </Button>
+        <div className="sm:absolute sm:right-5 flex items-center gap-2">
+          <GenerateMockDialog subjects={subjects} />
+          <Button
+            onClick={() => router.push('/upload-papers')}
+            className="flex items-center gap-2"
+          >
+            <Upload className="h-4 w-4" />
+            Upload Paper
+          </Button>
+        </div>
       </div>
       <div className="flex justify-center items-center gap-5 flex-wrap w-full px-5 py-3">
         <div className="flex items-center gap-4">

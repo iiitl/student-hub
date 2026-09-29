@@ -1,0 +1,459 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/app/api/auth/[...nextauth]/options'
+import dbConnect from '@/lib/dbConnect'
+import User from '@/model/User'
+import Note from '@/model/note'
+
+export const dynamic = 'force-dynamic'
+export const maxDuration = 300
+
+const EXPLAIN_PROMPT = `You are an expert academic tutor. Analyze these study notes thoroughly and produce a clear, comprehensive explanation that helps students understand the material deeply.
+
+Structure your explanation in Markdown:
+- ## Overview — a brief summary of what the notes cover
+- ## Key Concepts — break down each important concept with definitions and plain-language explanations
+- ## Important Details — formulas, algorithms, theorems, rules — anything worth memorising
+- ## Examples & Analogies — where helpful, add examples or analogies to make abstract ideas concrete
+- ## Exam Tips — highlight what is most likely to be tested and what students should focus on
+
+Be thorough, accurate, and student-friendly throughout.`
+
+// ── Entry point ──────────────────────────────────────────────────────────────
+
+export async function POST(req: NextRequest) {
+  const session = await getServerSession(authOptions)
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const body = await req.json()
+  const { noteId } = body
+  if (!noteId) {
+    return NextResponse.json({ error: 'Note ID is required' }, { status: 400 })
+  }
+
+  await dbConnect()
+
+  const [note, user] = await Promise.all([
+    Note.findById(noteId).lean(),
+    User.findOne({ email: session.user.email }).select(
+      '+llmApiKey +llmProvider'
+    ),
+  ])
+
+  if (!note) {
+    return NextResponse.json({ error: 'Note not found' }, { status: 404 })
+  }
+
+  if (!user?.llmApiKey || !user?.llmProvider) {
+    return NextResponse.json(
+      {
+        error:
+          'No LLM API key found. Please add your API key in your profile first.',
+      },
+      { status: 400 }
+    )
+  }
+
+  const provider = user.llmProvider!
+  const apiKey = user.llmApiKey!
+  const fileUrl: string = note.document_url
+  const fileType: string = note.file_type
+
+  // Providers that need base64 download for PDF inputs
+  let fileBase64: string | null = null
+  const needsDownload =
+    fileType === 'application/pdf' &&
+    (provider === 'OpenAI' || provider === 'Groq' || provider === 'Mistral')
+
+  if (needsDownload) {
+    try {
+      const fileRes = await fetch(fileUrl)
+      if (!fileRes.ok) throw new Error('Fetch failed')
+      fileBase64 = Buffer.from(await fileRes.arrayBuffer()).toString('base64')
+    } catch {
+      return NextResponse.json(
+        { error: 'Failed to download the note file from storage.' },
+        { status: 500 }
+      )
+    }
+  }
+
+  const encoder = new TextEncoder()
+
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      try {
+        await dispatchProvider({
+          provider,
+          apiKey,
+          fileUrl,
+          fileType,
+          fileBase64,
+          prompt: EXPLAIN_PROMPT,
+          controller,
+          encoder,
+        })
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Unexpected LLM error'
+        controller.enqueue(encoder.encode(`\n\n> **Error:** ${msg}`))
+      } finally {
+        controller.close()
+      }
+    },
+  })
+
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'no-cache',
+      'X-LLM-Provider': provider,
+    },
+  })
+}
+
+// ── Types ────────────────────────────────────────────────────────────────────
+
+interface ProviderOpts {
+  provider: string
+  apiKey: string
+  fileUrl: string
+  fileType: string
+  fileBase64: string | null
+  prompt: string
+  controller: ReadableStreamDefaultController<Uint8Array>
+  encoder: TextEncoder
+}
+
+// ── Router ───────────────────────────────────────────────────────────────────
+
+async function dispatchProvider(opts: ProviderOpts) {
+  switch (opts.provider) {
+    case 'Anthropic':
+      return explainAnthropic(opts)
+    case 'OpenAI':
+      return explainOpenAI(opts)
+    case 'Gemini':
+      return explainGemini(opts)
+    case 'Groq':
+      return explainGroq(opts)
+    case 'Mistral':
+      return explainMistral(opts)
+    case 'Cohere':
+      return explainCohere(opts)
+    default:
+      throw new Error(`Unsupported provider: ${opts.provider}`)
+  }
+}
+
+// ── SSE parser ────────────────────────────────────────────────────────────────
+
+async function pipeSSE(
+  response: Response,
+  controller: ReadableStreamDefaultController<Uint8Array>,
+  encoder: TextEncoder,
+  extract: (parsed: unknown) => string | null | undefined
+) {
+  const reader = response.body!.getReader()
+  const decoder = new TextDecoder()
+  let buf = ''
+
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buf += decoder.decode(value, { stream: true })
+    const lines = buf.split('\n')
+    buf = lines.pop() ?? ''
+    for (const line of lines) {
+      const t = line.trim()
+      if (!t || t === 'data: [DONE]') continue
+      if (t.startsWith('data: ')) {
+        try {
+          const text = extract(JSON.parse(t.slice(6)))
+          if (text) controller.enqueue(encoder.encode(text))
+        } catch {
+          /* skip malformed */
+        }
+      }
+    }
+  }
+}
+
+// ── Anthropic ─────────────────────────────────────────────────────────────────
+
+async function explainAnthropic({
+  apiKey,
+  fileUrl,
+  fileType,
+  prompt,
+  controller,
+  encoder,
+}: ProviderOpts) {
+  const isPDF = fileType === 'application/pdf'
+  const mediaBlock = isPDF
+    ? { type: 'document', source: { type: 'url', url: fileUrl } }
+    : { type: 'image', source: { type: 'url', url: fileUrl } }
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'claude-opus-4-8',
+      max_tokens: 8192,
+      stream: true,
+      messages: [
+        { role: 'user', content: [mediaBlock, { type: 'text', text: prompt }] },
+      ],
+    }),
+  })
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(
+      (err as { error?: { message?: string } }).error?.message ??
+        `Anthropic error ${res.status}`
+    )
+  }
+
+  await pipeSSE(res, controller, encoder, (p) => {
+    const parsed = p as {
+      type?: string
+      delta?: { type?: string; text?: string }
+    }
+    if (
+      parsed?.type === 'content_block_delta' &&
+      parsed?.delta?.type === 'text_delta'
+    ) {
+      return parsed.delta.text
+    }
+  })
+}
+
+// ── OpenAI ────────────────────────────────────────────────────────────────────
+
+async function explainOpenAI({
+  apiKey,
+  fileUrl,
+  fileType,
+  fileBase64,
+  prompt,
+  controller,
+  encoder,
+}: ProviderOpts) {
+  const isPDF = fileType === 'application/pdf'
+  const mediaContent =
+    isPDF && fileBase64
+      ? {
+          type: 'image_url',
+          image_url: {
+            url: `data:application/pdf;base64,${fileBase64}`,
+            detail: 'high',
+          },
+        }
+      : { type: 'image_url', image_url: { url: fileUrl, detail: 'high' } }
+
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o',
+      stream: true,
+      messages: [
+        {
+          role: 'user',
+          content: [mediaContent, { type: 'text', text: prompt }],
+        },
+      ],
+    }),
+  })
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(
+      (err as { error?: { message?: string } }).error?.message ??
+        `OpenAI error ${res.status}`
+    )
+  }
+
+  await pipeSSE(res, controller, encoder, (p) => {
+    const parsed = p as { choices?: { delta?: { content?: string } }[] }
+    return parsed?.choices?.[0]?.delta?.content
+  })
+}
+
+// ── Gemini ────────────────────────────────────────────────────────────────────
+
+async function explainGemini({
+  apiKey,
+  fileUrl,
+  fileType,
+  prompt,
+  controller,
+  encoder,
+}: ProviderOpts) {
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:streamGenerateContent?alt=sse&key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              { fileData: { mimeType: fileType, fileUri: fileUrl } },
+              { text: prompt },
+            ],
+          },
+        ],
+        generationConfig: { maxOutputTokens: 8192 },
+      }),
+    }
+  )
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(
+      (err as { error?: { message?: string } }).error?.message ??
+        `Gemini error ${res.status}`
+    )
+  }
+
+  await pipeSSE(res, controller, encoder, (p) => {
+    const parsed = p as {
+      candidates?: { content?: { parts?: { text?: string }[] } }[]
+    }
+    return parsed?.candidates?.[0]?.content?.parts?.[0]?.text
+  })
+}
+
+// ── Groq ──────────────────────────────────────────────────────────────────────
+
+async function explainGroq({
+  apiKey,
+  fileUrl,
+  fileType,
+  fileBase64,
+  prompt,
+  controller,
+  encoder,
+}: ProviderOpts) {
+  const isPDF = fileType === 'application/pdf'
+  const mediaContent =
+    isPDF && fileBase64
+      ? {
+          type: 'image_url',
+          image_url: { url: `data:application/pdf;base64,${fileBase64}` },
+        }
+      : { type: 'image_url', image_url: { url: fileUrl } }
+
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'llama-3.2-90b-vision-preview',
+      stream: true,
+      messages: [
+        {
+          role: 'user',
+          content: [mediaContent, { type: 'text', text: prompt }],
+        },
+      ],
+    }),
+  })
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(
+      (err as { error?: { message?: string } }).error?.message ??
+        `Groq error ${res.status}`
+    )
+  }
+
+  await pipeSSE(res, controller, encoder, (p) => {
+    const parsed = p as { choices?: { delta?: { content?: string } }[] }
+    return parsed?.choices?.[0]?.delta?.content
+  })
+}
+
+// ── Mistral ───────────────────────────────────────────────────────────────────
+
+async function explainMistral({
+  apiKey,
+  fileUrl,
+  fileType,
+  fileBase64,
+  prompt,
+  controller,
+  encoder,
+}: ProviderOpts) {
+  const isPDF = fileType === 'application/pdf'
+  const mediaContent =
+    isPDF && fileBase64
+      ? {
+          type: 'image_url',
+          image_url: { url: `data:application/pdf;base64,${fileBase64}` },
+        }
+      : { type: 'image_url', image_url: { url: fileUrl } }
+
+  const res = await fetch('https://api.mistral.ai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'pixtral-large-latest',
+      stream: true,
+      messages: [
+        {
+          role: 'user',
+          content: [mediaContent, { type: 'text', text: prompt }],
+        },
+      ],
+    }),
+  })
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(
+      (err as { error?: { message?: string } }).error?.message ??
+        `Mistral error ${res.status}`
+    )
+  }
+
+  await pipeSSE(res, controller, encoder, (p) => {
+    const parsed = p as { choices?: { delta?: { content?: string } }[] }
+    return parsed?.choices?.[0]?.delta?.content
+  })
+}
+
+// ── Cohere ────────────────────────────────────────────────────────────────────
+
+async function explainCohere({ controller, encoder }: ProviderOpts) {
+  const msg = [
+    '## Provider Limitation',
+    '',
+    'Your current LLM provider **Cohere** does not support image or PDF analysis.',
+    '',
+    'The **Explain with AI** feature requires a vision-capable model that can read the note file. Please go to your [Profile](/profile) and switch to one of:',
+    '',
+    '- **Anthropic** — Claude Opus (recommended)',
+    '- **OpenAI** — GPT-4o',
+    '- **Gemini** — Gemini 1.5 Pro',
+    '- **Groq** — Llama 3.2 Vision',
+    '- **Mistral** — Pixtral Large',
+  ].join('\n')
+
+  controller.enqueue(encoder.encode(msg))
+}

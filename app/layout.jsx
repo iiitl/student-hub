@@ -7,6 +7,7 @@ import { Analytics } from '@vercel/analytics/next'
 import Script from 'next/script'
 import ChatWidget from '@/components/chat/ChatWidget'
 import { ThemeProvider } from '@/components/theme-provider'
+import LlmApiKeyBanner from '@/components/llm-api-key-banner'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -63,19 +64,15 @@ export default function RootLayout({ children }) {
           inter.className + ' flex flex-col min-h-screen justify-between'
         }
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <AuthProvider>
-            <Header />
-            {children}
-            <Footer />
-            <ChatWidget />
-            <Analytics />
-          </AuthProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        <AuthProvider>
+          <Header />
+          <LlmApiKeyBanner />
+          {children}
+          <Footer />
+          <ChatWidget />
+          <Analytics />
+        </AuthProvider>
         </ThemeProvider>
         {/* Google Analytics */}
         <Script

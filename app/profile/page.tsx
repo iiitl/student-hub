@@ -17,6 +17,8 @@ import {
   Crown,
   Home,
   Check,
+  KeyRound,
+  ChevronDown,
 } from 'lucide-react'
 import Image from 'next/image'
 
@@ -33,6 +35,15 @@ const LANDING_PAGE_OPTIONS = [
 ]
 
 const SUPER_ADMIN_EMAIL = 'technicalclub@iiitl.ac.in'
+
+const LLM_PROVIDERS = [
+  'Anthropic',
+  'OpenAI',
+  'Gemini',
+  'Groq',
+  'Mistral',
+  'Cohere',
+]
 
 type AdminUser = {
   id: string
@@ -59,6 +70,20 @@ export default function Profile() {
   } | null>(null)
   const [loadingAdmins, setLoadingAdmins] = useState(false)
   const [liveRoles, setLiveRoles] = useState<string[]>([])
+
+  // LLM API key state
+  const [llmKeyStatus, setLlmKeyStatus] = useState<{
+    hasKey: boolean
+    provider?: string
+    maskedKey?: string
+  } | null>(null)
+  const [llmProvider, setLlmProvider] = useState(LLM_PROVIDERS[0])
+  const [llmApiKeyInput, setLlmApiKeyInput] = useState('')
+  const [llmKeyLoading, setLlmKeyLoading] = useState(false)
+  const [llmKeyMessage, setLlmKeyMessage] = useState<{
+    type: 'success' | 'error'
+    text: string
+  } | null>(null)
 
   const isUserAdmin =
     liveRoles.includes('admin') ||
@@ -145,6 +170,91 @@ export default function Profile() {
       fetchRoles()
     }
   }, [session, status])
+
+  // Fetch LLM API key status
+  useEffect(() => {
+    if (session?.user?.email && status === 'authenticated') {
+      const fetchLlmKeyStatus = async () => {
+        try {
+          const response = await fetch('/api/user/llm-api-key')
+          if (response.ok) {
+            const data = await response.json()
+            setLlmKeyStatus(data)
+          }
+        } catch (error) {
+          console.error('Error fetching LLM key status:', error)
+        }
+      }
+      fetchLlmKeyStatus()
+    }
+  }, [session, status])
+
+  const handleSaveLlmKey = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!llmApiKeyInput.trim()) return
+
+    setLlmKeyLoading(true)
+    setLlmKeyMessage(null)
+
+    try {
+      const response = await fetch('/api/user/llm-api-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider: llmProvider, apiKey: llmApiKeyInput }),
+      })
+      const data = await response.json()
+
+      if (response.ok) {
+        setLlmKeyStatus({
+          hasKey: true,
+          provider: data.provider,
+          maskedKey: data.maskedKey,
+        })
+        setLlmApiKeyInput('')
+        setLlmKeyMessage({
+          type: 'success',
+          text: 'API key saved successfully',
+        })
+      } else {
+        setLlmKeyMessage({
+          type: 'error',
+          text: data.error || 'Failed to save API key',
+        })
+      }
+    } catch {
+      setLlmKeyMessage({ type: 'error', text: 'Failed to save API key' })
+    } finally {
+      setLlmKeyLoading(false)
+    }
+  }
+
+  const handleDeleteLlmKey = async () => {
+    if (!confirm('Are you sure you want to delete your API key?')) return
+
+    setLlmKeyLoading(true)
+    setLlmKeyMessage(null)
+
+    try {
+      const response = await fetch('/api/user/llm-api-key', {
+        method: 'DELETE',
+      })
+      const data = await response.json()
+
+      if (response.ok) {
+        setLlmKeyStatus({ hasKey: false })
+        setLlmKeyMessage({ type: 'success', text: data.message })
+      } else {
+        setLlmKeyMessage({
+          type: 'error',
+          text: data.error || 'Failed to delete API key',
+        })
+      }
+    } catch {
+      setLlmKeyMessage({ type: 'error', text: 'Failed to delete API key' })
+    } finally {
+      setLlmKeyLoading(false)
+    }
+  }
 
   // Fetch admin list
   const fetchAdmins = useCallback(async () => {
@@ -339,6 +449,118 @@ export default function Profile() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* LLM API Key Section */}
+        <div className="bg-background rounded-lg shadow-md p-6 mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <KeyRound className="h-5 w-5 text-primary" />
+            <h3 className="text-xl font-semibold">Your LLM API Key</h3>
+          </div>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
+            Add your own LLM API key to enable AI-powered features. Once saved,
+            the key cannot be edited — delete it to add a new one.
+          </p>
+
+          {llmKeyMessage && (
+            <div
+              className={`mb-4 px-4 py-3 rounded-md text-sm ${
+                llmKeyMessage.type === 'success'
+                  ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800/30'
+                  : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800/30'
+              }`}
+            >
+              {llmKeyMessage.text}
+            </div>
+          )}
+
+          {llmKeyStatus === null ? (
+            <div className="flex items-center justify-center py-4">
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+            </div>
+          ) : llmKeyStatus.hasKey ? (
+            <div className="p-4 bg-muted/30 rounded-md flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/30 flex items-center justify-center flex-shrink-0">
+                  <KeyRound className="h-5 w-5 text-primary" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">{llmKeyStatus.provider}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 font-mono truncate">
+                    {llmKeyStatus.maskedKey}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={handleDeleteLlmKey}
+                disabled={llmKeyLoading}
+                className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors disabled:opacity-50 cursor-pointer flex-shrink-0"
+                title="Delete API key"
+              >
+                {llmKeyLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4" />
+                )}
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSaveLlmKey} className="space-y-3">
+              <div>
+                <label
+                  htmlFor="llm-provider"
+                  className="block text-sm font-medium mb-1"
+                >
+                  Provider
+                </label>
+                <div className="relative">
+                  <select
+                    id="llm-provider"
+                    value={llmProvider}
+                    onChange={(e) => setLlmProvider(e.target.value)}
+                    disabled={llmKeyLoading}
+                    className="w-full appearance-none px-4 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
+                  >
+                    {LLM_PROVIDERS.map((p) => (
+                      <option key={p} value={p}>
+                        {p}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                </div>
+              </div>
+              <div>
+                <label
+                  htmlFor="llm-api-key"
+                  className="block text-sm font-medium mb-1"
+                >
+                  API Key
+                </label>
+                <input
+                  id="llm-api-key"
+                  type="password"
+                  value={llmApiKeyInput}
+                  onChange={(e) => setLlmApiKeyInput(e.target.value)}
+                  placeholder="Paste your API key here"
+                  disabled={llmKeyLoading}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={llmKeyLoading || !llmApiKeyInput.trim()}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                {llmKeyLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <KeyRound className="h-4 w-4" />
+                )}
+                Save API Key
+              </button>
+            </form>
+          )}
         </div>
 
         <div className="bg-background rounded-lg shadow-md p-6 mb-8">
